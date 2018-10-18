@@ -8,7 +8,7 @@ const tag = `v${version}`;
 const assets = fs.readdirSync(`releases/${version}`).map((name) => {
     return `releases/${version}/${name}`
 });
-const notes = execSync('git log --date=short --format="### %h by %an on %ad%n%w(0,4,4)%s%n%n%w(0,4,4)%N%b%n" $(git describe --tags --abbrev=0 HEAD~1)..HEAD', { encoding: 'utf-8' });
+const notes = execSync('git log --date=short --format="##### %h by %an on %ad%n%w(0,4,4)%s%n%n%w(0,4,4)%N%b%n" $(git describe --tags --abbrev=0 HEAD~1)..HEAD', { encoding: 'utf-8' });
 console.log(notes);
 const releaseSpec = {
     token: token,
@@ -16,7 +16,7 @@ const releaseSpec = {
     repo: 'der20',
     tag: tag,
     name: `der20 Roll20 API Scripts Release ${tag}`,
-    notes: "#### Changes:\n" + notes,
+    notes: "### Changes:\n" + notes,
     draft: true,
     prerelease: true,
     reuseRelease: true,
