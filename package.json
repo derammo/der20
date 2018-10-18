@@ -1,0 +1,10 @@
+{
+  "name": "der20",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derammo/der20.backup.git"
+  },
+  "dependencies": {
+    "publish-release": "^1.6.0"
+  }
+}

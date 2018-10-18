@@ -1,0 +1,5 @@
+build/
+dist/
+releases/
+.*.swp
+node_modules/

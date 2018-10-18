@@ -1,0 +1,36 @@
+const publishRelease = require('publish-release')
+const execSync = require('child_process').execSync;
+const fs = require('fs');
+
+const token = execSync('security find-internet-password -a derammo -s api.github.com -w', { encoding: 'utf-8' }).trim();
+const version = process.argv[2];
+const tag = `v${version}`;
+const assets = fs.readdirSync(`releases/${version}`).map((name) => {
+    return `releases/${version}/${name}`
+});
+const notes = execSync('git log $(git describe --tags --abbrev=0 HEAD~1)..HEAD', { encoding: 'utf-8' }).trim();
+
+const releaseSpec = {
+    token: token,
+    owner: 'derammo',
+    repo: 'der20.backup',
+    tag: tag,
+    name: `der20 Roll20 API Scripts Release ${tag}`,
+    notes: notes,
+    draft: true,
+    prerelease: false,
+    reuseRelease: true,
+    reuseDraftOnly: true,
+    skipAssetsCheck: false,
+    skipDuplicatedAssets: false,
+    skipIfPublished: false,
+    editRelease: false,
+    deleteEmptyTag: false,
+    assets: assets,
+    apiUrl: 'https://api.github.com',
+    target_commitish: 'master'
+};
+
+publishRelease(releaseSpec, function (err, release) {
+    console.log(release);
+})

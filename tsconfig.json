@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "amd",
+        "moduleResolution": "node",
+        "removeComments": false,
+        "preserveConstEnums": true,
+        "rootDir": "src",
+        "outDir": "build",
+        "outFile": "build/lib_only.js",
+        "sourceMap": true,
+        "allowJs": true,
+        "baseUrl": "src"
+    },
+    "compileOnSave": true,
+    "include": [ "src/derlib/**/*.ts", "src/sys/loader.js" ],
+    "exclude": [ "node_modules" ]
+}
