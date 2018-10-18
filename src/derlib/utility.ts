@@ -6,6 +6,15 @@ export interface Clonable {
     clone();
 }
 
+export function serializeWithoutNulls(content: any) {
+    return JSON.stringify(content, (key, value) => {
+        if (value === null) {
+            return undefined;
+        }
+        return value;
+    });  
+}
+
 export function clone<T>(factory: DefaultConstructed<T>, from: T) {
     let copied = new (factory)();
     for (let key in from) {

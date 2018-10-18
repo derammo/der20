@@ -1,19 +1,11 @@
+// application under test
+import { Configuration } from "../rewards/main";
+
+// libs
 import { Der20Dialog} from "derlib/ui";
-import { ConfigurationParser, ConfigurationArray, CollectionItem, ConfigurationStep, ConfigurationChooser, ConfigurationAlias } from "derlib/config";
+import { ConfigurationParser } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
-import { DungeonMaster } from "derlib/ddal/dungeon_master"
-
-class Definitions {
-	modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>("module", LeagueModule);
-	dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>("dm", DungeonMaster);
-}
-
-class Configuration {
-   define: Definitions = new Definitions(); 
-   dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms);
-   module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules);
-   checkpoint: ConfigurationAlias = new ConfigurationAlias(this.module, 'current checkpoint');
-}
+import { serializeWithoutNulls } from "derlib/utility";
 
 export function testRun() {
 	let dialog = new Der20Dialog();
@@ -59,7 +51,7 @@ for (let line of test.split('\n')) {
 	report(result);
 }
 
-// separate set for breakpointing
+// separate tests for breakpointing
 for (let line of test2.split('\n')) {
 	let command = line.trim();
 	// run including blank lines
@@ -67,9 +59,4 @@ for (let line of test2.split('\n')) {
 	report(result);
 }
 
-console.log(JSON.stringify(config, (key, value) => {
-	if (value === null) {
-		return undefined;
-	}
-	return value;
-}));
+console.log(serializeWithoutNulls(config));
