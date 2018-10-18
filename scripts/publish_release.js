@@ -8,12 +8,12 @@ const tag = `v${version}`;
 const assets = fs.readdirSync(`releases/${version}`).map((name) => {
     return `releases/${version}/${name}`
 });
-const notes = execSync('git log $(git describe --tags --abbrev=0 HEAD~1)..HEAD', { encoding: 'utf-8' }).trim();
+const notes = execSync('git log --date=short --format="%h by %an on %ad%n%w(0,4,4)%s%n" $(git describe --tags --abbrev=0 HEAD~1)..HEAD', { encoding: 'utf-8' }).trim();
 
 const releaseSpec = {
     token: token,
     owner: 'derammo',
-    repo: 'der20.backup',
+    repo: 'der20',
     tag: tag,
     name: `der20 Roll20 API Scripts Release ${tag}`,
     notes: notes,

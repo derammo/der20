@@ -5,7 +5,7 @@ SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(SCRIPTS))
 BUILD := $(patsubst %,dist/der20_%.js,$(SCRIPTS))
 
-.PHONY: all clean run release checkout_release build_release publish_release
+.PHONY: all clean run release checkout_release build_release publish
 .PRECIOUS: build/%.js src/%/tsconfig.json
 
 all: $(BUILD)
@@ -37,6 +37,6 @@ releases/${RELEASE}/%.js: dist/%.js LICENSE
 	tail -n +2 LICENSE >> $@
 	echo >> $@
 	cat $< >> $@
-publish_release:
+publish:
 	git push origin v${RELEASE}
 	node scripts/publish_release.js ${RELEASE}

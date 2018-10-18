@@ -4,7 +4,7 @@ export class CheckPoint {
     id: string = null;
     name: ConfigurationString = new ConfigurationString();
     value: ConfigurationInteger = new ConfigurationInteger();
-    achieved: ConfigurationBoolean = new ConfigurationBoolean();
+    awarded: ConfigurationBoolean = new ConfigurationBoolean();
 }
 
 export class LeagueModule {
