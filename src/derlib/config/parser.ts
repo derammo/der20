@@ -12,7 +12,7 @@ export class ConfigurationParser {
     }
 
     static parse(line: string, configuration: any) {
-        console.log(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
+        console.debug(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
         if (configuration instanceof ConfigurationStep) {
             return configuration.parse(line);
         }

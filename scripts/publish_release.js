@@ -32,5 +32,5 @@ const releaseSpec = {
 };
 
 publishRelease(releaseSpec, function (err, release) {
-    console.log(release);
+    console.debug(release);
 })
