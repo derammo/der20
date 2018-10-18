@@ -38,10 +38,5 @@ releases/${RELEASE}/%.js: dist/%.js LICENSE
 	echo >> $@
 	cat $< >> $@
 publish_release:
-	node scripts/publish_release.js ${RELEASE}
-publish_release_ui:
 	git push origin v${RELEASE}
-	publish-release \
-		--token $(shell security find-internet-password -a derammo -s api.github.com -w) \
-		--tag v${RELEASE} \
-		--assets releases/${RELEASE}/*.js	
+	node scripts/publish_release.js ${RELEASE}
