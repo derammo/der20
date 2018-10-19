@@ -2,7 +2,7 @@ import { ConfigurationStep, CollectionItem } from './atoms';
 import { ConfigurationParser } from './parser';
 import { DefaultConstructed, cloneExcept } from 'derlib/utility';
 import { Result } from './result';
-import { DialogFactory } from 'derlib/ui2';
+import { DialogFactory } from 'derlib/ui';
 
 export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep {
     ids: {} = {};

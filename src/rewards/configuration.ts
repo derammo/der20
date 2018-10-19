@@ -5,7 +5,7 @@ import { TimerCommand } from "./timer_command";
 import { ClearCommand } from "./clear_command";
 import { SendCommand } from "./send_command";
 import { ShowCommand } from "./show_command";
-import { Der20Dialog } from "derlib/roll20/ui";
+import { Der20Dialog } from "derlib/roll20/dialog";
 
 class Definitions {
     modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>("module", LeagueModule);

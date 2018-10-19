@@ -2,10 +2,11 @@
 import { Configuration } from "../rewards/configuration";
 
 // libs
-import { Der20Dialog } from "derlib/ui";
+import { Der20Dialog } from "derlib/roll20/dialog";
 import { ConfigurationParser } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { serializeWithoutNulls } from "derlib/utility";
+import { Result } from "derlib/config/result";
 
 let config = new Configuration();
 let test = `
@@ -36,15 +37,18 @@ let test = `
 let test2 = `
 `;
 
-export function testRun() {
+export function testRun(): string {
 	let dialog = new Der20Dialog('!rewards ');
 	dialog.addButton("First", "command param param|?{Value}");
 	return dialog.render();
 }
 
-export function testShow() {
+export function testShow(): string {
 	let result = ConfigurationParser.parse('show', config);
-	return result.dialog;
+	if (result.type == Result.Type.Dialog) {
+		return result.dialog;
+	}
+	return '';
 }
 
 function report(result: any) {

@@ -26,6 +26,11 @@ export namespace Result {
         constructor(error: Error) {
             this.errors.push(error);
         }
+        toJSON() {
+            return { errors: this.errors.map(function(item) { 
+                return item.message;
+            })};
+        }
     };
 
     export class Success {

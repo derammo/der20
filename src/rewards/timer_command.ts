@@ -1,5 +1,6 @@
 import { ConfigurationChooser, ConfigurationStep, ConfigurationParser } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
+import { Result } from "derlib/config/result";
 
 export class TimerCommand extends ConfigurationStep {
     private module: ConfigurationChooser<LeagueModule>;
@@ -15,7 +16,7 @@ export class TimerCommand extends ConfigurationStep {
         return undefined;
     }
 
-    parse(line: string) {
+    parse(line: string): Result.Any {
         let time = Date.now();
         if (line.length > 0) {
             let offset = parseFloat(line);
@@ -25,6 +26,6 @@ export class TimerCommand extends ConfigurationStep {
         }
         let date = new Date(time);
         ConfigurationParser.parse(`current ${this.property} ${date.toUTCString()}`, this.module);
-        return {};
+        return new Result.Success();
     }
 }
