@@ -1,4 +1,5 @@
 import { ConfigurationStep } from "derlib/config";
+import { Result } from "derlib/config/result";
 
 interface Clearable {
     clear();
@@ -16,12 +17,12 @@ export class ClearCommand extends ConfigurationStep {
         return undefined;
     }
 
-    parse(line: string) {
+    parse(line: string): Result.Any {
         // REVISIT: could selectively clear
         console.log('clearing current item selections and session data');
         for (let target of this.targets) {
             target.clear();
         }
-        return {};
+        return new Result.Success();
     }
 }

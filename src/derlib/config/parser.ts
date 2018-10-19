@@ -1,4 +1,9 @@
 import { ConfigurationStep } from './atoms'
+import { Result } from './result';
+    
+export interface ConfigurationParsing {
+    parse(line: string): Result.Any;
+}
 
 export class ConfigurationParser {
     // returns first word and rest of line as array
@@ -11,7 +16,7 @@ export class ConfigurationParser {
         return [clean.substr(0, space), clean.substr(space + 1)];
     }
 
-    static parse(line: string, configuration: any) {
+    static parse(line: string, configuration: any): Result.Any {
         let debug = console.debug || console.log;
         debug(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
         if (configuration instanceof ConfigurationStep) {
@@ -19,7 +24,7 @@ export class ConfigurationParser {
         }
         let tokens = ConfigurationParser.tokenizeFirst(line);
         if (tokens.length < 2) {
-            return {};
+            return new Result.Success();
         }
         if (configuration.hasOwnProperty(tokens[0])) {
             let target = configuration[tokens[0]];
@@ -38,6 +43,6 @@ export class ConfigurationParser {
                 }
             }
         }
-        return {};
+        return new Result.Success();
     }
 }

@@ -2,14 +2,15 @@ import { ConfigurationStep, ConfigurationChooser } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { DungeonMaster } from "derlib/ddal/dungeon_master";
 import { RenderCommand } from "./show_command";
-import { Der20Dialog } from "derlib/ui";
+import { Der20Dialog } from "derlib/roll20/ui";
+import { Result } from "derlib/config/result";
 
 export class SendCommand extends RenderCommand {
     toJSON() {
         return undefined;
     }
 
-    parse(line: string) {
+    parse(line: string): Result.Any {
         this.tryLoad();
 
         // XXX HACK TEST
@@ -18,6 +19,8 @@ export class SendCommand extends RenderCommand {
         dialog.addExternalLinkButton('Import Test', importQuery);
 
         // XXX make this a class that takes over the "hasResult" functionality and can accumulate errors (?), enum viewer { caller, gm, all }
-        return { allplayers: dialog.render(), error: 'send command is unimplemented' };
+        return new Result.Failure(new Error('send command is unimplemented'));
+
+        return new Result.Dialog(Result.Dialog.Destination.All, dialog.render());
     }
 }

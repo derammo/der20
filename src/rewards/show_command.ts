@@ -1,7 +1,8 @@
 import { ConfigurationStep, ConfigurationChooser } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { DungeonMaster } from "derlib/ddal/dungeon_master";
-import { Der20Dialog } from "derlib/ui";
+import { Der20Dialog } from "derlib/roll20/ui";
+import { Result } from "derlib/config/result";
 
 export class RenderCommand extends ConfigurationStep {
     protected dm: ConfigurationChooser<DungeonMaster>;
@@ -13,25 +14,21 @@ export class RenderCommand extends ConfigurationStep {
         this.module = module;
     }
 
-    protected tryLoad() {
-        let result = {};
+    protected tryLoad(): Result.Any {
+        let result: Result.Any = new Result.Success();
         if (this.dm.localCopy == null) {
             result = this.dm.parse('');
         }
         if (this.module.localCopy == null) {
             result = this.module.parse('');
         }
-        if ((!this.hasResult(result)) && (this.dm.localCopy == null)) {
-            return { error: 'no dm loaded' };
+        if ((result.type == Result.Type.Success) && (this.dm.localCopy == null)) {
+            return new Result.Failure(new Error('no dm loaded'));
         }
-        if ((!this.hasResult(result)) && (this.module.localCopy == null)) {
-            return { error: 'no module loaded' };
+        if ((result.type == Result.Type.Success) && (this.module.localCopy == null)) {
+            return new Result.Failure(new Error('no module loaded'));
         }
         return result;
-    }
-
-    protected hasResult(result: {}) {
-        return Object.keys(result).length != 0;
     }
 }
 
@@ -40,10 +37,10 @@ export class ShowCommand extends RenderCommand {
         return undefined;
     }
 
-    parse(line: string) {
+    parse(line: string): Result.Any {
         // load if possible
         let result = this.tryLoad();
-        if (this.hasResult(result)) {
+        if (result.type != Result.Type.Success) {
             return result;
         }
         let dialog = new Der20Dialog('!rewards-show ');
@@ -74,6 +71,6 @@ export class ShowCommand extends RenderCommand {
         dialog.addSubTitle('Consumables');
         dialog.addSeparator();
         dialog.addCommand('Send to Players', 'send');
-        return { dialog: dialog.render() };
+        return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
     }
 }

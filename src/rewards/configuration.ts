@@ -5,6 +5,7 @@ import { TimerCommand } from "./timer_command";
 import { ClearCommand } from "./clear_command";
 import { SendCommand } from "./send_command";
 import { ShowCommand } from "./show_command";
+import { Der20Dialog } from "derlib/roll20/ui";
 
 class Definitions {
     modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>("module", LeagueModule);
@@ -13,8 +14,8 @@ class Definitions {
 
 export class Configuration {
     define: Definitions = new Definitions();
-    dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms);
-    module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules);
+    dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms, Der20Dialog, 'dm');
+    module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules, Der20Dialog, 'module');
     checkpoint: ConfigurationAlias = new ConfigurationAlias(this.module, 'current checkpoint');
     start: TimerCommand = new TimerCommand(this.module, 'start');
     stop: TimerCommand = new TimerCommand(this.module, 'stop');

@@ -1,5 +1,4 @@
-import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate } from "./config";
-
+import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate } from "derlib/config";
 
 // styling and layout taken from https://github.com/RobinKuiper/Roll20APIScripts with thanks
 export class Der20Dialog {
@@ -69,6 +68,10 @@ export class Der20Dialog {
         }
         this.addButton(value, link);
         this.text.push('</li>');
+    }
+
+    addChoiceControl(label: string, target: string) {
+        throw new Error("unimplemented");
     }
 
     addCommand(label: string, target: string) {
