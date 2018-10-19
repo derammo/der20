@@ -11,7 +11,9 @@ BUILD := $(patsubst %,dist/der20_%.js,$(SCRIPTS))
 all: $(BUILD)
 dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
 	mkdir -p dist
+	rm -f $@
 	cat include/header.js.txt $< include/trailer.js.txt > $@
+	chmod 444 $@
 run: build/$(DEFAULT).js
 	node build/$(DEFAULT).js
 build/%.js: $(SRC) src/%/tsconfig.json
