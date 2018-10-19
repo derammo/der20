@@ -28,6 +28,7 @@ export class ConfigurationString extends ConfigurationStep {
 
 export class ConfigurationInteger extends ConfigurationStep {
     current: number;
+
     parse(line: string) {
         this.current = parseInt(line, 10);
         return {};
@@ -39,6 +40,25 @@ export class ConfigurationInteger extends ConfigurationStep {
 
     clone() {
         let copied = new ConfigurationInteger();
+        copied.current = this.current;
+        return copied;
+    }    
+}
+
+export class ConfigurationDate extends ConfigurationStep {
+    current: number;
+
+    parse(line: string) {
+        this.current = Date.parse(line);
+        return {};
+    }
+
+    toJSON() {
+        return this.current;
+    }
+
+    clone() {
+        let copied = new ConfigurationDate();
         copied.current = this.current;
         return copied;
     }    

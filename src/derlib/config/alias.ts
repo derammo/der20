@@ -12,7 +12,7 @@ export class ConfigurationAlias extends ConfigurationStep {
     }
 
     toJSON() {
-        return null;
+        return undefined;
     }
 
     parse(line: string) {

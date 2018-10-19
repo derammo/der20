@@ -1,2 +1,9 @@
 (function() {
-    let console = { log: log, debug: ((message) => {}) };
+    let console = { 
+        log: ((message) => {
+            log(`der20: ${message}`)
+        }), 
+        debug: ((message) => {
+
+        }) 
+    };

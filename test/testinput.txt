@@ -1,0 +1,21 @@
+!rewards define module ddal12-01 checkpoint bosskill value 2
+!rewards define module ddal12-01 checkpoint bosskill name grobs killed
+!rewards define module ddal12-01 tier 2
+!rewards define module ddal12-01 name DDAL12-01 The Killing of Grobs
+!rewards define dm ammo dci 007
+!rewards define dm ammo name Ammo Goettsch
+!rewards checkpoint bosskill awarded true
+!rewards clear
+!rewards dm
+!rewards dm ammo
+!rewards module
+!rewards module poop
+!rewards module ddal12-01
+!rewards module current tier 3
+!rewards start
+!rewards start 1.5
+!rewards checkpoint
+!rewards checkpoint bosskill awarded true
+!rewards stop
+!rewards show
+!rewards send

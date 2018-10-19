@@ -1,16 +1,49 @@
-import { Der20Dialog} from "derlib/ui";
-import { ConfigurationParser, ConfigurationArray, CollectionItem, ConfigurationStep, ConfigurationChooser, ConfigurationAlias } from "derlib/config";
-import { LeagueModule } from "derlib/ddal/league_module";
-import { DungeonMaster } from "derlib/ddal/dungeon_master"
+import { Configuration } from "./configuration";
+import { ConfigurationParser } from "derlib/config";
 
-class Definitions {
-	modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>("module", LeagueModule);
-	dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>("dm", DungeonMaster);
-}
+declare var on: any;
+declare var getObj: any;
+declare var sendChat: any;
 
-export class Configuration {
-   define: Definitions = new Definitions(); 
-   dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms);
-   module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules);
-   checkpoint: ConfigurationAlias = new ConfigurationAlias(this.module, 'current checkpoint');
-}
+var configuration: Configuration = new Configuration();
+const name: string = 'rewards';
+
+on('ready', function () {
+    console.log('loaded');
+});
+
+on('chat:message', (msg) => {
+    if (msg.type != 'api') {
+        return;
+    }
+    let player = getObj('player', msg.playerid);
+    let lines = msg.content.split('\n');
+    let validCommands = new Set([`!${name}`, `!${name}-show`]);
+    for (let line of lines) {
+        let tokens = ConfigurationParser.tokenizeFirst(line);
+        if (!validCommands.has(tokens[0])) {
+            console.log(`ignoring line: ${line}`);
+            continue;
+        }
+        let result = ConfigurationParser.parse(tokens[1], configuration);
+        if (result.error) {
+            console.log(`error from parse: ${result.error}`);
+            sendChat(name, `/w GM ${result.error}`, null, { noarchive: true });
+            continue;
+        }
+        if ((!result.dialog) && tokens[0].endsWith('-show')) {
+            result = configuration.show.parse('');
+            if (result.error) {
+                console.log(`error from ui refresh: ${result.error}`);
+                sendChat(name, `/w GM ${result.error}`, null, { noarchive: true });
+                continue;
+            }
+        }
+        if (result.dialog) {
+            console.log(`dialog from parse: ${result.dialog.substr(0, 10)}...`);
+            sendChat(name, `/w "${player.get('displayname')}" ${result.dialog}`, null, { noarchive: true });
+            continue;
+        }
+        // otherwise nothing returned
+    }
+});

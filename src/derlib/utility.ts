@@ -24,7 +24,7 @@ export function clone<T>(factory: DefaultConstructed<T>, from: T) {
     return copied;   
 }
 
-export function cloneExcept<T>(factory: DefaultConstructed<T>, from: T, except: [string]) {
+export function cloneExcept<T>(factory: DefaultConstructed<T>, from: T, except: string[]) {
     let copied = new (factory)();
     for (let key in from) {
         if (except.indexOf(key) >= 0) {
