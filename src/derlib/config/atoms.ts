@@ -49,7 +49,12 @@ export class ConfigurationDate extends ConfigurationStep {
     current: number;
 
     parse(line: string) {
-        this.current = Date.parse(line);
+        let checkFloat = line.match(/^-?[0-9]*\.?[0-9]+$/);
+        if (checkFloat) {
+            this.current = Date.now() - (parseFloat(line) * 60 * 60 * 1000);
+        } else {
+            this.current = Date.parse(line);
+        }
         return {};
     }
 

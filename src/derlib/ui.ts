@@ -1,4 +1,4 @@
-import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean } from "./config";
+import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate } from "./config";
 
 
 // styling and layout taken from https://github.com/RobinKuiper/Roll20APIScripts with thanks
@@ -42,6 +42,12 @@ export class Der20Dialog {
             value = `${config.current}`;
             // do we have an integer control available somewhere?
             link = `${path} ?{${label} (Integer)}`
+        }
+        if (config instanceof ConfigurationDate) {
+            let current = new Date(config.current);
+            value = `${current.toUTCString()}`;
+            // do we have an integer control available somewhere?
+            link = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`
         }
         if (config instanceof ConfigurationBoolean) {
             value = `${config.current === true}`;

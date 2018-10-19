@@ -59,6 +59,8 @@ export class ShowCommand extends RenderCommand {
         dialog.beginControlGroup();
         dialog.addEditControl('Module Name', 'module current name', this.module.localCopy.name);
         dialog.addEditControl('Tier', 'module current tier', this.module.localCopy.tier);
+        dialog.addEditControl('Start Time', 'module current start', this.module.localCopy.start);
+        dialog.addEditControl('End Time', 'module current stop', this.module.localCopy.stop);
         dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Check Points');
