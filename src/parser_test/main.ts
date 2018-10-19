@@ -9,6 +9,7 @@ import { serializeWithoutNulls } from "derlib/utility";
 
 let config = new Configuration();
 let test = `
+	show
 	define module ddal12-01 checkpoint bosskill value 2
 	define module ddal12-01 checkpoint bosskill name grobs killed
 	define module ddal12-01 name DDAL12-01 The Killing of Grobs

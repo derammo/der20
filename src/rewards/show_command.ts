@@ -21,13 +21,17 @@ export class RenderCommand extends ConfigurationStep {
         if (this.module.localCopy == null) {
             result = this.module.parse('');
         }
-        if ((Object.keys(result).length == 0) && (this.dm.localCopy == null)) {
+        if ((!this.hasResult(result)) && (this.dm.localCopy == null)) {
             return { error: 'no dm loaded' };
         }
-        if ((Object.keys(result).length == 0) && (this.module.localCopy == null)) {
+        if ((!this.hasResult(result)) && (this.module.localCopy == null)) {
             return { error: 'no module loaded' };
         }
         return result;
+    }
+
+    protected hasResult(result: {}) {
+        return Object.keys(result).length != 0;
     }
 }
 
@@ -39,6 +43,9 @@ export class ShowCommand extends RenderCommand {
     parse(line: string) {
         // load if possible
         let result = this.tryLoad();
+        if (this.hasResult(result)) {
+            return result;
+        }
         let dialog = new Der20Dialog('!rewards-show ');
         dialog.addTitle('Log Entry for Current Session');
         dialog.addSeparator();
