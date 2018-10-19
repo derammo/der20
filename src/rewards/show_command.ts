@@ -21,25 +21,25 @@ export class ShowCommand extends ConfigurationStep {
         // load if possible
         let result;
         if (this.dm.localCopy == null) {
-           result = this.dm.parse('');
+            result = this.dm.parse('');
         }
         if (this.module.localCopy == null) {
-           result = this.module.parse('');
+            result = this.module.parse('');
         }
         if (this.dm.localCopy == null) {
             return result || { error: 'no dm loaded' };
         }
         if (this.module.localCopy == null) {
             return result || { error: 'no module loaded' };
-        }        
+        }
         let dialog = new Der20Dialog('!rewards-show ');
         dialog.addTitle('Log Entry for Current Session');
         dialog.addSeparator();
         dialog.addSubTitle('DM');
-        dialog.beginControlGroup();      
+        dialog.beginControlGroup();
         dialog.addEditControl('Name', 'dm current name', this.dm.localCopy.name);
         dialog.addEditControl('DCI', 'dm current dci', this.dm.localCopy.dci);
-        dialog.endControlGroup();      
+        dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Module');
         dialog.beginControlGroup();
@@ -58,6 +58,6 @@ export class ShowCommand extends ConfigurationStep {
         dialog.addSubTitle('Consumables');
         dialog.addSeparator();
         dialog.addCommand('Send to Players', 'send');
-        return { dialog: dialog.render()};
+        return { dialog: dialog.render() };
     }
 }

@@ -23,7 +23,7 @@ export class ConfigurationString extends ConfigurationStep {
         let copied = new ConfigurationString();
         copied.current = this.current;
         return copied;
-    }    
+    }
 }
 
 export class ConfigurationInteger extends ConfigurationStep {
@@ -42,7 +42,7 @@ export class ConfigurationInteger extends ConfigurationStep {
         let copied = new ConfigurationInteger();
         copied.current = this.current;
         return copied;
-    }    
+    }
 }
 
 export class ConfigurationDate extends ConfigurationStep {
@@ -61,7 +61,7 @@ export class ConfigurationDate extends ConfigurationStep {
         let copied = new ConfigurationDate();
         copied.current = this.current;
         return copied;
-    }    
+    }
 }
 
 export class ConfigurationBoolean extends ConfigurationStep {
@@ -80,7 +80,7 @@ export class ConfigurationBoolean extends ConfigurationStep {
         let copied = new ConfigurationBoolean();
         copied.current = this.current;
         return copied;
-    }    
+    }
 }
 
 export interface CollectionItem {

@@ -1,5 +1,5 @@
 export interface DefaultConstructed<T> {
-    new (): T;
+    new(): T;
 }
 
 export interface Clonable {
@@ -12,16 +12,16 @@ export function serializeWithoutNulls(content: any) {
             return undefined;
         }
         return value;
-    });  
+    });
 }
 
 export function clone<T>(factory: DefaultConstructed<T>, from: T) {
     let copied = new (factory)();
     for (let key in from) {
-        let item:any = from[key];
+        let item: any = from[key];
         copied[key] = item.clone();
     }
-    return copied;   
+    return copied;
 }
 
 export function cloneExcept<T>(factory: DefaultConstructed<T>, from: T, except: string[]) {
@@ -31,8 +31,8 @@ export function cloneExcept<T>(factory: DefaultConstructed<T>, from: T, except: 
             copied[key] = undefined;
             continue;
         }
-        let item:any = from[key];
+        let item: any = from[key];
         copied[key] = item.clone();
     }
-    return copied;   
+    return copied;
 }

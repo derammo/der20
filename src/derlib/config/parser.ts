@@ -8,7 +8,7 @@ export class ConfigurationParser {
         if (space < 0) {
             return [clean, ''];
         }
-        return [clean.substr(0, space), clean.substr(space+1)];
+        return [clean.substr(0, space), clean.substr(space + 1)];
     }
 
     static parse(line: string, configuration: any) {

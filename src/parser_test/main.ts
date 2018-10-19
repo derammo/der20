@@ -2,7 +2,7 @@
 import { Configuration } from "../rewards/configuration";
 
 // libs
-import { Der20Dialog} from "derlib/ui";
+import { Der20Dialog } from "derlib/ui";
 import { ConfigurationParser } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { serializeWithoutNulls } from "derlib/utility";
@@ -51,7 +51,7 @@ function report(result: any) {
 	console.log(`result of parse: ${JSON.stringify(result)}`)
 }
 
-console.debug = ((message) => {});
+console.debug = ((message) => { });
 
 for (let line of test.split('\n')) {
 	let command = line.trim();

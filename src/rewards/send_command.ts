@@ -17,6 +17,6 @@ export class SendCommand extends ConfigurationStep {
     }
 
     parse(line: string) {
-        return { error: 'send command is unimplemented'};
+        return { error: 'send command is unimplemented' };
     }
 }

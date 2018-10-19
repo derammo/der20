@@ -11,7 +11,7 @@ export class Der20Dialog {
     static readonly labelStyle: string = "float: left; margin-top: 6px;";
     static readonly groupStyle: string = "overflow: hidden; list-style: none; padding: 0; margin: 0;";
     static readonly itemStyle: string = "overflow: hidden; margin-top: 5px;";
-    
+
     constructor(command_prefix: string) {
         this.command_prefix = command_prefix;
         this.text.push(`<div style="${Der20Dialog.dialogStyle}">`);
@@ -47,7 +47,7 @@ export class Der20Dialog {
             value = `${config.current === true}`;
             link = `${path} ${!config.current}`
         }
-        this.addButton(value, link);           
+        this.addButton(value, link);
         this.text.push('</li>');
     }
 
