@@ -29,6 +29,8 @@ let test = `
 	stop
 	show
 	send
+	clear
+	send
 `;
 let test2 = `
 `;

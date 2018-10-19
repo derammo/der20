@@ -3,9 +3,9 @@ import { LeagueModule } from "derlib/ddal/league_module";
 import { DungeonMaster } from "derlib/ddal/dungeon_master";
 import { Der20Dialog } from "derlib/ui";
 
-export class ShowCommand extends ConfigurationStep {
-    private dm: ConfigurationChooser<DungeonMaster>;
-    private module: ConfigurationChooser<LeagueModule>;
+export class RenderCommand extends ConfigurationStep {
+    protected dm: ConfigurationChooser<DungeonMaster>;
+    protected module: ConfigurationChooser<LeagueModule>;
 
     constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>) {
         super();
@@ -13,25 +13,32 @@ export class ShowCommand extends ConfigurationStep {
         this.module = module;
     }
 
-    toJSON() {
-        return undefined;
-    }
-
-    parse(line: string) {
-        // load if possible
-        let result;
+    protected tryLoad() {
+        let result = {};
         if (this.dm.localCopy == null) {
             result = this.dm.parse('');
         }
         if (this.module.localCopy == null) {
             result = this.module.parse('');
         }
-        if (this.dm.localCopy == null) {
-            return result || { error: 'no dm loaded' };
+        if ((Object.keys(result).length == 0) && (this.dm.localCopy == null)) {
+            return { error: 'no dm loaded' };
         }
-        if (this.module.localCopy == null) {
-            return result || { error: 'no module loaded' };
+        if ((Object.keys(result).length == 0) && (this.module.localCopy == null)) {
+            return { error: 'no module loaded' };
         }
+        return result;
+    }
+}
+
+export class ShowCommand extends RenderCommand {
+    toJSON() {
+        return undefined;
+    }
+
+    parse(line: string) {
+        // load if possible
+        let result = this.tryLoad();
         let dialog = new Der20Dialog('!rewards-show ');
         dialog.addTitle('Log Entry for Current Session');
         dialog.addSeparator();
