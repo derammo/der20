@@ -5,7 +5,7 @@ import { DefaultConstructed, cloneExcept } from 'derlib/utility';
 export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep {
     ids: {} = {};
     items: T[] = [];
-    
+
     classType: DefaultConstructed<T>;
 
     constructor(singularName: string, itemClass: DefaultConstructed<T>) {
@@ -25,13 +25,13 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         }
         let id: string = tokens[0];
         if (id.length < 1) {
-            return { error: 'interactive selection from array is unimplemented'};
+            return { error: 'interactive selection from array is unimplemented' };
         }
         let index: number;
         if (this.ids.hasOwnProperty(id)) {
             index = this.ids[id];
         } else {
-            index = this.addItem(id, new (this.classType)());  
+            index = this.addItem(id, new (this.classType)());
         }
         return ConfigurationParser.parse(tokens[1], this.items[index]);
     }
@@ -40,13 +40,13 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         let index = this.items.length;
         item.id = id;
         this.items.push(item);
-        this.ids[id] = index; 
+        this.ids[id] = index;
         return index;
     }
 
     clone(): ConfigurationArray<T> {
         let copied = new ConfigurationArray<T>(this.keyword, this.classType);
-        for (let index = 0; index<this.items.length; index++) {
+        for (let index = 0; index < this.items.length; index++) {
             copied.addItem(this.items[index].id, cloneExcept(this.classType, this.items[index], ['id']));
         }
         return copied;
@@ -57,15 +57,15 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     // this id can be used to refer to the most recently selected item
     static readonly MAGIC_CURRENT_ID: string = 'current';
 
-	array: ConfigurationArray<T>;
+    array: ConfigurationArray<T>;
     localCopy: T = null;
     selectedId: string
 
-	constructor(array: ConfigurationArray<T>) {
+    constructor(array: ConfigurationArray<T>) {
         super();
-		this.array = array;
+        this.array = array;
     }
-  
+
     toJSON() {
         return this.localCopy;
     }
@@ -77,9 +77,11 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         }
         if (this.array.items.length > 1) {
             // present interactive chooser
-            return { choices: this.array.items.map((item) => { 
-                return item.id; 
-            })};    
+            return {
+                choices: this.array.items.map((item) => {
+                    return item.id;
+                })
+            };
         }
         if (this.array.items.length == 1) {
             // auto select only defined item, if any

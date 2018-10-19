@@ -18,4 +18,4 @@ export class ConfigurationAlias extends ConfigurationStep {
     parse(line: string) {
         return ConfigurationParser.parse(`${this.path} ${line}`, this.root);
     }
- }
+}
