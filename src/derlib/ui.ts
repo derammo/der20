@@ -12,6 +12,7 @@ export class Der20Dialog {
     static readonly labelStyle: string = "float: left; margin-top: 6px;";
     static readonly groupStyle: string = "overflow: hidden; list-style: none; padding: 0; margin: 0;";
     static readonly itemStyle: string = "overflow: hidden; margin-top: 5px;";
+    static readonly undefinedLabel = '[ NONE ]';
 
     constructor(command_prefix: string) {
         this.command_prefix = command_prefix;
@@ -36,17 +37,29 @@ export class Der20Dialog {
         let value: string = '';
         let link: string = '';
         if (config instanceof ConfigurationString) {
-            value = config.current;
+            if (config.current) {
+                value = config.current;
+            } else {
+                value = Der20Dialog.undefinedLabel;
+            }
             link = `${path} ?{${label}}`
         }
         if (config instanceof ConfigurationInteger) {
-            value = `${config.current}`;
+            if (config.current) {
+                value = `${config.current}`;
+            } else {
+                value = Der20Dialog.undefinedLabel;
+            }
             // do we have an integer control available somewhere?
             link = `${path} ?{${label} (Integer)}`
         }
         if (config instanceof ConfigurationDate) {
-            let current = new Date(config.current);
-            value = `${current.toUTCString()}`;
+            if (config.current) {
+                let current = new Date(config.current);
+                value = `${current.toUTCString()}`;
+            } else {
+                value = Der20Dialog.undefinedLabel;
+            }
             // do we have an integer control available somewhere?
             link = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`
         }
