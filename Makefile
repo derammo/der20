@@ -8,7 +8,9 @@ BUILD := $(patsubst %,dist/der20_%.js,$(SCRIPTS))
 .PHONY: all clean run release checkout_release build_release publish create_draft
 .PRECIOUS: build/%.js src/%/tsconfig.json
 
-all: $(BUILD)
+all: node_modules $(BUILD)
+node_modules:
+	npm install || echo ignoring result from npm install, since it is only used for publishing release
 dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
 	mkdir -p dist
 	rm -f $@
@@ -23,6 +25,12 @@ src/%/tsconfig.json:
 	echo '{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/$*.js" }, "include": [ "**/*.ts", "../sys/loader.js" ] }' > $@
 clean:
 	rm -rf build dist
+squeaky: clean
+	rm -rf node_modules
+cloc: /usr/local/bin/cloc
+	cloc --exclude-dir=node_modules,releases,build,dist,.vscodeh --not-match-f=package-lock.json --by-file-by-lang .
+/usr/local/bin/cloc:
+	brew install cloc
 release: label_release build_release checkout_master
 build_release: checkout_release clean $(subst dist,releases/${RELEASE},$(BUILD)) checkout_master
 checkout_release:
