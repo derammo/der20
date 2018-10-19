@@ -8,6 +8,7 @@ export class Der20Dialog {
     static readonly dialogStyle: string = "margin-left: 0px; overflow: hidden; background-color: #fff; border: 1px solid #000; padding: 5px; border-radius: 5px;";
     static readonly buttonStyle: string = "background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; float: right;"
     static readonly commandStyle: string = "background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;";
+    static readonly externalLinkButtonStyle: string = "background-color: #0000ff; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;";
     static readonly labelStyle: string = "float: left; margin-top: 6px;";
     static readonly groupStyle: string = "overflow: hidden; list-style: none; padding: 0; margin: 0;";
     static readonly itemStyle: string = "overflow: hidden; margin-top: 5px;";
@@ -32,8 +33,8 @@ export class Der20Dialog {
     addEditControl(label: string, path: string, config: ConfigurationStep) {
         this.text.push(`<li style="${Der20Dialog.itemStyle}">`)
         this.text.push(`<span style="${Der20Dialog.labelStyle}">${label}</span>`);
-        let value: string;
-        let link: string;
+        let value: string = '';
+        let link: string = '';
         if (config instanceof ConfigurationString) {
             value = config.current;
             link = `${path} ?{${label}}`
@@ -59,6 +60,10 @@ export class Der20Dialog {
 
     addCommand(label: string, target: string) {
         this.text.push(`<a style="${Der20Dialog.commandStyle}", href="${this.command_prefix}${target}">${label}</a>`)
+    }
+
+    addExternalLinkButton(label: string, target: string) {
+        this.text.push(`<a style="${Der20Dialog.externalLinkButtonStyle}", href="${target}">${label}</a>`)
     }
 
     addTitle(label: string) {
