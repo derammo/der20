@@ -1,6 +1,6 @@
 SCRIPTS := parser_test rewards
 
-SRC := $(wildcard src/*.js)
+SRC := $(wildcard src/**/*.ts) $(wildcard src/**/*.js)
 SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(SCRIPTS))
 BUILD := $(patsubst %,dist/der20_%.js,$(SCRIPTS))
@@ -18,7 +18,7 @@ dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
 	chmod 444 $@
 run: build/$(DEFAULT).js
 	node build/$(DEFAULT).js
-build/%.js: $(SRC) src/%/tsconfig.json
+build/%.js: $(SRC) src/%/*
 	mkdir -p build
 	tsc -p src/$*/tsconfig.json
 src/%/tsconfig.json:
