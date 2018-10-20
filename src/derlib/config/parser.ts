@@ -43,6 +43,9 @@ export class ConfigurationParser {
                 }
             }
         }
+        if (tokens[0].length > 0) {
+            return new Result.Failure(new Error(`token '${tokens[0]}' did not match any configuration command`));
+        }
         return new Result.Success();
     }
 }
