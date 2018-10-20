@@ -5,6 +5,7 @@
     "url": "git+https://github.com/derammo/der20.git"
   },
   "dependencies": {
+    "@types/node": "^10.12.0",
     "publish-release": "^1.6.0"
   }
 }

@@ -8,6 +8,16 @@ function define(module_name, requires, start_function ) {
 }
 function derModuleStart(module_name) {
     let module = derModules[module_name];
+    if (!module) {
+        if (typeof require == 'function') {
+            // if testing under Node.js, we can use local modules
+            module = { requires: [], exports: require(module_name) };
+        } else {
+            console.log(`module dependency '${module_name}' cannot be satisfied; this platform only supports modules included in the distribution file`);
+            module = { requires: [], exports: {} };
+        }
+        derModules[module_name] = module;
+    }
     if (module.exports) {
         // already done
         return;
