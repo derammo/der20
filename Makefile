@@ -1,6 +1,6 @@
 SCRIPTS := parser_test rewards
 
-SRC := $(wildcard src/**/*.ts) $(wildcard src/**/*.js)
+SRC := $(shell find src -name "*.ts" -or -name "*.js")
 SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(SCRIPTS))
 BUILD := $(patsubst %,dist/der20_%.js,$(SCRIPTS))
@@ -18,7 +18,7 @@ dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
 	chmod 444 $@
 run: build/$(DEFAULT).js
 	node build/$(DEFAULT).js
-build/%.js: $(SRC) src/%/*
+build/%.js: $(SRC) src/%/tsconfig.json
 	mkdir -p build
 	tsc -p src/$*/tsconfig.json
 src/%/tsconfig.json:
@@ -51,3 +51,5 @@ publish: checkout_release create_draft checkout_master
 create_draft:
 	git push origin v${RELEASE}
 	node scripts/publish_release.js ${RELEASE}
+list:
+	@echo ${SRC}
