@@ -8,18 +8,18 @@ declare var sendChat: any;
 var configurationRoot: any;
 
 function handleResult(player: any, command: string, result: Result.Any): Result.Any {
-    switch (result.type) {
-        case Result.Type.Failure:
-            for (let error of result.errors) {
+    switch (result.kind) {
+        case Result.Kind.Failure:
+            for (let error of (<Result.Failure>result).errors) {
                 reportError(error);
             }
             return result;
-        case Result.Type.Dialog:
-            let dialog = result.dialog.replace(ConfigurationChooser.MAGIC_COMMAND_STRING, command);
+        case Result.Kind.Dialog:
+            let dialog = (<Result.Dialog>result).dialog.replace(ConfigurationChooser.MAGIC_COMMAND_STRING, command);
             console.log(`dialog from parse: ${dialog.substr(0, 10)}...`);
             sendChat(name, `/w "${player.get('displayname')}" ${dialog}`, null, { noarchive: true });
             return new Result.Success();
-        case Result.Type.Success:
+        case Result.Kind.Success:
             if (command.endsWith('-show')) {
                 // execute show action after executing command, used in interactive dialogs to
                 // render the new state of the dialog
@@ -58,7 +58,7 @@ export function registerHandlers(name: string, configuration: any) {
                 }
                 let result = ConfigurationParser.parse(tokens[1], configuration);
                 result = handleResult(tokens[0], player, result);
-                if (result.type == Result.Type.Failure) {
+                if (result.kind == Result.Kind.Failure) {
                     // REVISIT should we stop processing lines in this block?
                 }
             }

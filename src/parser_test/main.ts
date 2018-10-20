@@ -45,8 +45,8 @@ export function testRun(): string {
 
 export function testShow(): string {
 	let result = ConfigurationParser.parse('show', config);
-	if (result.type == Result.Type.Dialog) {
-		return result.dialog;
+	if (result.kind == Result.Kind.Dialog) {
+		return (<Result.Dialog>result).dialog;
 	}
 	return '';
 }
@@ -60,21 +60,26 @@ function report(result: any) {
 
 console.debug = ((message) => { });
 
-for (let line of test.split('\n')) {
-	let command = line.trim();
-	// run including blank lines
-	console.log(`testing: ${command}`);
-	let result = ConfigurationParser.parse(command, config);
-	report(result);
+function testParse() {
+	for (let line of test.split('\n')) {
+		let command = line.trim();
+		// run including blank lines
+		console.log(`testing: ${command}`);
+		let result = ConfigurationParser.parse(command, config);
+		report(result);
+	}
+
+	// separate tests for breakpointing
+	for (let line of test2.split('\n')) {
+		let command = line.trim();
+		// run including blank lines
+		console.log(`testing: ${command}`);
+		let result = ConfigurationParser.parse(command, config);
+		report(result);
+	}
+	return serializeWithoutNulls(config);
 }
 
-// separate tests for breakpointing
-for (let line of test2.split('\n')) {
-	let command = line.trim();
-	// run including blank lines
-	console.log(`testing: ${command}`);
-	let result = ConfigurationParser.parse(command, config);
-	report(result);
-}
-
-console.log(serializeWithoutNulls(config));
+let json = testParse();
+console.log(json);
+console.log(testShow());

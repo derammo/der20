@@ -22,10 +22,10 @@ export class RenderCommand extends ConfigurationStep {
         if (this.module.localCopy == null) {
             result = this.module.parse('');
         }
-        if ((result.type == Result.Type.Success) && (this.dm.localCopy == null)) {
+        if ((result.kind == Result.Kind.Success) && (this.dm.localCopy == null)) {
             return new Result.Failure(new Error('no dm loaded'));
         }
-        if ((result.type == Result.Type.Success) && (this.module.localCopy == null)) {
+        if ((result.kind == Result.Kind.Success) && (this.module.localCopy == null)) {
             return new Result.Failure(new Error('no module loaded'));
         }
         return result;
@@ -40,8 +40,11 @@ export class ShowCommand extends RenderCommand {
     parse(line: string): Result.Any {
         // load if possible
         let result = this.tryLoad();
-        if (result.type != Result.Type.Success) {
-            return result;
+        switch (result.kind) {
+            case Result.Kind.Success:
+                break;
+            default:
+                return result;
         }
         let dialog = new Der20Dialog('!rewards-show ');
         dialog.addTitle('Log Entry for Current Session');

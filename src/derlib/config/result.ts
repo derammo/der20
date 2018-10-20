@@ -1,13 +1,22 @@
+// WARNING: this was a discriminated union, but it does not appear to work at all on tsc 6.3.1
 export namespace Result {
-    export enum Type {
-        Success,
-        Failure,
-        Dialog
-    };
+    export enum Kind {
+        Success = 1,
+        Dialog,
+        Failure
+    }
 
-    export class Dialog {
-        type: Type.Dialog;
+    export class Any {
+        kind: Result.Kind;
+
+        protected constructor(kind: Result.Kind) {
+            this.kind = kind;
+        }
+    }
+
+    export class Dialog extends Any {
         constructor(public destination: Dialog.Destination = Dialog.Destination.Caller, public dialog: string) {
+            super(Result.Kind.Dialog);
         }
     };
 
@@ -20,10 +29,10 @@ export namespace Result {
         }
     };
 
-    export class Failure {
-        type: Type.Failure;
+    export class Failure extends Any {
         errors: Error[] = [];
         constructor(error: Error) {
+            super(Result.Kind.Failure);
             this.errors.push(error);
         }
         toJSON() {
@@ -33,9 +42,9 @@ export namespace Result {
         }
     };
 
-    export class Success {
-        type: Type.Success;
+    export class Success extends Any {
+        constructor() {
+            super(Result.Kind.Success);
+        }
     };
-
-    export type Any = Success | Failure | Dialog;
 };
