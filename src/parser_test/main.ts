@@ -74,7 +74,7 @@ function report(result: any) {
 		return;
 	}
 	if (result.kind != Result.Kind.Success) {
-		console.log(`	result of parse: ${JSON.stringify(result)}`)
+		console.log(`	result of parse: ${JSON.stringify(result).substr(0,76)}`)
 	}
 }
 
@@ -101,7 +101,7 @@ function testParse() {
 }
 
 let json = testParse();
-console.log(json);
+// console.log(json);
 
 import { exec } from 'child_process';
 function tidy(text: string): string {
@@ -118,4 +118,4 @@ function tidy(text: string): string {
 	return output;
 }
 
-console.log(tidy(testDialog('send')));
+// console.log(tidy(testDialog('send')));

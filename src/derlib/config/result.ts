@@ -36,9 +36,12 @@ export namespace Result {
             this.errors.push(error);
         }
         toJSON() {
-            return { errors: this.errors.map(function(item) { 
-                return item.message;
-            })};
+            return { 
+                kind: this.kind, 
+                errors: this.errors.map(function(item) { 
+                    return item.message;
+                })
+            };
         }
     };
 

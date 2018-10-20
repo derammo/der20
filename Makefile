@@ -17,7 +17,7 @@ dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
 	cat include/header.js.txt $< include/trailer.js.txt > $@
 	chmod 444 $@
 run: build/$(DEFAULT).js
-	node build/$(DEFAULT).js
+	node build/$(DEFAULT).js | egrep --color -e '^\tresult of parse: {"kind":3.*$$' -e $$
 build/%.js: $(SRC) src/%/tsconfig.json
 	mkdir -p build
 	tsc -p src/$*/tsconfig.json
