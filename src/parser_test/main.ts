@@ -65,8 +65,8 @@ let test = `
 	define module ddal12-01 tier 1
 	define module ddal12-01 hardcover false
 	define module ddal12-01 duration 4
-	define module ddal12-01 level minimum 1
-	define module ddal12-01 level maximum 4
+	define module ddal12-01 level minimum 2
+	define module ddal12-01 level maximum 3
 	define module ddal12-01 hourly treasure 0
 	define module ddal12-01 hourly advancement 0
 	define dm ammo dci 007
