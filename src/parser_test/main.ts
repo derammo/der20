@@ -3,13 +3,47 @@ import { Configuration } from "../rewards/configuration";
 
 // libs
 import { Der20Dialog } from "derlib/roll20/dialog";
-import { ConfigurationParser } from "derlib/config";
+import { ConfigurationParser, ConfigurationStep } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { serializeWithoutNulls } from "derlib/utility";
 import { Result } from "derlib/config/result";
 
 let config = new Configuration();
+
+// either roll20 state or file
+declare var state: any;
+import { readFile, writeFile } from "fs";
+
+// persisted
+let jsonLoaded: any;
+if (readFile) {
+	// local testing
+	readFile('parser_test_state.json', (err, data) => {
+		if (err) {
+			jsonLoaded = {};
+			return;
+		}
+		jsonLoaded = JSON.parse(data.toString()) || {};
+	});
+} else {
+	// XXX move to plugin
+	state.der20 = state.der20 || {};
+	state.der20.parser_test = state.der20.parser_test || {};
+	jsonLoaded = state.der20.parser_test;
+}
+
+function restore(from: any, to: any) {
+	if (to instanceof ConfigurationStep) {
+		to.load(from);
+	}
+
+	// XXX iterate objects, recurse	
+}
+
+restore(jsonLoaded, config);
+
 let test = `
+	delete all configuration
 	show
 	send
 	define rules advancement downtime multiplier 2.5
@@ -24,7 +58,7 @@ let test = `
 	define module ddal12-01 unlock hat description The entire length of this broad, red-silk ribbon is embroidered in gold thread. While wearing it, the wearer can read and understand, but not speak, Undercommon.
 	define module ddal12-01 unlock hat players true
 	define module ddal12-01 unlock hat dm false
-	define module ddal12-01 unlock hat table f
+	define module ddal12-01 unlock hat table F
 	define module ddal12-01 checkpoint bosskill dm true
 	define module ddal12-01 checkpoint bosskill players true
 	define module ddal12-01 season 12
@@ -54,6 +88,10 @@ let test = `
 	stop
 	show
 	send
+	define dm junk
+	delete dm junk
+	define module trash
+	delete module trash
 `;
 let test2 = `
 `;
@@ -83,7 +121,7 @@ function report(result: any) {
 
 console.debug = ((message) => { });
 
-function testParse() {
+function testParse(): string {
 	for (let line of test.split('\n')) {
 		let command = line.trim();
 		// run including blank lines
@@ -103,8 +141,17 @@ function testParse() {
 	return serializeWithoutNulls(config);
 }
 
-let json = testParse();
-console.log(json);
+let jsonResult = testParse();
+// console.log(jsonResult);
+
+if (writeFile) {
+	// local testing
+	writeFile('parser_test_state.json', jsonResult, (err) => {
+	});
+} else {
+	// XXX move to plugin
+	state.der20.parser_test = jsonResult;
+}
 
 import { exec } from 'child_process';
 function tidy(text: string): string {

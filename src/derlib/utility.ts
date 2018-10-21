@@ -6,7 +6,7 @@ export interface Clonable {
     clone();
 }
 
-export function serializeWithoutNulls(content: any) {
+export function serializeWithoutNulls(content: any): string {
     return JSON.stringify(content, (key, value) => {
         if (value === null) {
             return undefined;

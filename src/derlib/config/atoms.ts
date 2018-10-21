@@ -14,6 +14,10 @@ export class ConfigurationStep<T> {
         return new Result.Success();
     }
 
+    load(json: any) {
+        this.current = json;
+    }
+
     effectiveValue(): T {
         if (!this.hasValue()) {
             return this.default;
