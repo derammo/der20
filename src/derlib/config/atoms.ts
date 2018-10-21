@@ -25,7 +25,7 @@ export class ConfigurationStep<T> {
         return this.current !== ConfigurationStep.NO_VALUE;
     }
 
-    toJSON() {
+    toJSON(): any {
         return this.current;
     }
 }

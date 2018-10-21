@@ -76,7 +76,11 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     }
 
     toJSON() {
-        return this.current;
+        // shallow copy so we can overwrite id (must not be changed)
+        let result = {};
+        Object.assign(result, this.current);
+        result['id'] = this.selectedId;
+        return result;
     }
 
     private createChooserDialog(rest: string): Result.Dialog {

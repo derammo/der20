@@ -1,5 +1,5 @@
 import { ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationArray, ConfigurationDate, ConfigurationFloat, ConfigurationStep, ConfigurationParser } from 'derlib/config';
-import { cloneExcept, clone } from '../utility';
+import { clone } from '../utility';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it
