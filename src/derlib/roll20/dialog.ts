@@ -1,12 +1,13 @@
-import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate } from "derlib/config";
+import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate, ConfigurationFloat } from "derlib/config";
 
 // styling and layout taken from https://github.com/RobinKuiper/Roll20APIScripts with thanks
 export class Der20Dialog {
     text: string[] = [];
     command_prefix: string;
-    static readonly dialogStyle: string = "margin-left: 0px; overflow: hidden; background-color: #fff; border: 1px solid #000; padding: 5px; border-radius: 5px;";
-    static readonly buttonStyle: string = "background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; float: right;"
-    static readonly commandStyle: string = "background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;";
+    static readonly dialogStyle: string = "margin-left: 0px; overflow: hidden; background-color: White; border: 1px solid Black; padding: 5px; border-radius: 5px;";
+    static readonly buttonStyle: string = "text-decoration: none; background-color: White; border: 1px solid Black; border-radius: 3px; padding: 5px; color: Black; text-align: center; float: right;"
+    static readonly defaultedButtonStyle: string = "text-decoration: none; background-color: White; border: 1px solid Black; border-radius: 3px; padding: 5px; color: #aaa; text-align: center; float: right;"
+    static readonly commandStyle: string = "text-decoration: none; background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;";
     static readonly externalLinkButtonStyle: string = "background-color: #0000ff; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;";
     static readonly labelStyle: string = "float: left; margin-top: 6px;";
     static readonly groupStyle: string = "overflow: hidden; list-style: none; padding: 0; margin: 0;";
@@ -30,44 +31,63 @@ export class Der20Dialog {
         this.text.push(`<a style="${Der20Dialog.buttonStyle}", href="${this.command_prefix}${target}">${label}</a>`)
     }
 
-    addEditControl(label: string, path: string, config: ConfigurationStep) {
+    private addDefaultedButton(label: string, target: string) {
+        this.text.push(`<a style="${Der20Dialog.defaultedButtonStyle}", href="${this.command_prefix}${target}">${label}</a>`)
+    }
+
+    addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>) {
         this.text.push(`<li style="${Der20Dialog.itemStyle}">`)
         this.text.push(`<span style="${Der20Dialog.labelStyle}">${label}</span>`);
-        let value: string = '';
+        let defaulted = (config.current == ConfigurationStep.NO_VALUE);
+        let text: string = '';
         let link: string = '';
         if (config instanceof ConfigurationString) {
-            if (config.current) {
-                value = config.current;
-            } else {
-                value = Der20Dialog.undefinedLabel;
-            }
+            // already a string, but need to assert type
+            let value = (<ConfigurationString>config).effectiveValue();
+            text = this.getStringText(value);
             link = `${path} ?{${label}}`
-        }
-        if (config instanceof ConfigurationInteger) {
-            if (config.current) {
-                value = `${config.current}`;
-            } else {
-                value = Der20Dialog.undefinedLabel;
-            }
-            // do we have an integer control available somewhere?
+        } else if ((config instanceof ConfigurationInteger)
+            || (config instanceof ConfigurationFloat)) {
+            let value = config.effectiveValue();
+            text = this.getNumberText<T>(value);
+            // REVISIT do we have an integer control available somewhere?
             link = `${path} ?{${label} (Integer)}`
-        }
-        if (config instanceof ConfigurationDate) {
-            if (config.current) {
-                let current = new Date(config.current);
-                value = `${current.toUTCString()}`;
-            } else {
-                value = Der20Dialog.undefinedLabel;
-            }
-            // do we have an integer control available somewhere?
+        } else if (config instanceof ConfigurationDate) {
+            let value = (<ConfigurationDate>config).effectiveValue();
+            text = this.getDateText(value);
+            // REVISIT do we have an integer or date control available somewhere?
             link = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`
-        }
-        if (config instanceof ConfigurationBoolean) {
-            value = `${config.current === true}`;
+        } else if (config instanceof ConfigurationBoolean) {
+            text = `${(<ConfigurationBoolean>config).effectiveValue() === true}`;
             link = `${path} ${!config.current}`
         }
-        this.addButton(value, link);
+        if (defaulted) {
+            this.addDefaultedButton(text, link);
+        } else {
+            this.addButton(text, link);
+        }
         this.text.push('</li>');
+    }
+
+    private getStringText(value: string) {
+        if (value == ConfigurationStep.NO_VALUE) {
+            return Der20Dialog.undefinedLabel;
+        }
+        return value;
+    }
+
+    private getNumberText<T>(value: T) {
+        if (value == ConfigurationStep.NO_VALUE) {
+            return Der20Dialog.undefinedLabel;
+        }
+        return`${value}`;
+    }
+
+    private getDateText(value: number) {
+        if (value == ConfigurationStep.NO_VALUE) {
+            return Der20Dialog.undefinedLabel;
+        }
+        return new Date(value).toUTCString();
     }
 
     addChoiceControl(label: string, target: string) {

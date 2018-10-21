@@ -1,11 +1,11 @@
-import { ConfigurationStep } from "derlib/config";
+import { ConfigurationStep, ConfigurationCommand } from "derlib/config";
 import { Result } from "derlib/config/result";
 
 interface Clearable {
     clear();
 }
 
-export class ClearCommand extends ConfigurationStep {
+export class ClearCommand extends ConfigurationCommand {
     private targets: Clearable[];
 
     constructor(targets: Clearable[]) {

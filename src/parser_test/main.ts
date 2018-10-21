@@ -11,9 +11,13 @@ import { Result } from "derlib/config/result";
 let config = new Configuration();
 let test = `
 	show
+	send
+	define rules advancement downtime multiplier 2.5
+	define rules advancement downtime unit 0.5
+	define rules advancement renown multiplier 0.25
+	define rules advancement renown unit 0.5
 	define module ddal12-01 checkpoint bosskill treasure 2
 	define module ddal12-01 checkpoint bosskill advancement 1
-	define module ddal12-01 checkpoint bosskill downtime 0
 	define module ddal12-01 checkpoint bosskill name grobs was killed
 	define module ddal12-01 name DDAL12-01 The Killing of Grobs
 	define module ddal12-01 unlock hat name Hat of Disguise
@@ -25,11 +29,12 @@ let test = `
 	define module ddal12-01 checkpoint bosskill players true
 	define module ddal12-01 season 12
 	define module ddal12-01 tier 1
+	define module ddal12-01 hardcover false
+	define module ddal12-01 duration 4
 	define module ddal12-01 level minimum 1
 	define module ddal12-01 level maximum 4
 	define module ddal12-01 hourly treasure 0
 	define module ddal12-01 hourly advancement 0
-	define module ddal12-01 hourly downtime 0
 	define dm ammo dci 007
 	define dm ammo name Ammo Goettsch
 	checkpoint bosskill awarded true
@@ -48,8 +53,6 @@ let test = `
 	checkpoint bosskill awarded true
 	stop
 	show
-	send
-	clear
 	send
 `;
 let test2 = `
@@ -74,7 +77,7 @@ function report(result: any) {
 		return;
 	}
 	if (result.kind != Result.Kind.Success) {
-		console.log(`	result of parse: ${JSON.stringify(result).substr(0,76)}`)
+		console.log(`	result of parse: ${JSON.stringify(result).substr(0,119)}`)
 	}
 }
 
@@ -101,7 +104,7 @@ function testParse() {
 }
 
 let json = testParse();
-// console.log(json);
+console.log(json);
 
 import { exec } from 'child_process';
 function tidy(text: string): string {
@@ -118,4 +121,4 @@ function tidy(text: string): string {
 	return output;
 }
 
-// console.log(tidy(testDialog('send')));
+// console.log(tidy(testDialog('show')));

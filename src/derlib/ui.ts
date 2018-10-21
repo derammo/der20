@@ -3,7 +3,7 @@ import { ConfigurationStep } from "./config";
 export interface Dialog {
     beginControlGroup(): void;
     endControlGroup(): void;
-    addEditControl(label: string, path: string, config: ConfigurationStep): void;
+    addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>): void;
     addChoiceControl(label: string, path: string): void;
     addCommand(label: string, target: string): void;
     addExternalLinkButton(label: string, target: string): void;

@@ -1,8 +1,8 @@
-import { ConfigurationChooser, ConfigurationStep, ConfigurationParser } from "derlib/config";
+import { ConfigurationChooser, ConfigurationStep, ConfigurationParser, ConfigurationCommand } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { Result } from "derlib/config/result";
 
-export class TimerCommand extends ConfigurationStep {
+export class TimerCommand extends ConfigurationCommand {
     private module: ConfigurationChooser<LeagueModule>;
     private property: string;
 

@@ -28,6 +28,9 @@ export class ConfigurationParser {
         }
         if (configuration.hasOwnProperty(tokens[0])) {
             let target = configuration[tokens[0]];
+            if (target == null) {
+                throw new Error(`property '${tokens[0]}' should be an empty configuration object instead of null`);
+            }
             return ConfigurationParser.parse(tokens[1], target);
         }
         // search for property that has special key word

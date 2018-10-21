@@ -19,7 +19,7 @@ export class SendCommand extends RenderCommand {
         dialog.addExternalLinkButton('Import Test', importQuery);
 
         // XXX make this a class that takes over the "hasResult" functionality and can accumulate errors (?), enum viewer { caller, gm, all }
-        return new Result.Failure(new Error('send command is unimplemented'));
+        // return new Result.Failure(new Error('send command is unimplemented'));
 
         return new Result.Dialog(Result.Dialog.Destination.All, dialog.render());
     }

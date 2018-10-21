@@ -1,10 +1,10 @@
-import { ConfigurationStep, ConfigurationChooser } from "derlib/config";
+import { ConfigurationStep, ConfigurationChooser, ConfigurationCommand } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { DungeonMaster } from "derlib/ddal/dungeon_master";
 import { Der20Dialog } from "derlib/roll20/dialog";
 import { Result } from "derlib/config/result";
 
-export class RenderCommand extends ConfigurationStep {
+export class RenderCommand extends ConfigurationCommand {
     protected dm: ConfigurationChooser<DungeonMaster>;
     protected module: ConfigurationChooser<LeagueModule>;
 
@@ -16,16 +16,16 @@ export class RenderCommand extends ConfigurationStep {
 
     protected tryLoad(): Result.Any {
         let result: Result.Any = new Result.Success();
-        if (this.dm.localCopy == null) {
+        if (this.dm.current == null) {
             result = this.dm.parse('');
         }
-        if (this.module.localCopy == null) {
+        if (this.module.current == null) {
             result = this.module.parse('');
         }
-        if ((result.kind == Result.Kind.Success) && (this.dm.localCopy == null)) {
+        if ((result.kind == Result.Kind.Success) && (this.dm.current == null)) {
             return new Result.Failure(new Error('no dm loaded'));
         }
-        if ((result.kind == Result.Kind.Success) && (this.module.localCopy == null)) {
+        if ((result.kind == Result.Kind.Success) && (this.module.current == null)) {
             return new Result.Failure(new Error('no module loaded'));
         }
         return result;
@@ -51,22 +51,24 @@ export class ShowCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.addSubTitle('DM');
         dialog.beginControlGroup();
-        dialog.addEditControl('Name', 'dm current name', this.dm.localCopy.name);
-        dialog.addEditControl('DCI', 'dm current dci', this.dm.localCopy.dci);
+        dialog.addEditControl('Name', 'dm current name', this.dm.current.name);
+        dialog.addEditControl('DCI', 'dm current dci', this.dm.current.dci);
         dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Module');
         dialog.beginControlGroup();
-        dialog.addEditControl('Module Name', 'module current name', this.module.localCopy.name);
-        dialog.addEditControl('Tier', 'module current tier', this.module.localCopy.tier);
-        dialog.addEditControl('Start Time', 'module current start', this.module.localCopy.start);
-        dialog.addEditControl('End Time', 'module current stop', this.module.localCopy.stop);
+        dialog.addEditControl('Module Name', 'module current name', this.module.current.name);
+        dialog.addEditControl('Tier', 'module current tier', this.module.current.tier);
+        dialog.addEditControl('Start Time', 'module current start', this.module.current.start);
+        dialog.addEditControl('End Time', 'module current stop', this.module.current.stop);
         dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Check Points');
-        for (let check of this.module.localCopy.checkpoints.items) {
-            dialog.addEditControl(`${check.name.current} (${check.value.current})`, `module current checkpoint ${check.id} awarded`, check.awarded);
+        dialog.beginControlGroup();
+        for (let check of this.module.current.checkpoints.current) {
+            dialog.addEditControl(`${check.name.effectiveValue()} (${check.advancement.effectiveValue()} ACP, ${check.treasure.effectiveValue()} TCP)`, `module current checkpoint ${check.id} awarded`, check.awarded);
         }
+        dialog.endControlGroup();
         dialog.addSeparator();
         // for (let item of this.module.localCopy.magicItems) {}
         dialog.addSubTitle('Magic Item');

@@ -1,7 +1,7 @@
-import { ConfigurationStep } from './atoms';
+import { ConfigurationCommand } from './atoms';
 import { ConfigurationParser } from './parser';
 
-export class ConfigurationAlias extends ConfigurationStep {
+export class ConfigurationAlias extends ConfigurationCommand {
     root: any;
     path: string;
 

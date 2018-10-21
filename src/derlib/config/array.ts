@@ -4,20 +4,20 @@ import { DefaultConstructed, cloneExcept } from 'derlib/utility';
 import { Result } from './result';
 import { DialogFactory } from 'derlib/ui';
 
-export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep {
+export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep<T[]> {
+    current: T[] = [];
     ids: {} = {};
-    items: T[] = [];
 
     classType: DefaultConstructed<T>;
 
     constructor(singularName: string, itemClass: DefaultConstructed<T>) {
-        super();
+        super([]);
         this.classType = itemClass;
         this.keyword = singularName;
     }
 
     toJSON() {
-        return this.items;
+        return this.current;
     }
 
     parse(line: string): Result.Any {
@@ -35,48 +35,48 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         } else {
             index = this.addItem(id, new (this.classType)());
         }
-        return ConfigurationParser.parse(tokens[1], this.items[index]);
+        return ConfigurationParser.parse(tokens[1], this.current[index]);
     }
 
     addItem(id: string, item: T) {
-        let index = this.items.length;
+        let index = this.current.length;
         item.id = id;
-        this.items.push(item);
+        this.current.push(item);
         this.ids[id] = index;
         return index;
     }
 
     clone(): ConfigurationArray<T> {
         let copied = new ConfigurationArray<T>(this.keyword, this.classType);
-        for (let index = 0; index < this.items.length; index++) {
-            copied.addItem(this.items[index].id, cloneExcept(this.classType, this.items[index], ['id']));
+        for (let index = 0; index < this.current.length; index++) {
+            copied.addItem(this.current[index].id, cloneExcept(this.classType, this.current[index], ['id']));
         }
         return copied;
     }
 }
 
-export class ConfigurationChooser<T extends CollectionItem> extends ConfigurationStep {
+export class ConfigurationChooser<T extends CollectionItem> extends ConfigurationStep<T> {
     // this id can be used to refer to the most recently selected item
     static readonly MAGIC_CURRENT_ID: string = 'current';
 
     // this string can be substituted for the command path by the caller
     static readonly MAGIC_COMMAND_STRING: string = 'DER20_MAGIC_COMMAND_STRING';
 
+    current: T = ConfigurationStep.NO_VALUE;
     array: ConfigurationArray<T>;
-    localCopy: T = null;
     selectedId: string;
     path: string;
     dialogFactory: DialogFactory;
 
     constructor(array: ConfigurationArray<T>, dialogFactory: DialogFactory, path: string) {
-        super();
+        super(ConfigurationStep.NO_VALUE);
         this.array = array;
         this.dialogFactory = dialogFactory;
         this.path = path;
     }
 
     toJSON() {
-        return this.localCopy;
+        return this.current;
     }
 
     private createChooserDialog(rest: string): Result.Dialog {
@@ -86,7 +86,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:')
         dialog.beginControlGroup();
-        for (let item of this.array.items) {
+        for (let item of this.array.current) {
             // rerun the same command, with the item id filled in
             dialog.addChoiceControl(this.array.keyword, `${this.path} ${item.id} ${rest}`);
         }
@@ -97,15 +97,15 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     private handleCurrent(rest: string): Result.Any {
         if (this.selectedId != null) {
             // already loaded
-            return ConfigurationParser.parse(rest, this.localCopy);
+            return ConfigurationParser.parse(rest, this.current);
         }
-        if (this.array.items.length > 1) {
+        if (this.array.current.length > 1) {
             // present interactive chooser
             return this.createChooserDialog(rest);
         }
-        if (this.array.items.length == 1) {
+        if (this.array.current.length == 1) {
             // auto select only defined item, if any
-            let id = this.array.items[0].id;
+            let id = this.array.current[0].id;
             console.log(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
             return this.loadItem(id, rest);
         }
@@ -127,7 +127,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         }
 
         if (!this.array.ids.hasOwnProperty(id)) {
-            this.localCopy = null;
+            this.current = null;
             this.selectedId = undefined;
             return new Result.Failure(new Error(`item "${id}" is not defined`));
         }
@@ -137,14 +137,14 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
 
     private loadItem(id: string, rest: string) {
         let index = this.array.ids[id];
-        this.localCopy = cloneExcept(this.array.classType, this.array.items[index], ['id']);
+        this.current = cloneExcept(this.array.classType, this.array.current[index], ['id']);
         this.selectedId = id;
-        return ConfigurationParser.parse(rest, this.localCopy);
+        return ConfigurationParser.parse(rest, this.current);
     }
 
     clear() {
         this.selectedId = undefined;
-        this.localCopy = null;
+        this.current = null;
     }
 }
 
