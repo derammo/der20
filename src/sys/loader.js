@@ -38,7 +38,7 @@ function derModuleStart(module_name) {
         // exports of provider becomes argument to our start function in same position
         args.push(derModules[provider].exports);
     }
-    console.log(`loading module ${module_name}`);
+    console.log(`loading module '${module_name}'`);
     module.start_function.apply(null, args);
     module.starting = false;
     if (Object.keys(args[0]).length > 0) {

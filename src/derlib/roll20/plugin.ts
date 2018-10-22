@@ -8,6 +8,7 @@ declare var sendChat: any;
 
 var configurationRoot: any;
 var persistence: ConfigurationPersistence;
+var pluginName: string;
 
 function handleResult(player: any, command: string, result: Result.Any): Result.Any {
 	if (result.events.has(Result.Event.Change)) {
@@ -25,7 +26,7 @@ function handleResult(player: any, command: string, result: Result.Any): Result.
         case Result.Kind.Dialog:
             let dialog = (<Result.Dialog>result).dialog.replace(ConfigurationChooser.MAGIC_COMMAND_STRING, command);
             console.log(`dialog from parse: ${dialog.substr(0, 10)}...`);
-            sendChat(name, `/w "${player.get('displayname')}" ${dialog}`, null, { noarchive: true });
+            sendChat(pluginName, `/w "${player.get('displayname')}" ${dialog}`, null, { noarchive: true });
             return new Result.Success();
         case Result.Kind.Success:
             if (command.endsWith('-show')) {
@@ -39,13 +40,14 @@ function handleResult(player: any, command: string, result: Result.Any): Result.
 }
 
 function reportError(error: Error) {
-    console.log(`error from parse: ${error}`);
-    sendChat(name, `/w GM ${error}`, null, { noarchive: true });
+    console.log(`error from parse: ${error.message}`);
+    sendChat(pluginName, `/w GM ${error.message}`, null, { noarchive: true });
 }
 
 export function start(name: string, configuration: any) {
+    pluginName = name;
     configurationRoot = configuration;
-    persistence = startPersistence(name);
+    persistence = startPersistence(pluginName);
     
     let json = persistence.load();
     ConfigurationParser.restore(json, configurationRoot);
@@ -61,7 +63,7 @@ export function start(name: string, configuration: any) {
         try {
             let player = getObj('player', msg.playerid);
             let lines = msg.content.split('\n');
-            let validCommands = new Set([`!${name}`, `!${name}-show`]);
+            let validCommands = new Set([`!${pluginName}`, `!${pluginName}-show`]);
             for (let line of lines) {
                 let tokens = ConfigurationParser.tokenizeFirst(line);
                 if (!validCommands.has(tokens[0])) {
@@ -69,7 +71,7 @@ export function start(name: string, configuration: any) {
                     continue;
                 }
                 let result = ConfigurationParser.parse(tokens[1], configuration);
-                result = handleResult(tokens[0], player, result);
+                result = handleResult(player, tokens[0], result);
                 if (result.kind == Result.Kind.Failure) {
                     // REVISIT should we stop processing lines in this block?
                 }
