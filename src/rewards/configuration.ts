@@ -1,4 +1,4 @@
-import { ConfigurationAlias, ConfigurationArray, ConfigurationChooser, ConfigurationParser, ConfigurationStep, ConfigurationFloat } from "derlib/config";
+import { ConfigurationAlias, ConfigurationArray, ConfigurationChooser, ConfigurationParser, ConfigurationStep, ConfigurationFloat, ConfigurationDeleteItemCommand } from "derlib/config";
 import { DungeonMaster } from "derlib/ddal/dungeon_master";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { TimerCommand } from "./timer_command";
@@ -32,9 +32,24 @@ class Definitions {
     dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>("dm", DungeonMaster);
 }
 
+class DeleteCommands {
+    module: ConfigurationDeleteItemCommand<LeagueModule>;
+    dm: ConfigurationDeleteItemCommand<DungeonMaster>;
+
+    constructor(definitions: Definitions) {
+        this.module = new ConfigurationDeleteItemCommand(definitions.modules);
+        this.dm = new ConfigurationDeleteItemCommand(definitions.dms);
+    }
+
+    toJSON() {
+        return undefined;
+    }
+}
+
 export class Configuration {
     // static configuration
     define: Definitions = new Definitions();
+    delete: DeleteCommands = new DeleteCommands(this.define);
 
     // current session copies from definitions
     dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms, Der20Dialog, 'dm');

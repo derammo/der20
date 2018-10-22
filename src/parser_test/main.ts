@@ -43,6 +43,12 @@ let test = `
 	define dm ammo dci 007
 	define dm ammo name Ammo Goettsch
 	checkpoint bosskill awarded true
+	define dm junk
+	dm junk
+	delete dm junk
+	define module trash
+	module trash
+	delete module trash
 	clear
 	dm
 	dm ammo
@@ -59,10 +65,6 @@ let test = `
 	stop
 	show
 	send
-	define dm junk
-	delete dm junk
-	define module trash
-	delete module trash
 `;
 let test2 = `define module ddal12-01 level minimum 2`;
 

@@ -13,7 +13,7 @@ function derModuleStart(module_name) {
             // if testing under Node.js, we can use local modules
             module = { requires: [], exports: require(module_name) };
         } else {
-            console.log(`module dependency '${module_name}' cannot be satisfied; this platform only supports modules included in the distribution file`);
+            console.log(`        module '${module_name}' is not supported on this platform`);
             module = { requires: [], exports: {} };
         }
         derModules[module_name] = module;
@@ -38,7 +38,7 @@ function derModuleStart(module_name) {
         // exports of provider becomes argument to our start function in same position
         args.push(derModules[provider].exports);
     }
-    console.log(`loading ${module_name}`);
+    console.log(`loading module ${module_name}`);
     module.start_function.apply(null, args);
     module.starting = false;
     if (Object.keys(args[0]).length > 0) {

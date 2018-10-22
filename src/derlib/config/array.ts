@@ -66,6 +66,16 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         return index;
     }
 
+    removeItem(id: string): boolean {
+        let index = this.ids[id];
+        if (index === undefined) {
+            return false;
+        }
+        delete this.ids[id];
+        this.current.splice(index, 1);
+        return true;
+    }
+
     clone(): ConfigurationArray<T> {
         let copied = new ConfigurationArray<T>(this.keyword, this.classType);
         for (let index = 0; index < this.current.length; index++) {

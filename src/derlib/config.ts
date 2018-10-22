@@ -8,3 +8,4 @@ export * from "./config/file";
 export * from "./config/persistence";
 export * from "./config/result";
 export * from "./config/intermediate";
+export * from "./config/deleteitem";
