@@ -18,14 +18,14 @@ export class ConfigurationStep<T> {
         this.current = json;
     }
 
-    effectiveValue(): T {
-        if (!this.hasValue()) {
+    value(): T {
+        if (!this.hasConfiguredValue()) {
             return this.default;
         }
         return this.current;
     }
     
-    hasValue(): boolean {
+    hasConfiguredValue(): boolean {
         return this.current !== ConfigurationStep.NO_VALUE;
     }
 
@@ -36,7 +36,7 @@ export class ConfigurationStep<T> {
 
 export namespace ConfigurationStep {
     // this is the value we use for unpopulated data
-    export const NO_VALUE = null;
+    export const NO_VALUE = undefined;
 }
 
 // no actual data, subclassed by steps that just take an action in code
@@ -49,13 +49,11 @@ export class ConfigurationCommand extends ConfigurationStep<boolean> {
 export class ConfigurationString extends ConfigurationStep<string> {
     constructor(defaultValue: string) {
         super(defaultValue);
-        // XXX load or default
     }
 
     parse(line: string): Result.Any {
         this.current = line;
-        // XXX write
-        return new Result.Success();
+        return new Result.Change();
     }
 
     clone() {
@@ -67,13 +65,11 @@ export class ConfigurationString extends ConfigurationStep<string> {
 export class ConfigurationInteger extends ConfigurationStep<number> {
     constructor(defaultValue: number) {
         super(defaultValue);
-        // XXX load or default
     }
 
     parse(line: string): Result.Any {
         this.current = parseInt(line, 10);
-        // XXX write
-        return new Result.Success();
+        return new Result.Change();
     }
 
     clone() {
@@ -85,13 +81,11 @@ export class ConfigurationInteger extends ConfigurationStep<number> {
 export class ConfigurationFloat extends ConfigurationStep<number> {
     constructor(defaultValue: number) {
         super(defaultValue);
-        // XXX load or default
     }
 
     parse(line: string): Result.Any {
         this.current = parseFloat(line);
-        // XXX write
-        return new Result.Success();
+        return new Result.Change();
     }
 
     clone() {
@@ -103,7 +97,6 @@ export class ConfigurationFloat extends ConfigurationStep<number> {
 export class ConfigurationDate extends ConfigurationStep<number> {
     constructor(defaultValue: number) {
         super(defaultValue);
-        // XXX load or default
     }
 
     parse(line: string): Result.Any {
@@ -113,7 +106,7 @@ export class ConfigurationDate extends ConfigurationStep<number> {
         } else {
             this.current = Date.parse(line);
         }
-        return new Result.Success();
+        return new Result.Change();
     }
 
     clone() {
@@ -127,13 +120,11 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
  
     constructor(defaultValue: boolean) {
         super(defaultValue);
-        // XXX load or default
     }
 
     parse(line: string): Result.Any {
         this.current = (ConfigurationBoolean.trueValues.has(line));
-        // XXX write
-        return new Result.Success();
+        return new Result.Change();
     }
 
     clone() {

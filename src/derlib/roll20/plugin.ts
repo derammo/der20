@@ -1,13 +1,21 @@
-import { ConfigurationParser, ConfigurationChooser, ConfigurationAlias } from "derlib/config";
+import { ConfigurationParser, ConfigurationChooser, ConfigurationAlias, ConfigurationPersistence, ConfigurationFile, ConfigurationTemp } from "derlib/config";
 import { Result } from "derlib/config/result";
+import { startPersistence } from "derlib/persistence";
 
 declare var on: any;
 declare var getObj: any;
 declare var sendChat: any;
 
 var configurationRoot: any;
+var persistence: ConfigurationPersistence;
 
 function handleResult(player: any, command: string, result: Result.Any): Result.Any {
+	if (result.events.has(Result.Event.Change)) {
+		let text = JSON.stringify(configurationRoot);
+		// now that everything is clean, convert back to a dictionary
+		let cleaned = JSON.parse(text);
+		persistence.save(cleaned);
+	}
     switch (result.kind) {
         case Result.Kind.Failure:
             for (let error of (<Result.Failure>result).errors) {
@@ -35,8 +43,12 @@ function reportError(error: Error) {
     sendChat(name, `/w GM ${error}`, null, { noarchive: true });
 }
 
-export function registerHandlers(name: string, configuration: any) {
+export function start(name: string, configuration: any) {
     configurationRoot = configuration;
+    persistence = startPersistence(name);
+    
+    let json = persistence.load();
+    ConfigurationParser.restore(json, configurationRoot);
 
     on('ready', function () {
         console.log('loaded');

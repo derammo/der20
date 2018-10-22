@@ -1,5 +1,7 @@
 import { ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationArray, ConfigurationDate, ConfigurationFloat, ConfigurationStep, ConfigurationParser } from 'derlib/config';
 import { clone } from '../utility';
+import { ConfigurationEventHandler, ConfigurationUpdate, ConfigurationIntermediateNode } from '../config';
+import { Result } from '../config';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it
@@ -33,13 +35,7 @@ export class Unlock {
     dm: ConfigurationBoolean = new ConfigurationBoolean(false);
 }
 
-// XXX unused
-class ConfigurationChangeHandler<T> {
-    constructor(source: ConfigurationStep<T>, handler: (changed: ConfigurationStep<T>) => void) {
-    }
-}
-
-export class LeagueModule {
+export class LeagueModule extends ConfigurationEventHandler {
     // can't be undefined, because we need to detect that we can configurat it
     id: string = null;
 
@@ -57,30 +53,25 @@ export class LeagueModule {
     start: ConfigurationDate = new ConfigurationDate(ConfigurationStep.NO_VALUE);
     stop: ConfigurationDate = new ConfigurationDate(ConfigurationStep.NO_VALUE);
 
-    minimumLevel(): number {
-        if (this.level.minimum.hasValue()) {
-            return this.level.minimum.current;
-        }
-        if (this.tier.hasValue()) {
-            switch (this.tier.current) {
-                case 1:
-                    return 1;
-                case 2:
-                    return 5;
-                case 3:
-                    return 11;
-                case 4:
-                    return 17;
-            }
-        }
-        return ConfigurationStep.NO_VALUE;
+    minimumLevelForTier(source: ConfigurationStep<number>): number {
+        return 0;
     }
+
     constructor() {
+        super();
+        this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['level', 'minimum'], this.minimumLevelForTier));
+    }
+
+    toJSON() {
+        let result = {};
+        Object.assign(result, this);
+        delete result['handlers'];
+        return result;
     }
 }
 
 export namespace LeagueModule {
-    export class Level {
+    export class Level extends ConfigurationIntermediateNode {
         minimum: ConfigurationInteger = new ConfigurationInteger(ConfigurationStep.NO_VALUE);
         maximum: ConfigurationInteger = new ConfigurationInteger(ConfigurationStep.NO_VALUE);
 
@@ -88,7 +79,7 @@ export namespace LeagueModule {
             return clone(LeagueModule.Level, this);
         }
     }
-    export class Hourly {
+    export class Hourly extends ConfigurationIntermediateNode {
         advancement: ConfigurationFloat = new ConfigurationFloat(ConfigurationStep.NO_VALUE);
         treasure: ConfigurationFloat = new ConfigurationFloat(ConfigurationStep.NO_VALUE);
 

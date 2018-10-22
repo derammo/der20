@@ -1,5 +1,6 @@
 import { ConfigurationStep } from './atoms'
 import { Result } from './result';
+import { ConfigurationEventHandler } from './changes';
     
 export interface ConfigurationParsing {
     parse(line: string): Result.Any;
@@ -31,7 +32,14 @@ export class ConfigurationParser {
             if (target == null) {
                 throw new Error(`property '${tokens[0]}' should be an empty configuration object instead of null`);
             }
-            return ConfigurationParser.parse(tokens[1], target);
+            let result = ConfigurationParser.parse(tokens[1], target);
+            if (!result.hasEvents()) {
+                return result;
+            }
+            if (configuration instanceof ConfigurationEventHandler) {
+                return configuration.handleEvents(tokens[0], result);
+            }
+            return result;
         }
         // search for property that has special key word
         for (let key in configuration) {
@@ -49,6 +57,35 @@ export class ConfigurationParser {
         if (tokens[0].length > 0) {
             return new Result.Failure(new Error(`token '${tokens[0]}' did not match any configuration command`));
         }
+        // empty token was claimed by no item, that is ok
         return new Result.Success();
+    }
+
+    static restore(from: any, to: any) {
+        if (from == undefined) {
+            return;
+        }
+        if (to instanceof ConfigurationStep) {
+            // XXX remove
+            console.log(`restoring configuration step from '${JSON.stringify(from)}'`)
+            to.load(from);
+            return;
+        }
+        // iterate objects, recurse	
+        for (let key in from) {
+            if (to.hasOwnProperty(key)) {
+                // XXX remove
+                console.log(`restoring property '${key}'`);
+                let target = to[key];
+                if ((target !== null) && (typeof target == 'object')) {
+                    ConfigurationParser.restore(from[key], target);
+                } else {
+                    // treat as dumb data
+                    to[key] = from[key];
+                }
+            } else {
+                console.log(`ignoring JSON property '${key}' that does not appear in configuration tree`);
+            }
+        }
     }
 }

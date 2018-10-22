@@ -6,11 +6,20 @@ export namespace Result {
         Failure
     }
 
+    export enum Event {
+        Change = 'change'
+    }
+
     export class Any {
         kind: Result.Kind;
+        events: Set<Result.Event> = new Set<Result.Event>();
 
         protected constructor(kind: Result.Kind) {
             this.kind = kind;
+        }
+
+        hasEvents(): boolean {
+            return this.events.size > 0;
         }
     }
 
@@ -50,4 +59,11 @@ export namespace Result {
             super(Result.Kind.Success);
         }
     };
+
+    export class Change extends Success {
+        constructor() {
+            super();
+            this.events.add(Result.Event.Change);
+        }
+    }
 };

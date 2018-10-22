@@ -25,7 +25,6 @@ export class TimerCommand extends ConfigurationCommand {
             }
         }
         let date = new Date(time);
-        ConfigurationParser.parse(`current ${this.property} ${date.toUTCString()}`, this.module);
-        return new Result.Success();
+        return ConfigurationParser.parse(`current ${this.property} ${date.toUTCString()}`, this.module);
     }
 }

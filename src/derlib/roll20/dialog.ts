@@ -43,22 +43,22 @@ export class Der20Dialog {
         let link: string = '';
         if (config instanceof ConfigurationString) {
             // already a string, but need to assert type
-            let value = (<ConfigurationString>config).effectiveValue();
+            let value = (<ConfigurationString>config).value();
             text = this.getStringText(value);
             link = `${path} ?{${label}}`
         } else if ((config instanceof ConfigurationInteger)
             || (config instanceof ConfigurationFloat)) {
-            let value = config.effectiveValue();
+            let value = config.value();
             text = this.getNumberText<T>(value);
             // REVISIT do we have an integer control available somewhere?
             link = `${path} ?{${label} (Integer)}`
         } else if (config instanceof ConfigurationDate) {
-            let value = (<ConfigurationDate>config).effectiveValue();
+            let value = (<ConfigurationDate>config).value();
             text = this.getDateText(value);
             // REVISIT do we have an integer or date control available somewhere?
             link = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`
         } else if (config instanceof ConfigurationBoolean) {
-            text = `${(<ConfigurationBoolean>config).effectiveValue() === true}`;
+            text = `${(<ConfigurationBoolean>config).value() === true}`;
             link = `${path} ${!config.current}`
         }
         if (defaulted) {

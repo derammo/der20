@@ -5,42 +5,13 @@ import { Configuration } from "../rewards/configuration";
 import { Der20Dialog } from "derlib/roll20/dialog";
 import { ConfigurationParser, ConfigurationStep } from "derlib/config";
 import { LeagueModule } from "derlib/ddal/league_module";
-import { serializeWithoutNulls } from "derlib/utility";
-import { Result } from "derlib/config/result";
+import { startPersistence } from "derlib/persistence";
+import { Result } from "derlib/config";
 
 let config = new Configuration();
-
-// either roll20 state or file
-declare var state: any;
-import { readFile, writeFile } from "fs";
-
-// persisted
-let jsonLoaded: any;
-if (readFile) {
-	// local testing
-	readFile('parser_test_state.json', (err, data) => {
-		if (err) {
-			jsonLoaded = {};
-			return;
-		}
-		jsonLoaded = JSON.parse(data.toString()) || {};
-	});
-} else {
-	// XXX move to plugin
-	state.der20 = state.der20 || {};
-	state.der20.parser_test = state.der20.parser_test || {};
-	jsonLoaded = state.der20.parser_test;
-}
-
-function restore(from: any, to: any) {
-	if (to instanceof ConfigurationStep) {
-		to.load(from);
-	}
-
-	// XXX iterate objects, recurse	
-}
-
-restore(jsonLoaded, config);
+let persistence = startPersistence('parser_test');
+let json = persistence.load();
+ConfigurationParser.restore(json, config);
 
 let test = `
 	delete all configuration
@@ -93,8 +64,7 @@ let test = `
 	define module trash
 	delete module trash
 `;
-let test2 = `
-`;
+let test2 = `define module ddal12-01 level minimum 2`;
 
 export function testRun(): string {
 	let dialog = new Der20Dialog('!rewards ');
@@ -110,9 +80,12 @@ export function testDialog(command: string): string {
 	return '';
 }
 
-function report(result: any) {
-	if (Object.keys(result).length < 1) {
-		return;
+function handleResult(result: Result.Any) {
+	if (result.events.has(Result.Event.Change)) {
+		let text = JSON.stringify(config);
+		// now that everything is clean, convert back to a dictionary
+		let cleaned = JSON.parse(text);
+		persistence.save(cleaned);
 	}
 	if (result.kind != Result.Kind.Success) {
 		console.log(`	result of parse: ${JSON.stringify(result).substr(0,119)}`)
@@ -121,36 +94,31 @@ function report(result: any) {
 
 console.debug = ((message) => { });
 
-function testParse(): string {
-	for (let line of test.split('\n')) {
-		let command = line.trim();
-		// run including blank lines
-		console.log(`testing: ${command}`);
-		let result = ConfigurationParser.parse(command, config);
-		report(result);
-	}
+function testParse(): void {
+	testParse1();
 
 	// separate tests for breakpointing
+	testParse2();
+}
+
+function testParse2() {
 	for (let line of test2.split('\n')) {
 		let command = line.trim();
 		// run including blank lines
 		console.log(`testing: ${command}`);
 		let result = ConfigurationParser.parse(command, config);
-		report(result);
+		handleResult(result);
 	}
-	return serializeWithoutNulls(config);
 }
 
-let jsonResult = testParse();
-// console.log(jsonResult);
-
-if (writeFile) {
-	// local testing
-	writeFile('parser_test_state.json', jsonResult, (err) => {
-	});
-} else {
-	// XXX move to plugin
-	state.der20.parser_test = jsonResult;
+function testParse1() {
+	for (let line of test.split('\n')) {
+		let command = line.trim();
+		// run including blank lines
+		console.log(`testing: ${command}`);
+		let result = ConfigurationParser.parse(command, config);
+		handleResult(result);
+	}
 }
 
 import { exec } from 'child_process';
@@ -168,4 +136,5 @@ function tidy(text: string): string {
 	return output;
 }
 
+testParse();
 // console.log(tidy(testDialog('show')));

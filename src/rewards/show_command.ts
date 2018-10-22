@@ -66,7 +66,7 @@ export class ShowCommand extends RenderCommand {
         dialog.addSubTitle('Check Points');
         dialog.beginControlGroup();
         for (let check of this.module.current.checkpoints.current) {
-            dialog.addEditControl(`${check.name.effectiveValue()} (${check.advancement.effectiveValue()} ACP, ${check.treasure.effectiveValue()} TCP)`, `module current checkpoint ${check.id} awarded`, check.awarded);
+            dialog.addEditControl(`${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`, `module current checkpoint ${check.id} awarded`, check.awarded);
         }
         dialog.endControlGroup();
         dialog.addSeparator();

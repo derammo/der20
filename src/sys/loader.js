@@ -23,14 +23,18 @@ function derModuleStart(module_name) {
         return;
     }
     if (module.starting) {
-        throw new Error("circular dependency involving " + module_name);
+        throw new Error(`circular dependency involving ${module_name}`);
     }
     module.starting = true;
     let args = [{}, {}];
     for (let provider of module.requires.slice(2)) {
+        try {
         // depth-first traversal, starting modules on which we depend (providers)
         derModuleStart(provider);
-
+        } catch(err) {
+            console.log(`circular dependency involving ${module_name}`);
+            throw(err);
+        }
         // exports of provider becomes argument to our start function in same position
         args.push(derModules[provider].exports);
     }

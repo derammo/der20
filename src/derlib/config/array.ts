@@ -6,7 +6,7 @@ import { DialogFactory } from 'derlib/ui';
 
 export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep<T[]> {
     current: T[] = [];
-    ids: {} = {};
+    ids: { [index: string]: number } = {};
 
     classType: DefaultConstructed<T>;
 
@@ -18,6 +18,26 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
 
     toJSON() {
         return this.current;
+    }
+
+    clear() {
+        this.current = [];
+        this.ids = {};
+    }
+
+    load(json: any) {
+        this.clear();
+        if (!Array.isArray(json)) {
+            // ignore, might be schema change we can survive
+            console.log('ignoring non-array JSON in saved state; configuration array reset');
+            return;
+        }
+        json.forEach((node, index) => {
+            let item = new (this.classType)();
+            ConfigurationParser.restore(node, item);
+            this.ids[item.id] = this.current.length;
+            this.current.push(item);
+        });
     }
 
     parse(line: string): Result.Any {
@@ -78,9 +98,20 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     toJSON() {
         // shallow copy so we can overwrite id (must not be changed)
         let result = {};
-        Object.assign(result, this.current);
+        if (this.hasConfiguredValue()) {
+            let source = this.current;
+            if (typeof source['toJSON'] == 'function') {
+                source = source['toJSON']();
+            }
+            Object.assign(result, source);
+        }
         result['id'] = this.selectedId;
         return result;
+    }
+
+    load(json: any) {
+        this.selectedId = json['id'];
+        // now we wait until this object is used, because the array may not have loaded yet
     }
 
     private createChooserDialog(rest: string): Result.Dialog {
@@ -99,8 +130,11 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     }
 
     private handleCurrent(rest: string): Result.Any {
-        if (this.selectedId != null) {
-            // already loaded
+        if (this.selectedId != undefined) {
+            if (this.current == ConfigurationStep.NO_VALUE) {
+                 // right after restoring from JSON, the item data has not been loaded yet
+                 this.loadItem(this.selectedId, rest);
+            }
             return ConfigurationParser.parse(rest, this.current);
         }
         if (this.array.current.length > 1) {
@@ -111,7 +145,8 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
             // auto select only defined item, if any
             let id = this.array.current[0].id;
             console.log(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
-            return this.loadItem(id, rest);
+            this.loadItem(id, rest);
+            return ConfigurationParser.parse(rest, this.current);
         }
         // remaining case is no items in collection
         return new Result.Failure(new Error(`${this.array.keyword} could not be selected, because none are defined`));
@@ -131,24 +166,23 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         }
 
         if (!this.array.ids.hasOwnProperty(id)) {
-            this.current = null;
-            this.selectedId = undefined;
+            this.clear();
             return new Result.Failure(new Error(`item "${id}" is not defined`));
         }
 
-        return this.loadItem(id, tokens[1]);
+        this.loadItem(id, tokens[1]);
+        return ConfigurationParser.parse(tokens[1], this.current);
     }
 
     private loadItem(id: string, rest: string) {
         let index = this.array.ids[id];
         this.current = cloneExcept(this.array.classType, this.array.current[index], ['id']);
         this.selectedId = id;
-        return ConfigurationParser.parse(rest, this.current);
     }
 
     clear() {
         this.selectedId = undefined;
-        this.current = null;
+        this.current = ConfigurationStep.NO_VALUE;
     }
 }
 

@@ -1,4 +1,4 @@
 import { Configuration } from "./configuration";
-import { registerHandlers } from "derlib/roll20/plugin";
+import { start } from "derlib/roll20/plugin";
 
-registerHandlers('rewards', new Configuration());
+start('rewards', new Configuration());
