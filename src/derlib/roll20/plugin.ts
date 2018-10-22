@@ -7,6 +7,7 @@ import { ConfigurationParser } from "derlib/config/parser";
 declare var console: any;
 
 // from Roll20
+// REVISIT create a module that loads either real interface or emulator
 declare var log: any;
 declare var on: any;
 declare var getObj: any;
@@ -15,6 +16,10 @@ declare var sendChat: any;
 var pluginName: string;
 var configurationRoot: any;
 var persistence: ConfigurationPersistence;
+
+if (typeof log !== 'function') {
+    throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script');
+}
 
 console.log = (message) => {
     let stamp = new Date().toISOString();
@@ -27,7 +32,10 @@ function handleResult(player: any, command: string, result: Result.Any): Result.
 		// now that everything is clean, convert back to a dictionary
 		let cleaned = JSON.parse(text);
 		persistence.save(cleaned);
-	}
+    }
+    
+    // this switch must be exhaustive
+    // tslint:disable-next-line:switch-default
     switch (result.kind) {
         case Result.Kind.Failure:
             for (let error of (<Result.Failure>result).errors) {
@@ -68,7 +76,7 @@ export function start(name: string, configuration: any) {
     });
 
     on('chat:message', (msg) => {
-        if (msg.type != 'api') {
+        if (msg.type !== 'api') {
             return;
         }
         try {
@@ -83,7 +91,7 @@ export function start(name: string, configuration: any) {
                 }
                 let result = ConfigurationParser.parse(tokens[1], configuration);
                 result = handleResult(player, tokens[0], result);
-                if (result.kind == Result.Kind.Failure) {
+                if (result.kind === Result.Kind.Failure) {
                     // REVISIT should we stop processing lines in this block?
                 }
             }
