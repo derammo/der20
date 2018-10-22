@@ -1,7 +1,9 @@
-import { ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationArray, ConfigurationDate, ConfigurationFloat, ConfigurationStep, ConfigurationParser } from 'derlib/config';
-import { clone } from '../utility';
-import { ConfigurationEventHandler, ConfigurationUpdate, ConfigurationIntermediateNode } from '../config';
-import { Result } from '../config';
+import { ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate, ConfigurationFloat, ConfigurationStep } from 'derlib/config/atoms';
+import { clone } from 'derlib/utility';
+import { ConfigurationEventHandler, ConfigurationUpdate } from 'derlib/config/parser';
+import { Result } from 'derlib/config/result';
+import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
+import { ConfigurationArray } from '../config/array';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it

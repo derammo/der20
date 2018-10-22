@@ -1,4 +1,4 @@
-import { ConfigurationStep } from "./config";
+import { ConfigurationStep } from "derlib/config/atoms";
 
 export interface Dialog {
     beginControlGroup(): void;

@@ -1,4 +1,4 @@
-import { ConfigurationPersistence } from "../config";
+import { ConfigurationPersistence } from 'derlib/config/persistence'
 
 declare var state: any;
 

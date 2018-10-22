@@ -1,16 +1,19 @@
-import { ConfigurationAlias, ConfigurationArray, ConfigurationChooser, ConfigurationParser, ConfigurationStep, ConfigurationFloat, ConfigurationDeleteItemCommand } from "derlib/config";
-import { DungeonMaster } from "derlib/ddal/dungeon_master";
-import { LeagueModule } from "derlib/ddal/league_module";
-import { TimerCommand } from "./timer_command";
-import { ClearCommand } from "./clear_command";
-import { SendCommand } from "./send_command";
-import { ShowCommand } from "./show_command";
-import { Der20Dialog } from "derlib/roll20/dialog";
-import { clone, DefaultConstructed } from "derlib/utility";
+import { ConfigurationStep, ConfigurationFloat } from 'derlib/config/atoms';
+import { DungeonMaster } from 'derlib/ddal/dungeon_master';
+import { LeagueModule } from 'derlib/ddal/league_module';
+import { TimerCommand } from './timer_command';
+import { ClearCommand } from './clear_command';
+import { SendCommand } from './send_command';
+import { ShowCommand } from './show_command';
+import { Der20Dialog } from 'derlib/roll20/dialog';
+import { clone, DefaultConstructed } from 'derlib/utility';
+import { ConfigurationArray, ConfigurationChooser } from 'derlib/config/array';
+import { ConfigurationDeleteItemCommand } from 'derlib/config/deleteitem';
+import { ConfigurationAlias } from 'derlib/config/alias';
 
 class Multiplied {
-    multiplier: ConfigurationFloat
-    unit: ConfigurationFloat
+    multiplier: ConfigurationFloat;
+    unit: ConfigurationFloat;
     constructor(multiplier: number, unit: number) {
         this.multiplier = new ConfigurationFloat(multiplier);
         this.unit = new ConfigurationFloat(unit);
@@ -18,8 +21,8 @@ class Multiplied {
 }
 
 class AdvancementRules {
-    downtime:  Multiplied = new Multiplied(2.5, 0.5);
-    renown:  Multiplied = new Multiplied(0.25, 0.5);
+    downtime: Multiplied = new Multiplied(2.5, 0.5);
+    renown: Multiplied = new Multiplied(0.25, 0.5);
 }
 
 class Rules {
@@ -28,8 +31,8 @@ class Rules {
 
 class Definitions {
     rules: Rules = new Rules();
-    modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>("module", LeagueModule);
-    dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>("dm", DungeonMaster);
+    modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>('module', LeagueModule);
+    dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>('dm', DungeonMaster);
 }
 
 class DeleteCommands {

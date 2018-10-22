@@ -1,4 +1,4 @@
-import { ConfigurationString, ConfigurationStep } from 'derlib/config';
+import { ConfigurationString, ConfigurationStep } from 'derlib/config/atoms';
 
 export class DungeonMaster {
     // can't be undefined, because we need to detect that we can configurat it

@@ -1,6 +1,7 @@
-import { ConfigurationParser, ConfigurationChooser, ConfigurationAlias, ConfigurationPersistence, ConfigurationFile, ConfigurationTemp } from "derlib/config";
 import { Result } from "derlib/config/result";
 import { startPersistence } from "derlib/persistence";
+import { ConfigurationPersistence } from "derlib/config/persistence";
+import { ConfigurationParser } from "derlib/config/parser";
 
 // from our module header
 declare var console: any;
@@ -34,7 +35,7 @@ function handleResult(player: any, command: string, result: Result.Any): Result.
             }
             return result;
         case Result.Kind.Dialog:
-            let dialog = (<Result.Dialog>result).dialog.replace(ConfigurationChooser.MAGIC_COMMAND_STRING, command);
+            let dialog = (<Result.Dialog>result).dialog.replace(ConfigurationParser.MAGIC_COMMAND_STRING, command);
             console.log(`dialog from parse: ${dialog.substr(0, 10)}...`);
             sendChat(pluginName, `/w "${player.get('displayname')}" ${dialog}`, null, { noarchive: true });
             return new Result.Success();

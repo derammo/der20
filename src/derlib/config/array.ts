@@ -89,9 +89,6 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     // this id can be used to refer to the most recently selected item
     static readonly MAGIC_CURRENT_ID: string = 'current';
 
-    // this string can be substituted for the command path by the caller
-    static readonly MAGIC_COMMAND_STRING: string = 'DER20_MAGIC_COMMAND_STRING';
-
     current: T = ConfigurationStep.NO_VALUE;
     array: ConfigurationArray<T>;
     selectedId: string;
@@ -105,12 +102,13 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         this.path = path;
     }
 
+    /* tslint:disable:no-string-literal */
     toJSON() {
         // shallow copy so we can overwrite id (must not be changed)
         let result = {};
         if (this.hasConfiguredValue()) {
             let source = this.current;
-            if (typeof source['toJSON'] == 'function') {
+            if (typeof source['toJSON'] === 'function') {
                 source = source['toJSON']();
             }
             Object.assign(result, source);
@@ -123,10 +121,11 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         this.selectedId = json['id'];
         // now we wait until this object is used, because the array may not have loaded yet
     }
+    /* tslint:enable:no-string-literal */
 
     private createChooserDialog(rest: string): Result.Dialog {
         // we don't know what command word was used to call us, so we let the caller fix it up
-        let dialog = new (this.dialogFactory)(ConfigurationChooser.MAGIC_COMMAND_STRING);
+        let dialog = new (this.dialogFactory)(ConfigurationParser.MAGIC_COMMAND_STRING);
         dialog.addTitle('No Current Item Selected');
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:')
@@ -140,8 +139,8 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     }
 
     private handleCurrent(rest: string): Result.Any {
-        if (this.selectedId != undefined) {
-            if (this.current == ConfigurationStep.NO_VALUE) {
+        if (this.selectedId !== undefined) {
+            if (this.current === ConfigurationStep.NO_VALUE) {
                  // right after restoring from JSON, the item data has not been loaded yet
                  this.loadItem(this.selectedId, rest);
             }
@@ -151,7 +150,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
             // present interactive chooser
             return this.createChooserDialog(rest);
         }
-        if (this.array.current.length == 1) {
+        if (this.array.current.length === 1) {
             // auto select only defined item, if any
             let id = this.array.current[0].id;
             console.log(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
@@ -166,7 +165,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let id = tokens[0];
 
-        if (id == ConfigurationChooser.MAGIC_CURRENT_ID) {
+        if (id === ConfigurationChooser.MAGIC_CURRENT_ID) {
             return this.handleCurrent(tokens[1]);
         }
 

@@ -1,6 +1,6 @@
 // simple loader for AMD style modules included in this file
 var derModules;
-function define(module_name, requires, start_function ) {
+function define(module_name, requires, start_function) {
     if (derModules === undefined) {
         derModules = {};
     }
@@ -29,11 +29,11 @@ function derModuleStart(module_name) {
     let args = [{}, {}];
     for (let provider of module.requires.slice(2)) {
         try {
-        // depth-first traversal, starting modules on which we depend (providers)
-        derModuleStart(provider);
-        } catch(err) {
+            // depth-first traversal, starting modules on which we depend (providers)
+            derModuleStart(provider);
+        } catch (err) {
             console.log(`circular dependency involving ${module_name}`);
-            throw(err);
+            throw err;
         }
         // exports of provider becomes argument to our start function in same position
         args.push(derModules[provider].exports);
@@ -42,10 +42,12 @@ function derModuleStart(module_name) {
     module.start_function.apply(null, args);
     module.starting = false;
     if (Object.keys(args[0]).length > 0) {
-        throw new Error("unsupported dynamic requirements " + args[0] + " from " + module_name);
+        throw new Error('unsupported dynamic requirements ' + args[0] + ' from ' + module_name);
     }
     module.exports = args[1];
 }
-for (let module_name of Object.keys(derModules)) {
-    derModuleStart(module_name);
+if (derModules !== undefined) {
+    for (let module_name of Object.keys(derModules)) {
+        derModuleStart(module_name);
+    }
 }

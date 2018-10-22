@@ -1,5 +1,7 @@
-import { ConfigurationTemp, ConfigurationFile, ConfigurationPersistence } from "./config";
-import { ConfigurationState } from "./roll20/state";
+import { ConfigurationState } from "derlib/roll20/state";
+import { ConfigurationPersistence } from "derlib/config/persistence";
+import { ConfigurationFile } from "derlib/config/file";
+import { ConfigurationTemp } from "derlib/config/ephemeral";
 
 export function startPersistence(name: string): ConfigurationPersistence {
     if (ConfigurationState.supported()) {

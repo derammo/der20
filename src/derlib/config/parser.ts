@@ -6,6 +6,9 @@ export interface ConfigurationParsing {
 }
 
 export class ConfigurationParser {
+    // this string can be substituted for the command path by the caller
+    static readonly MAGIC_COMMAND_STRING: string = 'DER20_MAGIC_COMMAND_STRING';
+
     // returns first word and rest of line as array
     static tokenizeFirst(line: string) {
         let clean = line.trim();
@@ -48,7 +51,7 @@ export class ConfigurationParser {
             let item = configuration[key];
             // XXX for some reason instanceof ConfigurationStep returns false for ConfigurationArray<...>
             if ((item != null) && item.hasOwnProperty('keyword')) {
-                if (item.keyword == tokens[0]) {
+                if (item.keyword === tokens[0]) {
                     return item.parse(tokens[1]);
                 }
             }
@@ -61,7 +64,7 @@ export class ConfigurationParser {
     }
 
     static restore(from: any, to: any) {
-        if (from == undefined) {
+        if (from === undefined) {
             return;
         }
         if (to instanceof ConfigurationStep) {
@@ -76,7 +79,7 @@ export class ConfigurationParser {
                 // XXX remove
                 console.log(`restoring property '${key}'`);
                 let target = to[key];
-                if ((target !== null) && (typeof target == 'object')) {
+                if ((target !== null) && (typeof target === 'object')) {
                     ConfigurationParser.restore(from[key], target);
                 } else {
                     // treat as dumb data
@@ -130,7 +133,7 @@ export namespace ConfigurationEventHandler {
             return undefined;
         }
 
-        get(source): ConfigurationEventHandler.EventMap {
+        get(source: string): ConfigurationEventHandler.EventMap {
             let item = this.sources[source];
             if (item === undefined) {
                 item = new ConfigurationEventHandler.EventMap();
@@ -139,7 +142,7 @@ export namespace ConfigurationEventHandler {
             return item;
         }
 
-        fetch(source) {
+        fetch(source: string) {
             return this.sources[source];
         }
     }
@@ -163,10 +166,12 @@ export namespace ConfigurationUpdate {
 
         execute(configuration: SOURCE, result: Result.Any): Result.Any {
             let value = this.calculator.apply(configuration);
+            // XXX can this be made type safe?
             let walk = configuration;
             for (let segment of this.path) {
                 walk = walk[segment];
             }
+            // tslint:disable-next-line:no-string-literal
             walk['default'] = value;
             return result;
         }

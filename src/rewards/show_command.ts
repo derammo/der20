@@ -1,8 +1,9 @@
-import { ConfigurationStep, ConfigurationChooser, ConfigurationCommand } from "derlib/config";
+import { ConfigurationStep, ConfigurationCommand } from "derlib/config/atoms";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { DungeonMaster } from "derlib/ddal/dungeon_master";
 import { Der20Dialog } from "derlib/roll20/dialog";
 import { Result } from "derlib/config/result";
+import { ConfigurationChooser } from "derlib/config/array";
 
 export class RenderCommand extends ConfigurationCommand {
     protected dm: ConfigurationChooser<DungeonMaster>;

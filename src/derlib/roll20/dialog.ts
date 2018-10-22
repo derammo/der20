@@ -1,4 +1,4 @@
-import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate, ConfigurationFloat } from "derlib/config";
+import { ConfigurationStep, ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate, ConfigurationFloat } from "derlib/config/atoms";
 
 // styling and layout taken from https://github.com/RobinKuiper/Roll20APIScripts with thanks
 export class Der20Dialog {

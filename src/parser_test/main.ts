@@ -3,10 +3,10 @@ import { Configuration } from "../rewards/configuration";
 
 // libs
 import { Der20Dialog } from "derlib/roll20/dialog";
-import { ConfigurationParser, ConfigurationStep } from "derlib/config";
+import { ConfigurationStep } from "derlib/config/atoms";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { startPersistence } from "derlib/persistence";
-import { Result } from "derlib/config";
+import { Result } from "derlib/config/result";
 
 let config = new Configuration();
 let persistence = startPersistence('parser_test');
@@ -124,6 +124,7 @@ function testParse1() {
 }
 
 import { exec } from 'child_process';
+import { ConfigurationParser } from "derlib/config/parser";
 function tidy(text: string): string {
 	if (!exec) {
 		// if running under Roll20, we don't have child_process
