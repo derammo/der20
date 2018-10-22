@@ -2,13 +2,23 @@ import { ConfigurationParser, ConfigurationChooser, ConfigurationAlias, Configur
 import { Result } from "derlib/config/result";
 import { startPersistence } from "derlib/persistence";
 
+// from our module header
+declare var console: any;
+
+// from Roll20
+declare var log: any;
 declare var on: any;
 declare var getObj: any;
 declare var sendChat: any;
 
+var pluginName: string;
 var configurationRoot: any;
 var persistence: ConfigurationPersistence;
-var pluginName: string;
+
+console.log = (message) => {
+    let stamp = new Date().toISOString();
+    log(`${stamp} ${pluginName||'der20'}: ${message}`)
+};
 
 function handleResult(player: any, command: string, result: Result.Any): Result.Any {
 	if (result.events.has(Result.Event.Change)) {

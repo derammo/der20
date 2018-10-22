@@ -1,7 +1,8 @@
 (function() {
     let console = { 
         log: ((message) => {
-            log(`der20: ${message}`)
+            let stamp = new Date().toISOString();
+            log(`${stamp} der20: ${message}`)
         }), 
         debug: ((message) => {
 
