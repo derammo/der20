@@ -5,9 +5,9 @@ import { existsSync, writeFileSync, readFileSync, unlinkSync } from "fs";
 
 export class ConfigurationFile extends ConfigurationPersistence {
     static supported(): boolean {
-        return ([existsSync, writeFileSync, readFileSync].find((symbol) => {
+        return ! [existsSync, writeFileSync, readFileSync, unlinkSync].some((symbol) => {
             return typeof symbol != 'function';
-        }) == undefined);
+        });
     }
 
     constructor(private name: string) {

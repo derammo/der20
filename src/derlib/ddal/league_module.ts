@@ -53,20 +53,40 @@ export class LeagueModule extends ConfigurationEventHandler {
     start: ConfigurationDate = new ConfigurationDate(ConfigurationStep.NO_VALUE);
     stop: ConfigurationDate = new ConfigurationDate(ConfigurationStep.NO_VALUE);
 
-    minimumLevelForTier(source: ConfigurationStep<number>): number {
-        return 0;
+    minimumLevelForTier(): number {
+        switch (this.tier.value()) {
+            case 1:
+                return 1;
+            case 2:
+                return 5;
+            case 3:
+                return 11;
+            case 4:
+                return 17;
+            default:
+                return 1;
+        }
+    }
+
+    maximumLevelForTier(): number {
+        switch (this.tier.value()) {
+            case 1:
+                return 4;
+            case 2:
+                return 10;
+            case 3:
+                return 16;
+            case 4:
+                return 20;
+            default:
+                return 20;
+        }
     }
 
     constructor() {
         super();
         this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['level', 'minimum'], this.minimumLevelForTier));
-    }
-
-    toJSON() {
-        let result = {};
-        Object.assign(result, this);
-        delete result['handlers'];
-        return result;
+        this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['level', 'maximum'], this.maximumLevelForTier));
     }
 }
 

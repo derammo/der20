@@ -59,6 +59,8 @@ export class ShowCommand extends RenderCommand {
         dialog.beginControlGroup();
         dialog.addEditControl('Module Name', 'module current name', this.module.current.name);
         dialog.addEditControl('Tier', 'module current tier', this.module.current.tier);
+        dialog.addEditControl('Minimum Level', 'module current level minimum', this.module.current.level.minimum);
+        dialog.addEditControl('Maximum Level', 'module current level maximum', this.module.current.level.maximum);
         dialog.addEditControl('Start Time', 'module current start', this.module.current.start);
         dialog.addEditControl('End Time', 'module current stop', this.module.current.stop);
         dialog.endControlGroup();

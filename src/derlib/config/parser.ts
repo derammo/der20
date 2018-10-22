@@ -1,6 +1,5 @@
 import { ConfigurationStep } from './atoms'
 import { Result } from './result';
-import { ConfigurationEventHandler } from './changes';
     
 export interface ConfigurationParsing {
     parse(line: string): Result.Any;
@@ -33,7 +32,7 @@ export class ConfigurationParser {
                 throw new Error(`property '${tokens[0]}' should be an empty configuration object instead of null`);
             }
             let result = ConfigurationParser.parse(tokens[1], target);
-            if (!result.hasEvents()) {
+            if (!(result.hasEvents())) {
                 return result;
             }
             if (configuration instanceof ConfigurationEventHandler) {
@@ -86,6 +85,90 @@ export class ConfigurationParser {
             } else {
                 console.log(`ignoring JSON property '${key}' that does not appear in configuration tree`);
             }
+        }
+    }
+}
+
+export class ConfigurationEventHandler {
+    private handlers: ConfigurationEventHandler.SourceMap = new ConfigurationEventHandler.SourceMap();
+
+    addTrigger(source: string, event: Result.Event, update: ConfigurationUpdate.Base): void {
+        let eventMap = this.handlers.get(source);
+        eventMap.events[event].push(update);
+    }
+
+    handleEvents(source: string, result: Result.Any): Result.Any {
+        let listeners: ConfigurationEventHandler.EventMap = this.handlers.fetch(source);
+        if (listeners === undefined) {
+            return result;
+        }
+        let handlerResult = result;
+        // iterate event types posted on configuration result
+        for (let event of result.events) {
+            // process all handlers[event] until one changes the result to a failure
+            for (let handler of listeners.events[event]) {
+                handlerResult = handler.execute(this, result);
+                if (handlerResult.kind === Result.Kind.Failure) {
+                    return handlerResult;
+                }
+            }
+        }
+        return result;
+    }
+}
+
+export namespace ConfigurationEventHandler {
+    export class SourceMap {
+        private sources: Record<string, ConfigurationEventHandler.EventMap> = {};
+
+        clone() {
+            // share across all clones
+            return this;
+        }
+
+        toJSON() {
+            return undefined;
+        }
+
+        get(source): ConfigurationEventHandler.EventMap {
+            let item = this.sources[source];
+            if (item === undefined) {
+                item = new ConfigurationEventHandler.EventMap();
+                this.sources[source] = item;
+            }
+            return item;
+        }
+
+        fetch(source) {
+            return this.sources[source];
+        }
+    }
+
+    export class EventMap {
+        events: Record<Result.Event, ConfigurationUpdate.Base[]> = { change: [] };
+    }
+}
+
+export namespace ConfigurationUpdate {  
+    // WARNING: descendants of this class must not maintain direct references to config objects because 
+    // these items are shared by all clones of the config subtree
+    export abstract class Base {
+        abstract execute(configuration: any, result: Result.Any): Result.Any;
+    }  
+
+    export class Default<SOURCE, TARGET> extends Base {
+        constructor(private path: string[], private calculator: () => TARGET) {
+            super();
+        }
+
+        execute(configuration: SOURCE, result: Result.Any): Result.Any {
+            let value = this.calculator.apply(configuration);
+            let walk = configuration;
+            for (let segment of this.path) {
+                walk = walk[segment];
+            }
+            walk['default'] = value;
+            return result;
         }
     }
 }
