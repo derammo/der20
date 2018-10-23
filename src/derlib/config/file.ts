@@ -6,7 +6,7 @@ import { existsSync, writeFileSync, readFileSync, unlinkSync } from "fs";
 export class ConfigurationFile extends ConfigurationPersistence {
     static supported(): boolean {
         return ! [existsSync, writeFileSync, readFileSync, unlinkSync].some((symbol) => {
-            return typeof symbol != 'function';
+            return typeof symbol !== 'function';
         });
     }
 
@@ -17,7 +17,7 @@ export class ConfigurationFile extends ConfigurationPersistence {
 
     load(): object {
         // local testing
-        let fileName = `der20_${this.name}_state.json`;
+        let fileName = `tmp/der20_${this.name}_state.json`;
         try {
             if (existsSync(fileName)) {
                 let data = readFileSync(fileName);
@@ -30,7 +30,7 @@ export class ConfigurationFile extends ConfigurationPersistence {
     }
 
     save(configuration: object) {
-        let fileName = `der20_${this.name}_state.json`;
+        let fileName = `tmp/der20_${this.name}_state.json`;
         try {
             writeFileSync(fileName, JSON.stringify(configuration));
         } catch (err) {

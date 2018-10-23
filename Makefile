@@ -16,8 +16,10 @@ dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
 	rm -f $@
 	cat include/header.js.txt $< include/trailer.js.txt > $@
 	chmod 444 $@
-run: build/$(DEFAULT).js
+run: build/$(DEFAULT).js tmp
 	node build/$(DEFAULT).js | egrep --color -e '^\tresult of parse: {"kind":3.*$$' -e $$
+tmp:
+	mkdir tmp
 print:
 	json_pp < der20_$(DEFAULT)_state.json
 build/%.js: $(SRC) src/%/tsconfig.json node_modules
