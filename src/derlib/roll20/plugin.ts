@@ -5,6 +5,7 @@ import { ConfigurationParser } from 'derlib/config/parser';
 import { Handouts, HandoutsOptions } from 'derlib/roll20/handouts';
 import { ConfigurationCommand } from 'derlib/config/atoms';
 import { Options } from 'derlib/roll20/options';
+import { Der20Dialog } from './dialog';
 
 // from our module header
 declare var console: any;
@@ -166,7 +167,10 @@ export function start(pluginName: string, configuration: any) {
 
 export class DumpCommand extends ConfigurationCommand {
     parse(line: string): Result.Any {
-        console.log(JSON.stringify(plugin.configurationRoot));
-        return new Result.Success;
+        let dialog = new Der20Dialog(ConfigurationParser.MAGIC_COMMAND_STRING);
+        dialog.beginControlGroup();
+        dialog.addTextLine(JSON.stringify(plugin.configurationRoot));
+        dialog.endControlGroup();
+        return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
     }
 }
