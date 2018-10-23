@@ -148,4 +148,5 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
 
 export interface CollectionItem {
     id: string;
+    name: ConfigurationString;
 }

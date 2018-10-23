@@ -180,5 +180,5 @@ function tidy(text: string): string {
 	return output;
 }
 
-testParse3();
+testParse();
 console.log(tidy(testDialog('show')));

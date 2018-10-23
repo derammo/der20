@@ -124,16 +124,12 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
 
     private createChooserDialog(rest: string): Result.Dialog {
         // we don't know what command word was used to call us, so we let the caller fix it up
-        let dialog = new (this.dialogFactory)(ConfigurationParser.MAGIC_COMMAND_STRING);
+        let dialog = new (this.dialogFactory)(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
         dialog.addTitle('No Current Item Selected');
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:')
-        dialog.beginControlGroup();
-        for (let item of this.array.current) {
-            // rerun the same command, with the item id filled in
-            dialog.addChoiceControl(this.array.keyword, `${this.path} ${item.id} ${rest}`);
-        }
-        dialog.endControlGroup();
+        const choices = this.array.current.map(function(item: T) { return [item.id, item.name]; });
+        dialog.addChoiceControlGroup(this.array.keyword, this.path, this.array.current, rest);
         return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
     }
 

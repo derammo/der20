@@ -65,6 +65,8 @@ class Plugin<T> {
             this.saveConfiguration();
         }
 
+        // XXX send any messages to caller, regardless of result
+
         // this switch must be exhaustive
         // tslint:disable-next-line:switch-default
         switch (result.kind) {
@@ -75,8 +77,8 @@ class Plugin<T> {
                 return result;
             case Result.Kind.Dialog:
                 let dialogResult = <Result.Dialog>result;
-                let dialog = dialogResult.dialog.replace(ConfigurationParser.MAGIC_COMMAND_STRING, command);
-                console.log(`dialog from parse: ${dialog.substr(0, 10)}...`);
+                let dialog = dialogResult.dialog.replace(new RegExp(ConfigurationParser.MAGIC_COMMAND_STRING, 'g'), command);
+                console.log(`dialog from parse: ${dialog.substr(0, 16)}...`);
                 switch (dialogResult.destination) {
                     case Result.Dialog.Destination.All:
                     case Result.Dialog.Destination.AllPlayers:
@@ -187,7 +189,7 @@ export function start<T>(pluginName: string, factory: DefaultConstructed<T>) {
 
 export class DumpCommand extends ConfigurationCommand {
     parse(line: string): Result.Any {
-        let dialog = new Der20Dialog(ConfigurationParser.MAGIC_COMMAND_STRING);
+        let dialog = new Der20Dialog(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
         dialog.beginControlGroup();
         dialog.addTextLine(JSON.stringify(plugin.configurationRoot));
         dialog.endControlGroup();
