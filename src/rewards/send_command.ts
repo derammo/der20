@@ -5,9 +5,10 @@ import { ConfigurationChooser } from 'derlib/config/array';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { ConfigurationStep } from 'derlib/config/atoms';
+import { Rules, Multiplied } from './rules';
 
 export class SendCommand extends RenderCommand {
-    constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>, private preview: boolean) {
+    constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>, private rules: Rules, private preview: boolean) {
         super(dm, module);
         // generated code
     }
@@ -38,7 +39,8 @@ export class SendCommand extends RenderCommand {
 
         dialog.addSeparator();
         dialog.beginControlGroup();
-        dialog.addTextLine(`${module.advancementAward()} Advancement CP`);
+        const acp = module.advancementAward();
+        dialog.addTextLine(`${acp} Advancement CP`);
         if (module.hardcover.value() && module.level.maximum.value() > 10) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.treasureAward()} Treasure CP for Tier 1 & 2 Characters`);
@@ -55,6 +57,8 @@ export class SendCommand extends RenderCommand {
         } else {
             dialog.addTextLine(`${module.treasureAward()} Treasure CP`);
         }
+        dialog.addTextLine(`${this.rules.advancement.downtime.valueFrom(acp)} Downtime`)
+        dialog.addTextLine(`${this.rules.advancement.renown.valueFrom(acp)} Renown`)
         dialog.endControlGroup();
         dialog.addSeparator();
 
