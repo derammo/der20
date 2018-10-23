@@ -40,7 +40,7 @@ let test = `
 	define module ddal12-01 level maximum 3
 	define module ddal12-01 hourly treasure 1
 	define module ddal12-01 hourly advancement 1
-	define dm ammo dci 007
+	define dm ammo dci 0070070007
 	define dm ammo name Ammo Goettsch
 	checkpoint bosskill awarded true
 	define dm junk
@@ -64,6 +64,7 @@ let test = `
 	checkpoint bosskill awarded true
 	stop
 	show
+	preview
 	send
 `;
 let test2 = `define module ddal12-01 level minimum 2`;
@@ -140,4 +141,4 @@ function tidy(text: string): string {
 }
 
 testParse();
-// console.log(tidy(testDialog('show')));
+console.log(tidy(testDialog('send')));

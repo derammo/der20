@@ -75,7 +75,7 @@ export class ShowCommand extends RenderCommand {
         dialog.addSubTitle('Check Points');
         dialog.beginControlGroup();
         for (let check of module.checkpoints.current) {
-            let label = `${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`;
+            const label = `${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`;
             dialog.addEditControl(label, `module current checkpoint ${check.id} awarded`, check.awarded);
         }
         dialog.endControlGroup();
@@ -90,8 +90,9 @@ export class ShowCommand extends RenderCommand {
         if (module.hardcover.value() && (module.level.maximum.value() > 10)) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
-            if (module.checkpoints.current.some((checkpoint) => { return checkpoint.awarded.value() })) {
-                // there should not be specific check point awards in a hard cover, because the rules assume 
+            const explicitAwards = module.checkpoints.current.some((checkpoint) => { return checkpoint.awarded.value(); });
+            if (explicitAwards) {
+                // there should not be explicit check point awards in a hard cover, because the rules assume 
                 // time-based awards, so make the DM figure this out if the rules allow this in the future
                 dialog.addTextLine(`You must manually calculate the treasure award for Tier 3 & 4 Characters`);
             } else {
@@ -102,7 +103,7 @@ export class ShowCommand extends RenderCommand {
         }
         dialog.endControlGroup();
         dialog.addSeparator();
-        dialog.addCommand('Send to Players', 'send');
+        dialog.addCommand('Preview & Send to Players', 'preview');
         return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
     }
 }

@@ -63,7 +63,8 @@ export class Configuration {
     stop: TimerCommand = new TimerCommand(this.module, 'stop');
     clear: ClearCommand = new ClearCommand([this.dm, this.module]);
     show: ShowCommand = new ShowCommand(this.dm, this.module);
-    send: SendCommand = new SendCommand(this.dm, this.module);
+    preview: SendCommand = new SendCommand(this.dm, this.module, true); 
+    send: SendCommand = new SendCommand(this.dm, this.module, false);
 
     // aliases for configuration that frequently has to change per session
     checkpoint: ConfigurationAlias = new ConfigurationAlias(this.module, 'current checkpoint');

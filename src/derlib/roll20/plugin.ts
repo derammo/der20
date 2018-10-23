@@ -43,9 +43,20 @@ function handleResult(player: any, command: string, result: Result.Any): Result.
             }
             return result;
         case Result.Kind.Dialog:
-            let dialog = (<Result.Dialog>result).dialog.replace(ConfigurationParser.MAGIC_COMMAND_STRING, command);
+            let dialogResult = (<Result.Dialog>result);
+            let dialog = dialogResult.dialog.replace(ConfigurationParser.MAGIC_COMMAND_STRING, command);
             console.log(`dialog from parse: ${dialog.substr(0, 10)}...`);
-            sendChat(pluginName, `/w "${player.get('displayname')}" ${dialog}`, null, { noarchive: true });
+            switch (dialogResult.destination) {
+                case Result.Dialog.Destination.All:
+                case Result.Dialog.Destination.AllPlayers:
+                    sendChat(pluginName, `${dialog}`, null);
+                    break;
+                case Result.Dialog.Destination.Caller:                
+                    sendChat(pluginName, `/w "${player.get('displayname')}" ${dialog}`, null, { noarchive: true });
+                    break;
+                default:
+                    sendChat(pluginName, `/w GM ${dialog}`, null, { noarchive: true });
+            }
             return new Result.Success();
         case Result.Kind.Success:
             if (command.endsWith('-show')) {

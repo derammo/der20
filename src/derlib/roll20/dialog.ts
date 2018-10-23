@@ -77,21 +77,21 @@ export class Der20Dialog {
         this.text.push('</li>');
     }
 
-    private getStringText(value: string) {
+    getStringText(value: string) {
         if (value === ConfigurationStep.NO_VALUE) {
             return Der20Dialog.undefinedLabel;
         }
         return value;
     }
 
-    private getNumberText<T>(value: T) {
+    getNumberText<T>(value: T) {
         if (value === ConfigurationStep.NO_VALUE) {
             return Der20Dialog.undefinedLabel;
         }
         return`${value}`;
     }
 
-    private getDateText(value: number) {
+    getDateText(value: number) {
         if (value === ConfigurationStep.NO_VALUE) {
             return Der20Dialog.undefinedLabel;
         }
