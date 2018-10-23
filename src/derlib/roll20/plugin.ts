@@ -2,7 +2,9 @@ import { Result } from 'derlib/config/result';
 import { startPersistence } from 'derlib/persistence';
 import { ConfigurationPersistence } from 'derlib/config/persistence';
 import { ConfigurationParser } from 'derlib/config/parser';
-import { Handouts, HandoutsOptions } from './handouts';
+import { Handouts, HandoutsOptions } from 'derlib/roll20/handouts';
+import { ConfigurationCommand } from 'derlib/config/atoms';
+import { Options } from 'derlib/roll20/options';
 
 // from our module header
 declare var console: any;
@@ -16,20 +18,25 @@ declare function on(event: 'chat:message', callback: (msg: any) => void): void;
 declare function getObj(type: 'player', id: string);
 declare function sendChat(speakingAs: string, message: string, callback?: (operations: any[]) => void, options?: any): void;
 
-if (typeof log !== 'function') {
-    throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script');
-}
-
 class Plugin {
     persistence: ConfigurationPersistence;
     handouts: Handouts;
 
-    constructor(private name: string, private configurationRoot: any) {
-        // generated code
+    constructor(public name: string, public configurationRoot: any) {
+        // generated code 
+
+        // add debug commmand
+        if (configurationRoot.dump === undefined) {
+            this.configurationRoot.dump = new DumpCommand();     
+        }
+    }
+    
+    start() {
+        // start up on ready event
         this.persistence = startPersistence(this.name);
         this.restoreConfiguration();
         this.hookChatMessage();
-        this.hookReady();
+        this.hookReady();       
     }
 
     restoreConfiguration() {
@@ -87,16 +94,16 @@ class Plugin {
 
     // detect journal reading config in well known location 'config handouts ...'
     configureHandoutsSupport() {
-        if (!this.configurationRoot.hasOwnProperty('config')) {
-            console.log(`this plugin does not have plugin configuration under 'config'`);
+        if (!this.configurationRoot.hasOwnProperty(Options.pluginOptionsKey)) {
+            console.log(`this plugin does not have plugin configuration under '${Options.pluginOptionsKey}'`);
             return;
         }
-        const config = this.configurationRoot.config;
-        if (!config.hasOwnProperty('handouts')) {
+        const pluginOptions = this.configurationRoot[Options.pluginOptionsKey];
+        if (!pluginOptions.hasOwnProperty('handouts')) {
             console.log(`this plugin does not support handout options under 'config handouts'`);
             return;
         }
-        const handoutsOptions: any = config.handouts;
+        const handoutsOptions: any = pluginOptions.handouts;
         if (!(handoutsOptions instanceof HandoutsOptions)) {
             console.log(`this plugin uses non-standard options under 'config handouts' that are unsupported`);
             return;
@@ -144,11 +151,22 @@ class Plugin {
 
 var plugin: Plugin;
 export function start(pluginName: string, configuration: any) {
+    if (typeof log !== 'function') {
+        throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script');
+    }
+    
     console.log = message => {
         let stamp = new Date().toISOString();
         log(`${stamp} ${pluginName || 'der20'}: ${message}`);
     };
-    // singleton
+    // singleton, make sure this is set before we do any work on start up
     plugin = new Plugin(pluginName, configuration);
+    plugin.start();
 }
 
+export class DumpCommand extends ConfigurationCommand {
+    parse(line: string): Result.Any {
+        console.log(JSON.stringify(plugin.configurationRoot));
+        return new Result.Success;
+    }
+}

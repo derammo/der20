@@ -36,7 +36,7 @@ class DeleteCommands {
 
 export class Configuration {
     // static configuration
-    config: Options = new Options();
+    option: Options = new Options();
     define: Definitions = new Definitions();
     delete: DeleteCommands = new DeleteCommands(this.define);
 
@@ -58,7 +58,8 @@ export class Configuration {
 
     constructor() {
         // delete commands are allowed so that handouts can own an item entirely, via delete and then define
-        this.config.handouts.subtrees.push('delete');
-        this.config.handouts.subtrees.push('define');
+        // REVISIT: how do you assert that this.option is this[Options.pluginOptionsKey] in a sane way?
+        this.option.handouts.subtrees.push('delete');
+        this.option.handouts.subtrees.push('define');
     }
 }

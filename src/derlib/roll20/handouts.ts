@@ -1,7 +1,7 @@
 import { ConfigurationBoolean } from "derlib/config/atoms";
 import { ConfigurationEventHandler, ConfigurationUpdate, ConfigurationParser } from "derlib/config/parser";
 import { Result } from "derlib/config/result";
-import { cloneExcept } from "../utility";
+import { cloneExcept } from "derlib/utility";
 
 // from Roll20
 // REVISIT use derlib/rol20/api.d.ts
@@ -17,6 +17,11 @@ export class HandoutsOptions extends ConfigurationEventHandler {
     // to be set in code
     subtrees: string[] = [];
 
+    constructor(public reservedKey: string) {
+        super();
+        // generated code
+    }
+
     toJSON(): any {
         // do not persist subtrees, which are to be set in code
         return { journal: this.journal.toJSON(), archived: this.archived.toJSON() };
@@ -25,8 +30,11 @@ export class HandoutsOptions extends ConfigurationEventHandler {
 
 export class Handouts {
     pluginName: string;
-    // cloned configuration at last update
-    options: HandoutsOptions;
+    
+    // stable config from last update
+    reservedKey: string;
+    journal: boolean;
+    archived: boolean;
     subtrees: Record<string, any> = {};
 
     constructor(pluginName: string, configurationRoot: any, options: HandoutsOptions) {
@@ -50,9 +58,9 @@ export class Handouts {
 
     // permit a subtree to be reconfigured from handouts
     private addSubtree(key: string, configuration: any) {
-        if (key === 'config') {
+        if (key === this.reservedKey) {
             // this would allow for infinite loops on handout configuration and other nonsense
-            throw new Error('the static configuration subtree cannot be configured from handouts');
+            throw new Error('the static plugin options subtree cannot be configured from handouts');
         }
         if (configuration === undefined) {
             console.log(`ignoring non-existent configuration subtree '${key}' in handouts`);
@@ -63,14 +71,16 @@ export class Handouts {
 
     configure(options: HandoutsOptions) {
         // REVISIT: could do smart things based on changes to config
-        this.options = cloneExcept(HandoutsOptions, options, ['subtrees']);
+        this.reservedKey = options.reservedKey;
+        this.archived = options.archived.value();
+        this.journal = options.journal.value();
     }
 
     // XXX this creates a lot of async reading work and we do not provide any way for the caller to wait until it is finished
     readHandouts() {
         let search: { _type: string, archived?: boolean } = { _type: 'handout' };
-        if (this.options.archived.value()) {
-            if (this.options.journal.value()) {
+        if (this.archived) {
+            if (this.journal) {
                 // no restriction
                 console.log('configuration will be read from all handouts');
             } else {
@@ -78,7 +88,7 @@ export class Handouts {
                 search.archived = true;
             }
         } else {
-            if (this.options.journal.value()) {
+            if (this.journal) {
                 console.log('configuration will be read from handouts listed in the journal');
                 search.archived = false;
             } else {
@@ -144,15 +154,16 @@ export class Handouts {
             console.log(`ignoring '!${this.pluginName} ${tokens[0]} in handout, because this plugin only permits [ ${good} ]`);
             return;
         }
+        const limit = 100;
+        let prefix = line;
+        if (line.length > limit) {
+            prefix = `${line.substring(0, limit-3)}...`;
+        }
+        console.log(prefix);
         let result = ConfigurationParser.parse(tokens[1], subtree);
         if (result.kind === Result.Kind.Failure) {
             for (let error of (<Result.Failure>result).errors) {
-                const limit = 100;
-                if (line.length > limit) {
-                    console.log(`handout contains command '${line.substring(0, limit)}...' that resulted in error ${error.message}`);
-                } else {
-                    console.log(`handout contains command '${line}' that resulted in error ${error.message}`);
-                }
+                console.log(`handout contains command '${prefix}' that resulted in error ${error.message}`);
             }
         }
     }

@@ -7,16 +7,17 @@ import { ConfigurationStep } from "derlib/config/atoms";
 import { LeagueModule } from "derlib/ddal/league_module";
 import { startPersistence } from "derlib/persistence";
 import { Result } from "derlib/config/result";
+import { Options } from "derlib/roll20/options";
 
-let config = new Configuration();
+let configurationRoot = new Configuration();
 let persistence = startPersistence('parser_test');
 let json = persistence.load();
-ConfigurationParser.restore(json, config);
+ConfigurationParser.restore(json, configurationRoot);
 
 let test = `
 	delete all configuration
-	config handouts journal true
-	config handouts archived true
+	${Options.pluginOptionsKey} handouts journal true
+	${Options.pluginOptionsKey} handouts archived true
 	show
 	send
 	define rules advancement downtime multiplier 2.5
@@ -70,7 +71,30 @@ let test = `
 	preview
 	send
 `;
-let test2 = `define module ddal12-01 level minimum 2`;
+
+// let test2 = `define module ddal12-01 level minimum 2`;
+let test2 = `
+delete module ddal08-74
+define module ddal08-74 name DDAL08-74 The Killing of Grobs
+define module ddal08-74 season 8
+define module ddal08-74 tier 3
+define module ddal08-74 hardcover false
+define module ddal08-74 duration 4
+define module ddal08-74 level maximum 13
+define module ddal08-74 checkpoint bosskill advancement 2
+define module ddal08-74 checkpoint bosskill treasure 2
+define module ddal08-74 checkpoint bosskill name Grobs was killed
+define module ddal08-74 checkpoint bunny advancement 2
+define module ddal08-74 checkpoint bunny treasure 2
+define module ddal08-74 checkpoint bunny name All players made friends with the Bunny
+define module ddal08-74 unlock hat name Hat of Disguise
+define module ddal08-74 unlock hat description The entire length of this broad, red-silk ribbon is embroidered in gold thread. While wearing it, the wearer can read and understand, but not speak, Undercommon.
+define module ddal08-74 unlock hat table F
+define module ddal08-74 unlock hat rarity Uncommon
+define dm ammo dci blablablabh
+define dm ammo name Ammo Goettsch
+dm ammo
+module ddal08-74`;
 
 export function testRun(): string {
 	let dialog = new Der20Dialog('!rewards ');
@@ -79,7 +103,7 @@ export function testRun(): string {
 }
 
 export function testDialog(command: string): string {
-	let result = ConfigurationParser.parse(command, config);
+	let result = ConfigurationParser.parse(command, configurationRoot);
 	if (result.kind === Result.Kind.Dialog) {
 		return (<Result.Dialog>result).dialog;
 	}
@@ -88,7 +112,7 @@ export function testDialog(command: string): string {
 
 function handleResult(result: Result.Any) {
 	if (result.events.has(Result.Event.Change)) {
-		let text = JSON.stringify(config);
+		let text = JSON.stringify(configurationRoot);
 		// now that everything is clean, convert back to a dictionary
 		let cleaned = JSON.parse(text);
 		persistence.save(cleaned);
@@ -112,7 +136,7 @@ function testParse2() {
 		let command = line.trim();
 		// run including blank lines
 		console.log(`testing: ${command}`);
-		let result = ConfigurationParser.parse(command, config);
+		let result = ConfigurationParser.parse(command, configurationRoot);
 		handleResult(result);
 	}
 }
@@ -122,7 +146,7 @@ function testParse1() {
 		let command = line.trim();
 		// run including blank lines
 		console.log(`testing: ${command}`);
-		let result = ConfigurationParser.parse(command, config);
+		let result = ConfigurationParser.parse(command, configurationRoot);
 		handleResult(result);
 	}
 }
@@ -144,5 +168,5 @@ function tidy(text: string): string {
 	return output;
 }
 
-testParse();
-// console.log(tidy(testDialog('send')));
+testParse2();
+console.log(tidy(testDialog('show')));

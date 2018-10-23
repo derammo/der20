@@ -5,7 +5,7 @@ declare var state: any;
 // REVISIT: dirty flags and links back in the configuration tree to only write modified subtree
 export class ConfigurationState extends ConfigurationPersistence {
     static supported(): boolean {
-        return (typeof state == 'object');
+        return (typeof state === 'object');
     }
 
     constructor(private name: string) {

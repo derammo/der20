@@ -195,16 +195,16 @@ export class LeagueModule extends ConfigurationEventHandler {
 
 export namespace LeagueModule {
     export class Level extends ConfigurationIntermediateNode {
-        minimum: ConfigurationInteger = new ConfigurationInteger(ConfigurationStep.NO_VALUE);
-        maximum: ConfigurationInteger = new ConfigurationInteger(ConfigurationStep.NO_VALUE);
+        minimum: ConfigurationInteger = new ConfigurationInteger(1);
+        maximum: ConfigurationInteger = new ConfigurationInteger(20);
 
         clone(): Level {
             return clone(LeagueModule.Level, this);
         }
     }
     export class Hourly extends ConfigurationIntermediateNode {
-        advancement: ConfigurationFloat = new ConfigurationFloat(ConfigurationStep.NO_VALUE);
-        treasure: ConfigurationFloat = new ConfigurationFloat(ConfigurationStep.NO_VALUE);
+        advancement: ConfigurationFloat = new ConfigurationFloat(0);
+        treasure: ConfigurationFloat = new ConfigurationFloat(0);
 
         clone(): Hourly {
             return clone(LeagueModule.Hourly, this);

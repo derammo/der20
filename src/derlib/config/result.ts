@@ -10,6 +10,7 @@ export namespace Result {
         Change = 'change'
     }
 
+    // XXX add messages that can be displayed to caller only
     export class Any {
         kind: Result.Kind;
         events: Set<Result.Event> = new Set<Result.Event>();
@@ -47,7 +48,7 @@ export namespace Result {
         toJSON() {
             return { 
                 kind: this.kind, 
-                errors: this.errors.map(function(item) { 
+                errors: this.errors.map(function(item: Error) { 
                     return item.message;
                 })
             };
