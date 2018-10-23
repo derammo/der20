@@ -3,7 +3,7 @@ import { Result } from './result';
 
 export class ConfigurationStep<T> {
     keyword: string = ConfigurationStep.NO_VALUE;
-    current: T = ConfigurationStep.NO_VALUE;
+    protected current: T = ConfigurationStep.NO_VALUE;
     default: T = ConfigurationStep.NO_VALUE;
 
     constructor(defaultValue: T) {
@@ -57,7 +57,7 @@ export class ConfigurationString extends ConfigurationStep<string> {
     }
 
     clone() {
-        let copied = new ConfigurationString(this.current);
+        let copied = new ConfigurationString(this.value());
         return copied;
     }
 }
@@ -77,7 +77,7 @@ export class ConfigurationInteger extends ConfigurationStep<number> {
     }
 
     clone() {
-        let copied = new ConfigurationInteger(this.current);
+        let copied = new ConfigurationInteger(this.value());
         return copied;
     }
 }
@@ -97,7 +97,7 @@ export class ConfigurationFloat extends ConfigurationStep<number> {
     }
 
     clone() {
-        let copied = new ConfigurationFloat(this.current);
+        let copied = new ConfigurationFloat(this.value());
         return copied;
     }
 }
@@ -119,7 +119,7 @@ export class ConfigurationDate extends ConfigurationStep<number> {
     }
 
     clone() {
-        let copied = new ConfigurationDate(this.current);
+        let copied = new ConfigurationDate(this.value());
         return copied;
     }
 }
@@ -141,7 +141,7 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
     }
 
     clone() {
-        let copied = new ConfigurationBoolean(this.current);
+        let copied = new ConfigurationBoolean(this.value());
         return copied;
     }
 }

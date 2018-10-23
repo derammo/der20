@@ -40,7 +40,6 @@ export class Der20Dialog {
     addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>) {
         this.text.push(`<li style="${Der20Dialog.itemStyle}">`)
         this.text.push(`<span style="${Der20Dialog.labelStyle}">${label}</span>`);
-        let defaulted = (config.current === ConfigurationStep.NO_VALUE);
         let text: string = '';
         let link: string = '';
         if (config instanceof ConfigurationString) {
@@ -61,12 +60,12 @@ export class Der20Dialog {
             link = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`
         } else if (config instanceof ConfigurationBoolean) {
             text = `${(<ConfigurationBoolean>config).value() === true}`;
-            link = `${path} ${!config.current}`
+            link = `${path} ${!config.value()}`
         }
-        if (defaulted) {
-            this.addDefaultedButton(text, link);
-        } else {
+        if (config.hasConfiguredValue()) {
             this.addButton(text, link);
+        } else {
+            this.addDefaultedButton(text, link);
         }
         this.text.push('</li>');
     }
