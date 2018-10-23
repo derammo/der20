@@ -1,14 +1,16 @@
-SCRIPTS := parser_test rewards handout_test
+PLUGINS := rewards minimal_plugin
+SCRIPTS := parser_test handout_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(SCRIPTS))
-BUILD := $(patsubst %,dist/der20_%.js,$(SCRIPTS))
 
-.PHONY: all clean run release checkout_release build_release publish create_draft
+.PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts
 .PRECIOUS: build/%.js src/%/tsconfig.json
 
-all: node_modules $(BUILD)
+all: node_modules plugins scripts
+plugins: $(patsubst %,dist/der20_%.js,$(PLUGINS))
+scripts: $(patsubst %,build/%.js,$(SCRIPTS))
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
 dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
