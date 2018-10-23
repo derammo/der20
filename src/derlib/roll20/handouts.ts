@@ -6,7 +6,7 @@ import { cloneExcept } from "derlib/utility";
 // from Roll20
 // REVISIT use derlib/rol20/api.d.ts
 // REVISIT support mock20?
-declare function on(event: 'change:handout', callback: (msg: any) => void): void;
+declare function on(event: 'change:handout', callback: (current: any, previous: any) => void): void;
 declare function findObjs(properties: { [property: string]: any }, options?: any): any[];
 
 export class HandoutsOptions extends ConfigurationEventHandler {
@@ -177,8 +177,28 @@ export class Handouts {
         }
     }
 
-    hookHandouts() {
-        ///
+    handoutChanged(current: any, previous: any): void {
+        let archived = current.get('archived');
+        if (archived === undefined) {
+            console.log("object received in handout change handler was not a handout");
+            return;
+        }
+        if (archived) {
+            if (this.archived) {
+                this.readHandout(current);
+            }
+        } else {
+            if (this.journal) {
+                this.readHandout(current);
+            }
+        }
+    }
+
+    private hookHandouts() {
+        let target = this;
+        on('change:handout', function(current: any, previous: any) {
+            target.handoutChanged(current, previous);
+        });    
     }    
 }
 
@@ -193,7 +213,6 @@ class HandoutsOptionChange extends ConfigurationUpdate.Base {
             this.target.configure(configuration);
             // REVISIT: we currently reread all of them even if some were already enabled
             this.target.readHandouts();
-            this.target.hookHandouts();
         }
         return new Result.Success();
     }
