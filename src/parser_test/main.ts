@@ -15,6 +15,8 @@ ConfigurationParser.restore(json, config);
 
 let test = `
 	delete all configuration
+	config handouts journal true
+	config handouts archived true
 	show
 	send
 	define rules advancement downtime multiplier 2.5
@@ -78,7 +80,7 @@ export function testRun(): string {
 
 export function testDialog(command: string): string {
 	let result = ConfigurationParser.parse(command, config);
-	if (result.kind == Result.Kind.Dialog) {
+	if (result.kind === Result.Kind.Dialog) {
 		return (<Result.Dialog>result).dialog;
 	}
 	return '';
@@ -91,12 +93,12 @@ function handleResult(result: Result.Any) {
 		let cleaned = JSON.parse(text);
 		persistence.save(cleaned);
 	}
-	if (result.kind != Result.Kind.Success) {
+	if (result.kind !== Result.Kind.Success) {
 		console.log(`	result of parse: ${JSON.stringify(result).substr(0,119)}`)
 	}
 }
 
-console.debug = ((message) => { });
+console.debug = ((message) => { /* ignore */ });
 
 function testParse(): void {
 	testParse1();
@@ -125,7 +127,7 @@ function testParse1() {
 	}
 }
 
-import { exec } from 'child_process';
+import { exec, ExecException } from 'child_process';
 import { ConfigurationParser } from "derlib/config/parser";
 function tidy(text: string): string {
 	if (!exec) {
@@ -133,7 +135,8 @@ function tidy(text: string): string {
 		return text;
 	}
 	var output;
-	var child = exec('tidy -iq', function(error, stdout, stderr) {
+	var child = exec('tidy -iq', function(error: ExecException, stdout: string, stderr: string) { 
+		// we read output by pipe and ignore errors
 	});
 	child.stdout.pipe(process.stdout);
 	child.stdin.write(text);
@@ -142,4 +145,4 @@ function tidy(text: string): string {
 }
 
 testParse();
-console.log(tidy(testDialog('send')));
+// console.log(tidy(testDialog('send')));

@@ -1,6 +1,7 @@
 import { ConfigurationCommand, CollectionItem } from "./atoms";
 import { ConfigurationArray } from "./array";
 import { Result } from "./result";
+import { ConfigurationParser } from "./parser";
 
 export class ConfigurationDeleteItemCommand<T extends CollectionItem> extends ConfigurationCommand {
     constructor(private array: ConfigurationArray<T>) {
@@ -9,10 +10,12 @@ export class ConfigurationDeleteItemCommand<T extends CollectionItem> extends Co
     }
 
     parse(line: string): Result.Any {
-        if (this.array.removeItem(line)) {
+        const tokens = ConfigurationParser.tokenizeFirst(line);
+        const key = tokens[0];
+        if (this.array.removeItem(key)) {
             return new Result.Change();
-        } else {
-            return new Result.Failure(new Error(``))
         }
+        console.log(`item ${key} does not exist`);
+        return new Result.Success();
     }
 }

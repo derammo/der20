@@ -68,16 +68,14 @@ export class ConfigurationParser {
             return;
         }
         if (to instanceof ConfigurationStep) {
-            // XXX remove
-            console.log(`restoring configuration step from '${JSON.stringify(from)}'`)
+            // console.log(`restoring configuration step from '${JSON.stringify(from)}'`)
             to.load(from);
             return;
         }
         // iterate objects, recurse	
         for (let key in from) {
             if (to.hasOwnProperty(key)) {
-                // XXX remove
-                console.log(`restoring property '${key}'`);
+                // console.log(`restoring property '${key}'`);
                 let target = to[key];
                 if ((target !== null) && (typeof target === 'object')) {
                     ConfigurationParser.restore(from[key], target);

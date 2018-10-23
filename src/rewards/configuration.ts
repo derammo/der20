@@ -11,6 +11,8 @@ import { ConfigurationArray, ConfigurationChooser } from 'derlib/config/array';
 import { ConfigurationDeleteItemCommand } from 'derlib/config/deleteitem';
 import { ConfigurationAlias } from 'derlib/config/alias';
 import { Rules } from './rules';
+import { HandoutsOptions } from 'derlib/roll20/handouts';
+import { Options } from 'derlib/roll20/options';
 
 class Definitions {
     rules: Rules = new Rules();
@@ -34,6 +36,7 @@ class DeleteCommands {
 
 export class Configuration {
     // static configuration
+    config: Options = new Options();
     define: Definitions = new Definitions();
     delete: DeleteCommands = new DeleteCommands(this.define);
 
@@ -52,4 +55,10 @@ export class Configuration {
     // aliases for configuration that frequently has to change per session
     checkpoint: ConfigurationAlias = new ConfigurationAlias(this.module, 'current checkpoint');
     session: ConfigurationAlias = new ConfigurationAlias(this.module, 'current session');
+
+    constructor() {
+        // delete commands are allowed so that handouts can own an item entirely, via delete and then define
+        this.config.handouts.subtrees.push('delete');
+        this.config.handouts.subtrees.push('define');
+    }
 }

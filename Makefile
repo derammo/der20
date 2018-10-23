@@ -1,4 +1,4 @@
-SCRIPTS := parser_test rewards empty minimal minimal_plugin
+SCRIPTS := parser_test rewards handout_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 SCRIPT := dist/rewards_api_script.js

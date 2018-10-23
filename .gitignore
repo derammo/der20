@@ -4,3 +4,4 @@ releases/
 .*.swp
 node_modules/
 *_state.json
+tmp/
