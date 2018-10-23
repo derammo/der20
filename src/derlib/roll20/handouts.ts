@@ -128,7 +128,16 @@ export class Handouts {
                     if (match === null) {
                         break;
                     }
-                    lines.push(match[1]);
+                    const paragraph = match[1];
+                    // editing in UI will add break tags
+                    for (let line of paragraph.split('<br>')) {
+                        // from https://stackoverflow.com/users/113083/hegemon
+                        let cleaned = line.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, "").trim();
+                        let decoded = cleaned.replace(/&#(\d+);/g, function(regexMatch: string, code: string) {
+                            return String.fromCharCode(parseInt(code, 10));
+                        });
+                        lines.push(decoded);
+                    }
                 }
             } else {
                 // raw text set by code
