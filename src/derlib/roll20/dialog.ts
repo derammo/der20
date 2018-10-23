@@ -4,13 +4,13 @@ import { ConfigurationStep, ConfigurationString, ConfigurationInteger, Configura
 export class Der20Dialog {
     text: string[] = [];
     commandPrefix: string;
-    static readonly dialogStyle: string = "margin-left: 0px; overflow: hidden; border: 1px solid Black; padding: 5px; border-radius: 5px;";
+    static readonly dialogStyle: string = "margin-top: 0.5em; overflow: hidden; border: 1px solid Black; padding: 5px; border-radius: 5px;";
     static readonly buttonBaseStyle: string = "min-width: 6em; text-decoration: none; background-color: White; border: 1px solid #eeeeee; border-radius: 3px; padding-left: 5px; padding-right: 5px; padding-top: 0px; padding-bottom: 0px; text-align: center; float: right;"
     static readonly buttonStyle: string = Der20Dialog.buttonBaseStyle + "color: Black;"
     static readonly defaultedButtonStyle: string = Der20Dialog.buttonBaseStyle + "color: #aaaaaa;"
     static readonly commandStyle: string = "text-decoration: none; background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;";
     static readonly externalLinkButtonStyle: string = "background-color: #0000ff; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;";
-    static readonly labelStyle: string = "float: left; margin-top: 6px;";
+    static readonly labelStyle: string = "float: left;";
     static readonly groupStyle: string = "overflow: hidden; list-style: none; padding: 0; margin: 0;";
     static readonly itemStyle: string = "overflow: hidden; margin-top: 5px;";
     static readonly separatorStyle: string = "margin-top: 1.0em; margin-bottom: 0.5em;";

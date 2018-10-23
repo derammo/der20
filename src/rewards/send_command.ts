@@ -4,6 +4,7 @@ import { Result } from 'derlib/config/result';
 import { ConfigurationChooser } from 'derlib/config/array';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { LeagueModule } from 'derlib/ddal/league_module';
+import { ConfigurationStep } from 'derlib/config/atoms';
 
 export class SendCommand extends RenderCommand {
     constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>, private preview: boolean) {
@@ -27,10 +28,8 @@ export class SendCommand extends RenderCommand {
         }
         dialog.addTitle(module.name.value());
         dialog.beginControlGroup();
-        if (!module.hardcover.value()) {
-            dialog.addTextLine(`Tier ${module.tier.value()}`);
-        }
-        if (module.session.hasConfiguredValue()) {
+        dialog.addTextLine(`Tier ${module.tier.value()}`);
+        if (module.session.value() !== ConfigurationStep.NO_VALUE) {
             dialog.addTextLine(`Session ${module.session.value()}`);
         }
         dialog.addTextLine(`Played: ${dialog.getDateText(module.start.value())}`);
@@ -39,9 +38,10 @@ export class SendCommand extends RenderCommand {
 
         dialog.addSeparator();
         dialog.beginControlGroup();
+        dialog.addTextLine(`${module.advancementAward()} Advancement CP`);
         if (module.hardcover.value() && module.level.maximum.value() > 10) {
             // if hard cover, double treasure award for Tier 3+ characters
-            dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
+            dialog.addTextLine(`${module.treasureAward()} Treasure CP for Tier 1 & 2 Characters`);
             const explicitCheckpoints = module.checkpoints.current.some(checkpoint => {
                 return checkpoint.awarded.value();
             });
@@ -50,13 +50,25 @@ export class SendCommand extends RenderCommand {
                 // time-based awards, so make the DM figure this out if the rules allow this in the future
                 dialog.addTextLine(`Ask your DM for the treasure award for Tier 3 & 4 Characters`);
             } else {
-                dialog.addTextLine(`${module.advancementAward()} ACP, ${2 * module.treasureAward()} TCP for Tier 3 & 4 Characters`);
+                dialog.addTextLine(`${2 * module.treasureAward()} Treasure CP for Tier 3 & 4 Characters`);
             }
         } else {
-            dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP`);
+            dialog.addTextLine(`${module.treasureAward()} Treasure CP`);
         }
         dialog.endControlGroup();
         dialog.addSeparator();
+
+        for (let item of module.unlocks.current) {
+            if (!item.awarded.value()) {
+                continue;
+            }
+            dialog.addSubTitle(`Unlocked ${item.name.value()}`);
+            dialog.beginControlGroup();
+            dialog.addTextLine(`${item.rarity.value()} Magic Item on Table ${item.table.value()}`);
+            dialog.addTextLine(item.description.value());
+            dialog.endControlGroup();
+            dialog.addSeparator();
+        }
 
         if (this.preview) {
             dialog.addCommand('Send to Players', 'send');

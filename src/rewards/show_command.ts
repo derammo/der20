@@ -72,18 +72,20 @@ export class ShowCommand extends RenderCommand {
         dialog.addEditControl('End Time', 'module current stop', module.stop);
         dialog.endControlGroup();
         dialog.addSeparator();
-        dialog.addSubTitle('Check Points');
+        dialog.addSubTitle('Check Points and Unlocks');
         dialog.beginControlGroup();
         for (let check of module.checkpoints.current) {
             const label = `${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`;
             dialog.addEditControl(label, `module current checkpoint ${check.id} awarded`, check.awarded);
         }
+        for (let item of module.unlocks.current) {
+            const label = `Unlocked ${item.name.value()}`;
+            dialog.addEditControl(label, `module current unlock ${item.id} awarded`, item.awarded);
+        }
         dialog.endControlGroup();
         dialog.addSeparator();
-        // for (let item of this.module.localCopy.unlocks) {}
-        dialog.addSubTitle('Unlock: Axe of Awesome');
-        dialog.addSeparator();
         dialog.addSubTitle('Consumables');
+        // XXX put a section here to provider a player picker for who received what consumable
         dialog.addSeparator();
         dialog.addSubTitle('Current Totals');
         dialog.beginControlGroup();

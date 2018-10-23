@@ -30,6 +30,7 @@ let test = `
 	define module ddal12-01 unlock hat players true
 	define module ddal12-01 unlock hat dm false
 	define module ddal12-01 unlock hat table F
+	define module ddal12-01 unlock hat rarity Uncommon
 	define module ddal12-01 checkpoint bosskill dm true
 	define module ddal12-01 checkpoint bosskill players true
 	define module ddal12-01 season 12

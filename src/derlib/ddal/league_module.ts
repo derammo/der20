@@ -27,14 +27,21 @@ export class Unlock {
     // item description including flavor text
     description: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
 
+    // rarity value, capitalized 
+    // XXX implement string enum type and appropriate picker (Roll20 picker)
+    rarity: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
+
     // item is considered to be from this table for trading purposes
     table: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
 
-    // unlock awarded to players?
+    // can unlock be awarded to players?
     players: ConfigurationBoolean = new ConfigurationBoolean(true);
 
-    // unlock awarded to dm?
+    // can unlock be awarded to DM?
     dm: ConfigurationBoolean = new ConfigurationBoolean(false);
+
+    // actually awarded for this session?
+    awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 }
 
 export class LeagueModule extends ConfigurationEventHandler {
