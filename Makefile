@@ -20,9 +20,9 @@ run: build/$(DEFAULT).js
 	node build/$(DEFAULT).js | egrep --color -e '^\tresult of parse: {"kind":3.*$$' -e $$
 print:
 	json_pp < der20_$(DEFAULT)_state.json
-build/%.js: $(SRC) src/%/tsconfig.json
+build/%.js: $(SRC) src/%/tsconfig.json node_modules
 	mkdir -p build
-	tsc -p src/$*/tsconfig.json
+	node_modules/typescript/bin/tsc -p src/$*/tsconfig.json
 src/%/tsconfig.json:
 	echo '{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/$*.js" }, "include": [ "**/*.ts", "../sys/loader.js" ] }' > $@
 clean:
