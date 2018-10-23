@@ -23,7 +23,7 @@ run: build/$(DEFAULT).js tmp
 tmp:
 	mkdir tmp
 print:
-	json_pp < der20_$(DEFAULT)_state.json
+	json_pp < tmp/der20_$(DEFAULT)_state.json
 build/%.js: $(SRC) src/%/tsconfig.json node_modules
 	mkdir -p build
 	node_modules/typescript/bin/tsc -p src/$*/tsconfig.json
