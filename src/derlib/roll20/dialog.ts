@@ -3,7 +3,7 @@ import { ConfigurationStep, ConfigurationString, ConfigurationInteger, Configura
 // styling and layout taken from https://github.com/RobinKuiper/Roll20APIScripts with thanks
 export class Der20Dialog {
     text: string[] = [];
-    command_prefix: string;
+    commandPrefix: string;
     static readonly dialogStyle: string = "margin-left: 0px; overflow: hidden; background-color: White; border: 1px solid Black; padding: 5px; border-radius: 5px;";
     static readonly buttonStyle: string = "text-decoration: none; background-color: White; border: 1px solid Black; border-radius: 3px; padding: 5px; color: Black; text-align: center; float: right;"
     static readonly defaultedButtonStyle: string = "text-decoration: none; background-color: White; border: 1px solid Black; border-radius: 3px; padding: 5px; color: #aaa; text-align: center; float: right;"
@@ -14,8 +14,8 @@ export class Der20Dialog {
     static readonly itemStyle: string = "overflow: hidden; margin-top: 5px;";
     static readonly undefinedLabel = '[ NONE ]';
 
-    constructor(command_prefix: string) {
-        this.command_prefix = command_prefix;
+    constructor(commandPrefix: string) {
+        this.commandPrefix = commandPrefix;
         this.text.push(`<div style="${Der20Dialog.dialogStyle}">`);
     }
 
@@ -28,17 +28,17 @@ export class Der20Dialog {
     }
 
     addButton(label: string, target: string) {
-        this.text.push(`<a style="${Der20Dialog.buttonStyle}", href="${this.command_prefix}${target}">${label}</a>`)
+        this.text.push(`<a style="${Der20Dialog.buttonStyle}", href="${this.commandPrefix}${target}">${label}</a>`)
     }
 
     private addDefaultedButton(label: string, target: string) {
-        this.text.push(`<a style="${Der20Dialog.defaultedButtonStyle}", href="${this.command_prefix}${target}">${label}</a>`)
+        this.text.push(`<a style="${Der20Dialog.defaultedButtonStyle}", href="${this.commandPrefix}${target}">${label}</a>`)
     }
 
     addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>) {
         this.text.push(`<li style="${Der20Dialog.itemStyle}">`)
         this.text.push(`<span style="${Der20Dialog.labelStyle}">${label}</span>`);
-        let defaulted = (config.current == ConfigurationStep.NO_VALUE);
+        let defaulted = (config.current === ConfigurationStep.NO_VALUE);
         let text: string = '';
         let link: string = '';
         if (config instanceof ConfigurationString) {
@@ -69,22 +69,28 @@ export class Der20Dialog {
         this.text.push('</li>');
     }
 
+    addTextLine(label: string) {
+        this.text.push(`<li style="${Der20Dialog.itemStyle}">`)
+        this.text.push(label);
+        this.text.push('</li>');
+    }
+
     private getStringText(value: string) {
-        if (value == ConfigurationStep.NO_VALUE) {
+        if (value === ConfigurationStep.NO_VALUE) {
             return Der20Dialog.undefinedLabel;
         }
         return value;
     }
 
     private getNumberText<T>(value: T) {
-        if (value == ConfigurationStep.NO_VALUE) {
+        if (value === ConfigurationStep.NO_VALUE) {
             return Der20Dialog.undefinedLabel;
         }
         return`${value}`;
     }
 
     private getDateText(value: number) {
-        if (value == ConfigurationStep.NO_VALUE) {
+        if (value === ConfigurationStep.NO_VALUE) {
             return Der20Dialog.undefinedLabel;
         }
         return new Date(value).toUTCString();
@@ -95,7 +101,7 @@ export class Der20Dialog {
     }
 
     addCommand(label: string, target: string) {
-        this.text.push(`<a style="${Der20Dialog.commandStyle}", href="${this.command_prefix}${target}">${label}</a>`)
+        this.text.push(`<a style="${Der20Dialog.commandStyle}", href="${this.commandPrefix}${target}">${label}</a>`)
     }
 
     addExternalLinkButton(label: string, target: string) {

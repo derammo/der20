@@ -14,5 +14,5 @@ export interface Dialog {
 }
 
 export interface DialogFactory {
-    new(command_prefix: string): Dialog;
+    new(commandPrefix: string): Dialog;
 }

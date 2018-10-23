@@ -100,8 +100,9 @@ export class ConfigurationDate extends ConfigurationStep<number> {
     }
 
     parse(line: string): Result.Any {
-        let checkFloat = line.match(/^-?[0-9]*\.?[0-9]+$/);
-        if (checkFloat) {
+        if (line.length === 0) {
+            this.current = Date.now();
+        } else if (line.match(/^-?[0-9]*\.?[0-9]+$/)) {
             this.current = Date.now() - (parseFloat(line) * 60 * 60 * 1000);
         } else {
             this.current = Date.parse(line);

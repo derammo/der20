@@ -1,9 +1,9 @@
-import { ConfigurationStep, ConfigurationCommand } from "derlib/config/atoms";
-import { LeagueModule } from "derlib/ddal/league_module";
-import { DungeonMaster } from "derlib/ddal/dungeon_master";
-import { Der20Dialog } from "derlib/roll20/dialog";
-import { Result } from "derlib/config/result";
-import { ConfigurationChooser } from "derlib/config/array";
+import { ConfigurationStep, ConfigurationCommand } from 'derlib/config/atoms';
+import { LeagueModule } from 'derlib/ddal/league_module';
+import { DungeonMaster } from 'derlib/ddal/dungeon_master';
+import { Der20Dialog } from 'derlib/roll20/dialog';
+import { Result } from 'derlib/config/result';
+import { ConfigurationChooser } from 'derlib/config/array';
 
 export class RenderCommand extends ConfigurationCommand {
     protected dm: ConfigurationChooser<DungeonMaster>;
@@ -23,10 +23,10 @@ export class RenderCommand extends ConfigurationCommand {
         if (this.module.current == null) {
             result = this.module.parse('');
         }
-        if ((result.kind == Result.Kind.Success) && (this.dm.current == null)) {
+        if (result.kind === Result.Kind.Success && this.dm.current == null) {
             return new Result.Failure(new Error('no dm loaded'));
         }
-        if ((result.kind == Result.Kind.Success) && (this.module.current == null)) {
+        if (result.kind === Result.Kind.Success && this.module.current == null) {
             return new Result.Failure(new Error('no module loaded'));
         }
         return result;
@@ -58,25 +58,49 @@ export class ShowCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.addSubTitle('Module');
         dialog.beginControlGroup();
-        dialog.addEditControl('Module Name', 'module current name', this.module.current.name);
-        dialog.addEditControl('Tier', 'module current tier', this.module.current.tier);
-        dialog.addEditControl('Minimum Level', 'module current level minimum', this.module.current.level.minimum);
-        dialog.addEditControl('Maximum Level', 'module current level maximum', this.module.current.level.maximum);
-        dialog.addEditControl('Start Time', 'module current start', this.module.current.start);
-        dialog.addEditControl('End Time', 'module current stop', this.module.current.stop);
+        let module = this.module.current;
+        dialog.addEditControl('Module Name', 'module current name', module.name);
+        dialog.addEditControl('Season', 'module current season', module.season);
+        dialog.addEditControl('Hard Cover', 'module current hardcover', module.hardcover);
+        dialog.addEditControl('Tier', 'module current tier', module.tier);
+        dialog.addEditControl('Minimum Level', 'module current level minimum', module.level.minimum);
+        dialog.addEditControl('Maximum Level', 'module current level maximum', module.level.maximum);
+        dialog.addEditControl('Advancement/hr', 'module current hourly advancement', module.hourly.advancement);
+        dialog.addEditControl('Treasure/hr', 'module current hourly treasure', module.hourly.treasure);
+        dialog.addEditControl('Maximum Duration', 'module current duration', module.duration);
+        dialog.addEditControl('Start Time', 'module current start', module.start);
+        dialog.addEditControl('End Time', 'module current stop', module.stop);
         dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Check Points');
         dialog.beginControlGroup();
-        for (let check of this.module.current.checkpoints.current) {
-            dialog.addEditControl(`${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`, `module current checkpoint ${check.id} awarded`, check.awarded);
+        for (let check of module.checkpoints.current) {
+            let label = `${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`;
+            dialog.addEditControl(label, `module current checkpoint ${check.id} awarded`, check.awarded);
         }
         dialog.endControlGroup();
         dialog.addSeparator();
-        // for (let item of this.module.localCopy.magicItems) {}
-        dialog.addSubTitle('Magic Item');
+        // for (let item of this.module.localCopy.unlocks) {}
+        dialog.addSubTitle('Unlock: Axe of Awesome');
         dialog.addSeparator();
         dialog.addSubTitle('Consumables');
+        dialog.addSeparator();
+        dialog.addSubTitle('Current Totals');
+        dialog.beginControlGroup();
+        if (module.hardcover.value() && (module.level.maximum.value() > 10)) {
+            // if hard cover, double treasure award for Tier 3+ characters
+            dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
+            if (module.checkpoints.current.some((checkpoint) => { return checkpoint.awarded.value() })) {
+                // there should not be specific check point awards in a hard cover, because the rules assume 
+                // time-based awards, so make the DM figure this out if the rules allow this in the future
+                dialog.addTextLine(`You must manually calculate the treasure award for Tier 3 & 4 Characters`);
+            } else {
+                dialog.addTextLine(`${module.advancementAward()} ACP, ${2 * module.treasureAward()} TCP for Tier 3 & 4 Characters`);
+            }
+        } else {
+            dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP`);
+        }
+        dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addCommand('Send to Players', 'send');
         return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());

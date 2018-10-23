@@ -85,10 +85,101 @@ export class LeagueModule extends ConfigurationEventHandler {
         }
     }
 
+    hourlyAdvancement(): number {
+        if ((this.season.value() < 8) || (this.hardcover.value())) {
+            return 1;
+        }
+        return 0;
+    }
+
+    hourlyTreasure(): number {
+        let multiplier = 1;
+        if ((this.tier.value() > 2) && (!this.hardcover.value())) {
+            multiplier = 2;
+        }
+        return multiplier * this.hourlyAdvancement();
+    }
+
+    defaultDuration(): number {
+        if (this.hardcover.value()) {
+            return 0;
+        } else {
+            return 4;
+        }
+    }
+
+    treasureAward(): number {
+        // sum all awarded treasure from checkpoints
+        let treasure = this.checkpoints.current.map((checkpoint) => {
+            if (checkpoint.awarded.value()) {
+                return checkpoint.treasure.value();
+            } else {
+                return 0;
+            }
+        }).reduce((previous, current) => {
+            return previous + current;
+        }, 0);
+
+        let hours = this.hoursAward();
+        if (hours <= 0.0) {
+            // start and stop may not be configured
+            return treasure;
+        }
+
+        // add any hourly treasure, which should be mutually exclusive with checkpoints
+        // but there may be modules in the future that change this
+        treasure += this.hourly.treasure.value() * hours;
+        return treasure;
+    }
+
+    advancementAward(): number {
+        // sum all awarded advancement from checkpoints
+        let advancement = this.checkpoints.current.map((checkpoint) => {
+            if (checkpoint.awarded.value()) {
+                return checkpoint.advancement.value();
+            } else {
+                return 0;
+            }
+        }).reduce((previous, current) => {
+            return previous + current;
+        }, 0);
+
+        let hours = this.hoursAward();
+        if (hours <= 0.0) {
+            // start and stop may not be configured
+            return advancement;
+        }
+   
+        // add any hourly advancement, which should be mutually exclusive with checkpoints
+        // but there may be modules in the future that change this
+        advancement += this.hourly.advancement.value() * hours;
+        return advancement;
+    }
+
+    hoursAward(): number {
+        let hours = (this.stop.value() - this.start.value()) / (60 * 60 * 1000);
+        if (hours <= 0) {
+            return 0;
+        }
+        if (this.duration.value() <= 0) {
+            // no duration limit
+            return Math.floor(hours);
+        }
+        if (hours > this.duration.value()) {
+            return Math.floor(this.duration.value());
+        }
+        return Math.floor(hours);
+    }
+
     constructor() {
         super();
         this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['level', 'minimum'], this.minimumLevelForTier));
         this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['level', 'maximum'], this.maximumLevelForTier));
+        this.addTrigger('season', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'advancement'], this.hourlyAdvancement));
+        this.addTrigger('season', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
+        this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'advancement'], this.hourlyAdvancement));
+        this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
+        this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['duration'], this.defaultDuration));
     }
 }
 

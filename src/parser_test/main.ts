@@ -38,8 +38,8 @@ let test = `
 	define module ddal12-01 duration 4
 	define module ddal12-01 level minimum 2
 	define module ddal12-01 level maximum 3
-	define module ddal12-01 hourly treasure 0
-	define module ddal12-01 hourly advancement 0
+	define module ddal12-01 hourly treasure 1
+	define module ddal12-01 hourly advancement 1
 	define dm ammo dci 007
 	define dm ammo name Ammo Goettsch
 	checkpoint bosskill awarded true
