@@ -158,6 +158,9 @@ export class LeagueModule extends ConfigurationEventHandler {
 
     hoursAward(): number {
         let hours = (this.stop.value() - this.start.value()) / (60 * 60 * 1000);
+        if (Number.isNaN(hours)) {
+            return 0;
+        }
         if (hours <= 0) {
             return 0;
         }
