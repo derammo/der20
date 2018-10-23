@@ -3,8 +3,9 @@ export class ConfigurationIntermediateNode {
     toJSON() {
         let result: {[index: string]: any} = {};
         let empty = true;
-        for (let key in this) {
+        for (let key of Object.keys(this)) {
             // intentional crash if element does not define toJSON
+            // tslint:disable-next-line:no-string-literal
             let value = this[key]['toJSON']();
             if (value !== undefined) {
                 result[key] = value;
