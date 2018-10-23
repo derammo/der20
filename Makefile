@@ -30,7 +30,7 @@ clean:
 squeaky: clean
 	rm -rf node_modules
 cloc: /usr/local/bin/cloc
-	cloc --exclude-dir=node_modules,releases,build,dist,.vscodeh --exclude-list-file .clocignore --by-file-by-lang .
+	cloc --exclude-dir=node_modules,releases,build,dist,.vscodeh,tmp --exclude-list-file .clocignore --by-file-by-lang .
 /usr/local/bin/cloc:
 	brew install cloc
 release: label_release build_release checkout_master
