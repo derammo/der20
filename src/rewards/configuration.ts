@@ -1,4 +1,4 @@
-import { ConfigurationStep, ConfigurationFloat } from 'derlib/config/atoms';
+import { ConfigurationStep, ConfigurationFloat, ConfigurationCommand } from 'derlib/config/atoms';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { TimerCommand } from './timer_command';
@@ -40,7 +40,7 @@ export class Configuration {
     define: Definitions = new Definitions();
     delete: DeleteCommands = new DeleteCommands(this.define);
 
-    // current session copies from definitions
+    // current session objects initialized from from definitions
     dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms, Der20Dialog, 'dm');
     module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules, Der20Dialog, 'module');
 

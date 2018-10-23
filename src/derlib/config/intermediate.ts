@@ -5,8 +5,7 @@ export class ConfigurationIntermediateNode {
         let empty = true;
         for (let key of Object.keys(this)) {
             // intentional crash if element does not define toJSON
-            // tslint:disable-next-line:no-string-literal
-            let value = this[key]['toJSON']();
+            let value = this[key].toJSON();
             if (value !== undefined) {
                 result[key] = value;
                 empty = false;

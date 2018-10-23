@@ -6,6 +6,7 @@ import { Handouts, HandoutsOptions } from 'derlib/roll20/handouts';
 import { ConfigurationCommand } from 'derlib/config/atoms';
 import { Options } from 'derlib/roll20/options';
 import { Der20Dialog } from './dialog';
+import { DefaultConstructed } from '../utility';
 
 // from our module header
 declare var console: any;
@@ -19,19 +20,33 @@ declare function on(event: 'chat:message', callback: (msg: any) => void): void;
 declare function getObj(type: 'player', id: string);
 declare function sendChat(speakingAs: string, message: string, callback?: (operations: any[]) => void, options?: any): void;
 
-class Plugin {
+class Plugin<T> {
+    configurationRoot: any;
     persistence: ConfigurationPersistence;
     handouts: Handouts;
 
-    constructor(public name: string, public configurationRoot: any) {
+    constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code 
 
-        // add debug commmand
-        if (configurationRoot.dump === undefined) {
-            this.configurationRoot.dump = new DumpCommand();     
-        }
+        // create the world
+        this.reset();
     }
     
+    reset() {
+        // create the world
+        this.configurationRoot = new (this.factory)();
+
+        // add debug commmand
+        if (this.configurationRoot.dump === undefined) {
+            this.configurationRoot.dump = new DumpCommand();     
+        }
+
+        // add reset command
+        if (this.configurationRoot.reset === undefined) {
+            this.configurationRoot.reset = new ResetCommand();
+        }
+    }
+
     start() {
         // start up on ready event
         this.persistence = startPersistence(this.name);
@@ -47,10 +62,7 @@ class Plugin {
 
     handleResult(player: any, command: string, result: Result.Any): Result.Any {
         if (result.events.has(Result.Event.Change)) {
-            let text = JSON.stringify(this.configurationRoot);
-            // now that everything is clean, convert back to a dictionary
-            let cleaned = JSON.parse(text);
-            this.persistence.save(cleaned);
+            this.saveConfiguration();
         }
 
         // this switch must be exhaustive
@@ -86,6 +98,13 @@ class Plugin {
                 }
                 return result;
         }
+    }
+
+    saveConfiguration() {
+        let text = JSON.stringify(this.configurationRoot);
+        // now that everything is clean, convert back to a dictionary
+        let cleaned = JSON.parse(text);
+        this.persistence.save(cleaned);
     }
 
     reportError(error: Error) {
@@ -150,8 +169,9 @@ class Plugin {
     }
 }
 
-var plugin: Plugin;
-export function start(pluginName: string, configuration: any) {
+var plugin;
+
+export function start<T>(pluginName: string, factory: DefaultConstructed<T>) {
     if (typeof log !== 'function') {
         throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script');
     }
@@ -161,7 +181,7 @@ export function start(pluginName: string, configuration: any) {
         log(`${stamp} ${pluginName || 'der20'}: ${message}`);
     };
     // singleton, make sure this is set before we do any work on start up
-    plugin = new Plugin(pluginName, configuration);
+    plugin = new Plugin(pluginName, factory);
     plugin.start();
 }
 
@@ -172,5 +192,16 @@ export class DumpCommand extends ConfigurationCommand {
         dialog.addTextLine(JSON.stringify(plugin.configurationRoot));
         dialog.endControlGroup();
         return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
+    }
+}
+
+export class ResetCommand extends ConfigurationCommand {
+    parse(line: string): Result.Any {
+        if (line !== 'all configuration') {
+            return new Result.Failure(new Error(`reset command must match 'reset all configuration' exactly`));
+        }
+        plugin.reset();
+        plugin.saveConfiguration();
+        return new Result.Success();
     }
 }

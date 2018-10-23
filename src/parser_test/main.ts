@@ -15,9 +15,9 @@ let json = persistence.load();
 ConfigurationParser.restore(json, configurationRoot);
 
 let test = `
-	delete all configuration
+	reset all configuration
 	${Options.pluginOptionsKey} handouts journal true
-	${Options.pluginOptionsKey} handouts archived true
+	${Options.pluginOptionsKey} handouts archived false
 	show
 	send
 	define rules advancement downtime multiplier 2.5
@@ -72,8 +72,9 @@ let test = `
 	send
 `;
 
-// let test2 = `define module ddal12-01 level minimum 2`;
-let test2 = `
+let test2 = `define module ddal12-01 level minimum 2`;
+let test3 = `
+reset all configuration
 delete module ddal08-74
 define module ddal08-74 name DDAL08-74 The Killing of Grobs
 define module ddal08-74 season 8
@@ -131,23 +132,34 @@ function testParse(): void {
 	testParse2();
 }
 
+function testLine(line: string) {
+	let command = line.trim();
+	// run including blank lines
+	console.log(`testing: ${command}`);
+	if (command === 'reset all configuration') {
+		// this is implemented in the plugin, so we fake it here
+		configurationRoot = new Configuration();
+		return;
+	}
+	let result = ConfigurationParser.parse(command, configurationRoot);
+	handleResult(result);	
+}
+
+function testParse3() {
+	for (let line of test3.split('\n')) {
+		testLine(line);		
+	}
+}
+
 function testParse2() {
 	for (let line of test2.split('\n')) {
-		let command = line.trim();
-		// run including blank lines
-		console.log(`testing: ${command}`);
-		let result = ConfigurationParser.parse(command, configurationRoot);
-		handleResult(result);
+		testLine(line);		
 	}
 }
 
 function testParse1() {
 	for (let line of test.split('\n')) {
-		let command = line.trim();
-		// run including blank lines
-		console.log(`testing: ${command}`);
-		let result = ConfigurationParser.parse(command, configurationRoot);
-		handleResult(result);
+		testLine(line);		
 	}
 }
 
@@ -168,5 +180,5 @@ function tidy(text: string): string {
 	return output;
 }
 
-testParse2();
+testParse3();
 console.log(tidy(testDialog('show')));

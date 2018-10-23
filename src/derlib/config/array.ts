@@ -102,26 +102,25 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         this.path = path;
     }
 
-    /* tslint:disable:no-string-literal */
     toJSON() {
         // shallow copy so we can overwrite id (must not be changed)
-        let result = {};
+        let result: any = {};
         if (this.hasConfiguredValue()) {
-            let source = this.current;
-            if (typeof source['toJSON'] === 'function') {
-                source = source['toJSON']();
+            let source: any = this.current;
+            if (typeof source.toJSON === 'function') {
+                source = source.toJSON();
             }
             Object.assign(result, source);
         }
-        result['id'] = this.selectedId;
+        result.id = this.selectedId;
         return result;
     }
 
     load(json: any) {
-        this.selectedId = json['id'];
+        this.selectedId = json.id;
         // now we wait until this object is used, because the array may not have loaded yet
+        // NOTE: any per-session overrides are now lost
     }
-    /* tslint:enable:no-string-literal */
 
     private createChooserDialog(rest: string): Result.Dialog {
         // we don't know what command word was used to call us, so we let the caller fix it up
@@ -142,7 +141,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         if (this.selectedId !== undefined) {
             if (this.current === ConfigurationStep.NO_VALUE) {
                  // right after restoring from JSON, the item data has not been loaded yet
-                 this.loadItem(this.selectedId, rest);
+                 return this.loadItem(this.selectedId, rest);
             }
             return ConfigurationParser.parse(rest, this.current);
         }
@@ -154,8 +153,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
             // auto select only defined item, if any
             let id = this.array.current[0].id;
             console.log(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
-            this.loadItem(id, rest);
-            return ConfigurationParser.parse(rest, this.current);
+            return this.loadItem(id, rest);
         }
         // remaining case is no items in collection
         return new Result.Failure(new Error(`${this.array.keyword} could not be selected, because none are defined`));
@@ -179,14 +177,17 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
             return new Result.Failure(new Error(`item "${id}" is not defined`));
         }
 
-        this.loadItem(id, tokens[1]);
-        return ConfigurationParser.parse(tokens[1], this.current);
+        return this.loadItem(id, tokens[1]);
     }
 
-    private loadItem(id: string, rest: string) {
+    private loadItem(id: string, rest: string): Result.Any {
         let index = this.array.ids[id];
         this.current = cloneExcept(this.array.classType, this.array.current[index], ['id']);
         this.selectedId = id;
+        if (rest.length < 1) {
+            return new Result.Change();
+        }
+        return ConfigurationParser.parse(rest, this.current);
     }
 
     clear() {
