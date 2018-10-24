@@ -11,6 +11,6 @@ written in a generic way so it only becomes dependent on Roll20 for final presen
 
 Currently, local testing of individual dialogs can be down in a browser.  See test/show.html for an example.
 
-Requirements: Node.js, GNU Make
+Requirements: Node.js, npm, GNU Make
 
 Installation: 'make'
