@@ -10,3 +10,7 @@ not duplicate the effort of "Mock20" and so there is no local emulation of Roll2
 written in a generic way so it only becomes dependent on Roll20 for final presentation of dialogs etc.
 
 Currently, local testing of individual dialogs can be down in a browser.  See test/show.html for an example.
+
+Requirements: Node.js, GNU Make
+
+Installation: 'make'
