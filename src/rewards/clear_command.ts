@@ -23,6 +23,6 @@ export class ClearCommand extends ConfigurationCommand {
         for (let target of this.targets) {
             target.clear();
         }
-        return new Result.Success();
+        return new Result.Success('cleared current session data');
     }
 }

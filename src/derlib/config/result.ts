@@ -10,10 +10,10 @@ export namespace Result {
         Change = 'change'
     }
 
-    // XXX add messages that can be displayed to caller only
     export class Any {
         kind: Result.Kind;
         events: Set<Result.Event> = new Set<Result.Event>();
+        messages: string[] = [];
 
         protected constructor(kind: Result.Kind) {
             this.kind = kind;
@@ -56,14 +56,15 @@ export namespace Result {
     };
 
     export class Success extends Any {
-        constructor() {
+        constructor(message: string) {
             super(Result.Kind.Success);
+            this.messages.push(message);
         }
     };
 
     export class Change extends Success {
-        constructor() {
-            super();
+        constructor(message: string) {
+            super(message);
             this.events.add(Result.Event.Change);
         }
     }

@@ -1,7 +1,7 @@
 import { DefaultConstructed } from '../utility';
 import { Result } from './result';
 
-export class ConfigurationStep<T> {
+export abstract class ConfigurationStep<T> {
     keyword: string = ConfigurationStep.NO_VALUE;
     protected current: T = ConfigurationStep.NO_VALUE;
     default: T = ConfigurationStep.NO_VALUE;
@@ -10,9 +10,7 @@ export class ConfigurationStep<T> {
         this.default = defaultValue;
     }
 
-    parse(line: string): Result.Any {
-        return new Result.Success();
-    }
+    abstract parse(line: string): Result.Any;
 
     load(json: any) {
         this.current = json;
@@ -40,7 +38,7 @@ export namespace ConfigurationStep {
 }
 
 // no actual data, subclassed by steps that just take an action in code
-export class ConfigurationCommand extends ConfigurationStep<boolean> {
+export abstract class ConfigurationCommand extends ConfigurationStep<boolean> {
     constructor() {
         super(ConfigurationStep.NO_VALUE);
     }
@@ -53,7 +51,7 @@ export class ConfigurationString extends ConfigurationStep<string> {
 
     parse(line: string): Result.Any {
         this.current = line;
-        return new Result.Change();
+        return new Result.Change(`set string value '${this.current}'`);
     }
 
     clone() {
@@ -73,7 +71,7 @@ export class ConfigurationInteger extends ConfigurationStep<number> {
         } else {
             this.current = parseInt(line, 10);
         }
-        return new Result.Change();
+        return new Result.Change(`set integer value ${this.current}`);
     }
 
     clone() {
@@ -93,7 +91,7 @@ export class ConfigurationFloat extends ConfigurationStep<number> {
         } else {
             this.current = parseFloat(line);
         }
-        return new Result.Change();
+        return new Result.Change(`set float value ${this.current}`);
     }
 
     clone() {
@@ -115,7 +113,7 @@ export class ConfigurationDate extends ConfigurationStep<number> {
         } else {
             this.current = Date.parse(line);
         }
-        return new Result.Change();
+        return new Result.Change(`set date value ${new Date(this.current).toUTCString()}`);
     }
 
     clone() {
@@ -137,7 +135,7 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
         } else {
             this.current = ConfigurationBoolean.trueValues.has(line);
         }
-        return new Result.Change();
+        return new Result.Change(`set boolean value ${this.current}`);
     }
 
     clone() {

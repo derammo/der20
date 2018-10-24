@@ -26,9 +26,6 @@ export class ConfigurationParser {
             return configuration.parse(line);
         }
         let tokens = ConfigurationParser.tokenizeFirst(line);
-        if (tokens.length < 2) {
-            return new Result.Success();
-        }
         if (configuration.hasOwnProperty(tokens[0])) {
             let target = configuration[tokens[0]];
             if (target == null) {
@@ -60,7 +57,7 @@ export class ConfigurationParser {
             return new Result.Failure(new Error(`token '${tokens[0]}' did not match any configuration command`));
         }
         // empty token was claimed by no item, that is ok
-        return new Result.Success();
+        return new Result.Success('no configuration changed');
     }
 
     static restore(from: any, to: any) {

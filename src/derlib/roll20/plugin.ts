@@ -65,8 +65,11 @@ class Plugin<T> {
             this.saveConfiguration();
         }
 
-        // XXX send any messages to caller, regardless of result
-
+        // send any messages to caller, regardless of result
+        for (let message of result.messages) {
+            sendChat(this.name, `/w "${player.get('displayname')}" ${message}`, null, { noarchive: true });
+        }
+        
         // this switch must be exhaustive
         // tslint:disable-next-line:switch-default
         switch (result.kind) {
@@ -90,13 +93,13 @@ class Plugin<T> {
                     default:
                         sendChat(this.name, `/w GM ${dialog}`, null, { noarchive: true });
                 }
-                return new Result.Success();
+                return new Result.Success('dialog dispatched');
             case Result.Kind.Success:
                 if (command.endsWith('-show')) {
                     // execute show action after executing command, used in interactive dialogs to
                     // render the new state of the dialog
                     let showResult = this.configurationRoot.show.parse('');
-                    return this.handleResult(player, '', showResult);
+                    return this.handleResult(player, command, showResult);
                 }
                 return result;
         }
@@ -204,6 +207,7 @@ export class ResetCommand extends ConfigurationCommand {
         }
         plugin.reset();
         plugin.saveConfiguration();
-        return new Result.Success();
+        plugin.configureHandoutsSupport();
+        return new Result.Success('all stored state and configuration reset');
     }
 }

@@ -42,9 +42,6 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
 
     parse(line: string): Result.Any {
         let tokens = ConfigurationParser.tokenizeFirst(line);
-        if (tokens.length < 2) {
-            return new Result.Success();
-        }
         let id: string = tokens[0];
         if (id.length < 1) {
             return new Result.Failure(new Error('interactive selection from array is unimplemented'));
@@ -52,10 +49,13 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         let index: number;
         if (this.ids.hasOwnProperty(id)) {
             index = this.ids[id];
+            return ConfigurationParser.parse(tokens[1], this.current[index]);
         } else {
             index = this.addItem(id, new (this.classType)());
+            let result = ConfigurationParser.parse(tokens[1], this.current[index]);
+            result.messages.unshift(`created item ${id}`);
+            return result;
         }
-        return ConfigurationParser.parse(tokens[1], this.current[index]);
     }
 
     addItem(id: string, item: T) {
@@ -125,7 +125,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     private createChooserDialog(rest: string): Result.Dialog {
         // we don't know what command word was used to call us, so we let the caller fix it up
         let dialog = new (this.dialogFactory)(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
-        dialog.addTitle('No Current Item Selected');
+        dialog.addTitle(`Selection for '${this.path}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:')
         const choices = this.array.current.map(function(item: T) { return [item.id, item.name]; });
@@ -181,7 +181,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         this.current = cloneExcept(this.array.classType, this.array.current[index], ['id']);
         this.selectedId = id;
         if (rest.length < 1) {
-            return new Result.Change();
+            return new Result.Change(`selected item ${this.current.name.value() || id}`);
         }
         return ConfigurationParser.parse(rest, this.current);
     }

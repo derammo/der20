@@ -13,9 +13,8 @@ export class ConfigurationDeleteItemCommand<T extends CollectionItem> extends Co
         const tokens = ConfigurationParser.tokenizeFirst(line);
         const key = tokens[0];
         if (this.array.removeItem(key)) {
-            return new Result.Change();
+            return new Result.Change(`array item ${key} deleted`);
         }
-        console.log(`item ${key} does not exist`);
-        return new Result.Success();
+        return new Result.Success(`item ${key} does not exist`);
     }
 }

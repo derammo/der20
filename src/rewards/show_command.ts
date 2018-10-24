@@ -5,7 +5,7 @@ import { Der20Dialog } from 'derlib/roll20/dialog';
 import { Result } from 'derlib/config/result';
 import { ConfigurationChooser } from 'derlib/config/array';
 
-export class RenderCommand extends ConfigurationCommand {
+export abstract class RenderCommand extends ConfigurationCommand {
     protected dm: ConfigurationChooser<DungeonMaster>;
     protected module: ConfigurationChooser<LeagueModule>;
 
@@ -16,7 +16,7 @@ export class RenderCommand extends ConfigurationCommand {
     }
 
     protected tryLoad(): Result.Any {
-        let result: Result.Any = new Result.Success();
+        let result: Result.Any = new Result.Success('no configuration changed');
         if (this.dm.current == null) {
             result = this.dm.parse('');
         }

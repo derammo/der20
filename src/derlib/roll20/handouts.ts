@@ -214,6 +214,6 @@ class HandoutsOptionChange extends ConfigurationUpdate.Base {
             // REVISIT: we currently reread all of them even if some were already enabled
             this.target.readHandouts();
         }
-        return new Result.Success();
+        return new Result.Success('handouts options updated');
     }
 }
