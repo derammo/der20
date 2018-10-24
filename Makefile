@@ -4,12 +4,13 @@ SCRIPTS := parser_test handout_test
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(SCRIPTS))
+DIST := $(patsubst %,dist/der20_%.js,$(PLUGINS))
 
 .PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts
 .PRECIOUS: build/%.js src/%/tsconfig.json
 
 all: node_modules plugins scripts
-plugins: $(patsubst %,dist/der20_%.js,$(PLUGINS))
+plugins: $(DIST)
 scripts: $(patsubst %,build/%.js,$(SCRIPTS))
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
@@ -38,7 +39,7 @@ cloc: /usr/local/bin/cloc
 /usr/local/bin/cloc:
 	brew install cloc
 release: label_release build_release checkout_master
-build_release: checkout_release clean $(subst dist,releases/${RELEASE},$(BUILD)) checkout_master
+build_release: checkout_release clean $(subst dist,releases/${RELEASE},$(DIST)) checkout_master
 checkout_release:
 	git checkout v${RELEASE}
 label_release:
