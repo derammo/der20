@@ -128,7 +128,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         dialog.addTitle(`Selection for '${this.path}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:')
-        const choices = this.array.current.map(function(item: T) { return [item.id, item.name]; });
+        const choices = this.array.current.map((item: T) => { return [item.id, item.name]; });
         dialog.addChoiceControlGroup(this.array.keyword, this.path, this.array.current, rest);
         return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
     }

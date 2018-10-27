@@ -3,7 +3,8 @@ export namespace Result {
     export enum Kind {
         Success = 1,
         Dialog,
-        Failure
+        Failure,
+        Asynchronous // unknown result since executing asynchronously
     }
 
     export enum Event {
@@ -28,7 +29,7 @@ export namespace Result {
         constructor(public destination: Dialog.Destination = Dialog.Destination.Caller, public dialog: string) {
             super(Result.Kind.Dialog);
         }
-    };
+    }
 
     export namespace Dialog {
         export enum Destination {
@@ -37,7 +38,7 @@ export namespace Result {
             AllPlayers,
             All
         }
-    };
+    }
 
     export class Failure extends Any {
         errors: Error[] = [];
@@ -46,21 +47,21 @@ export namespace Result {
             this.errors.push(error);
         }
         toJSON() {
-            return { 
-                kind: this.kind, 
-                errors: this.errors.map(function(item: Error) { 
+            return {
+                kind: this.kind,
+                errors: this.errors.map((item: Error) => {
                     return item.message;
                 })
             };
         }
-    };
+    }
 
     export class Success extends Any {
         constructor(message: string) {
             super(Result.Kind.Success);
             this.messages.push(message);
         }
-    };
+    }
 
     export class Change extends Success {
         constructor(message: string) {
@@ -68,4 +69,16 @@ export namespace Result {
             this.events.add(Result.Event.Change);
         }
     }
-};
+
+    export class Asynchronous extends Any {
+        promises: Record<string, Promise<any>> = {};
+
+        constructor(message: string, key?: string, promise?: Promise<any>) {
+            super(Result.Kind.Asynchronous);
+            this.messages.push(message);
+            if ((key !== undefined) || (promise !== undefined)) {
+                this.promises[key] = promise;
+            }
+        }
+    }
+}

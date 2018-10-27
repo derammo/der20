@@ -171,7 +171,7 @@ function tidy(text: string): string {
 		return text;
 	}
 	var output;
-	var child = exec('tidy -iq', function(error: ExecException, stdout: string, stderr: string) { 
+	var child = exec('tidy -iq', (error: ExecException, stdout: string, stderr: string) => { 
 		// we read output by pipe and ignore errors
 	});
 	child.stdout.pipe(process.stdout);

@@ -1,1 +1,1 @@
-{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/parser_test.js" }, "include": [ "**/*.ts", "../sys/loader.js" ] }
+{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/parser_test.js" }, "include": [ "**/*.ts", "../sys/loader.js", "../types/*.d.ts" ] }

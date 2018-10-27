@@ -1,4 +1,4 @@
-PLUGINS := rewards minimal_plugin
+PLUGINS := rewards
 SCRIPTS := parser_test handout_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
@@ -12,6 +12,7 @@ DIST := $(patsubst %,dist/der20_%.js,$(PLUGINS))
 all: node_modules plugins scripts
 plugins: $(DIST)
 scripts: $(patsubst %,build/%.js,$(SCRIPTS))
+theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
 dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
@@ -29,7 +30,7 @@ build/%.js: $(SRC) src/%/tsconfig.json node_modules
 	mkdir -p build
 	node_modules/typescript/bin/tsc -p src/$*/tsconfig.json
 src/%/tsconfig.json:
-	echo '{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/$*.js" }, "include": [ "**/*.ts", "../sys/loader.js" ] }' > $@
+	echo '{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/$*.js" }, "include": [ "**/*.ts", "../sys/loader.js", "../types/*.d.ts" ] }' > $@
 clean:
 	rm -rf build dist
 squeaky: clean

@@ -1,1 +1,1 @@
-{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/handout_test.js" }, "include": [ "**/*.ts", "../sys/loader.js" ] }
+{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/handout_test.js" }, "include": [ "**/*.ts", "../sys/loader.js", "../types/*.d.ts" ] }

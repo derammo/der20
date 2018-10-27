@@ -11,34 +11,25 @@ import { DefaultConstructed } from '../utility';
 // from our module header
 declare var console: any;
 
-// from Roll20
-// REVISIT use derlib/rol20/api.d.ts
-// REVISIT support mock20?
-declare function log(message: any): void;
-declare function on(event: 'ready', callback: () => void): void;
-declare function on(event: 'chat:message', callback: (msg: any) => void): void;
-declare function getObj(type: 'player', id: string);
-declare function sendChat(speakingAs: string, message: string, callback?: (operations: any[]) => void, options?: any): void;
-
 class Plugin<T> {
     configurationRoot: any;
     persistence: ConfigurationPersistence;
     handouts: Handouts;
 
     constructor(public name: string, public factory: DefaultConstructed<T>) {
-        // generated code 
+        // generated code
 
         // create the world
         this.reset();
     }
-    
+
     reset() {
         // create the world
-        this.configurationRoot = new (this.factory)();
+        this.configurationRoot = new this.factory();
 
         // add debug commmand
         if (this.configurationRoot.dump === undefined) {
-            this.configurationRoot.dump = new DumpCommand();     
+            this.configurationRoot.dump = new DumpCommand();
         }
 
         // add reset command
@@ -52,7 +43,7 @@ class Plugin<T> {
         this.persistence = startPersistence(this.name);
         this.restoreConfiguration();
         this.hookChatMessage();
-        this.hookReady();       
+        this.hookReady();
     }
 
     restoreConfiguration() {
@@ -60,16 +51,16 @@ class Plugin<T> {
         ConfigurationParser.restore(json, this.configurationRoot);
     }
 
-    handleResult(player: any, command: string, result: Result.Any): Result.Any {
+    handleResult(context: Plugin.CommandExecution, result: Result.Any): Result.Any {
         if (result.events.has(Result.Event.Change)) {
             this.saveConfiguration();
         }
 
         // send any messages to caller, regardless of result
         for (let message of result.messages) {
-            sendChat(this.name, `/w "${player.get('displayname')}" ${message}`, null, { noarchive: true });
+            sendChat(this.name, `/w "${context.player.get('_displayname')}" ${message}`, null, { noarchive: true });
         }
-        
+
         // this switch must be exhaustive
         // tslint:disable-next-line:switch-default
         switch (result.kind) {
@@ -80,7 +71,7 @@ class Plugin<T> {
                 return result;
             case Result.Kind.Dialog:
                 let dialogResult = <Result.Dialog>result;
-                let dialog = dialogResult.dialog.replace(new RegExp(ConfigurationParser.MAGIC_COMMAND_STRING, 'g'), command);
+                let dialog = dialogResult.dialog.replace(new RegExp(ConfigurationParser.MAGIC_COMMAND_STRING, 'g'), context.command);
                 console.log(`dialog from parse: ${dialog.substr(0, 16)}...`);
                 switch (dialogResult.destination) {
                     case Result.Dialog.Destination.All:
@@ -88,20 +79,25 @@ class Plugin<T> {
                         sendChat(this.name, `${dialog}`, null);
                         break;
                     case Result.Dialog.Destination.Caller:
-                        sendChat(this.name, `/w "${player.get('displayname')}" ${dialog}`, null, { noarchive: true });
+                        sendChat(this.name, `/w "${context.player.get('_displayname')}" ${dialog}`, null, { noarchive: true });
                         break;
                     default:
                         sendChat(this.name, `/w GM ${dialog}`, null, { noarchive: true });
                 }
                 return new Result.Success('dialog dispatched');
             case Result.Kind.Success:
-                if (command.endsWith('-show')) {
+                if (context.command.endsWith('-show')) {
                     // execute show action after executing command, used in interactive dialogs to
                     // render the new state of the dialog
                     let showResult = this.configurationRoot.show.parse('');
-                    return this.handleResult(player, command, showResult);
+                    return this.handleResult(context, showResult);
                 }
                 return result;
+            case Result.Kind.Asynchronous:
+                // if asynchronous data is needed, retry once available
+                this.asynchronousRetry(context, <Result.Asynchronous>result, 0);
+                // return to Roll20 engine, wait for asynchronous work to complete (NOTE: this message is not printed)
+                return new Result.Success('asynchronous retry scheduled');
         }
     }
 
@@ -137,13 +133,13 @@ class Plugin<T> {
     }
 
     hookChatMessage() {
-        on('chat:message', msg => {
-            if (msg.type !== 'api') {
+        on('chat:message', message => {
+            if (message.type !== 'api') {
                 return;
             }
             try {
-                let player = getObj('player', msg.playerid);
-                let lines = msg.content.split('\n');
+                let player = getObj('player', message.playerid);
+                let lines = message.content.split('\n');
                 let validCommands = new Set([`!${this.name}`, `!${this.name}-show`]);
                 for (let line of lines) {
                     let tokens = ConfigurationParser.tokenizeFirst(line);
@@ -151,8 +147,16 @@ class Plugin<T> {
                         // console.log(`ignoring command for other plugin: ${line}`);
                         continue;
                     }
-                    let result = ConfigurationParser.parse(tokens[1], this.configurationRoot);
-                    result = this.handleResult(player, tokens[0], result);
+
+                    // this context object will survive until this command line is completely executed, including retries
+                    let context = new Plugin.CommandExecution(player, message, tokens[0], tokens[1]);
+
+                    // XXX consult access control tree
+
+                    // now run as configuration command
+                    let result = ConfigurationParser.parse(context.rest, this.configurationRoot, context);
+                    result = this.handleResult(context, result);
+
                     if (result.kind === Result.Kind.Failure) {
                         // REVISIT should we stop processing lines in this block?
                     }
@@ -163,8 +167,26 @@ class Plugin<T> {
         });
     }
 
+    asynchronousRetry(context: Plugin.CommandExecution, async: Result.Asynchronous, index: number) {
+        let workList = Object.keys(async.promises);
+        let key = workList[index];
+        let promise = async.promises[key];
+        promise.then(value => {
+            // XXX remove debug
+            console.log(`retry operation with ${key}: ${value}`);
+            context.asyncVariables[key] = value;
+            if ((index+1) < workList.length) {
+                // not done
+                this.asynchronousRetry(context, async, index+1);
+                return;
+            }
+            let result = ConfigurationParser.parse(context.rest, this.configurationRoot, context);
+            this.handleResult(context, result);
+        });
+    }
+
     hookReady() {
-        on('ready', function() {
+        on('ready', () => {
             // need to wait for handouts to load, so we do this on ready
             plugin.configureHandoutsSupport();
 
@@ -174,13 +196,23 @@ class Plugin<T> {
     }
 }
 
+namespace Plugin {
+    export class CommandExecution {
+        public asyncVariables: Record<string, any> = {};
+
+        constructor(public player: Player, public message: ApiChatEventData, public command: string, public rest: string) {
+            // generated code
+        }
+    }
+}
+
 var plugin;
 
 export function start<T>(pluginName: string, factory: DefaultConstructed<T>) {
     if (typeof log !== 'function') {
         throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script');
     }
-    
+
     console.log = message => {
         let stamp = new Date().toISOString();
         log(`${stamp} ${pluginName || 'der20'}: ${message}`);

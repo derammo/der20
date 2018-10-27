@@ -15,6 +15,6 @@
         "strictNullChecks" : false
     },
     "compileOnSave": true,
-    "include": [ "src/derlib/**/*.ts", "src/sys/loader.js" ],
+    "include": [ "src/derlib/**/*.ts", "src/sys/loader.js", "src/types/*.d.ts" ],
     "exclude": [ "node_modules" ]
 }

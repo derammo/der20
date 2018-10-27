@@ -10,7 +10,7 @@ export abstract class ConfigurationStep<T> {
         this.default = defaultValue;
     }
 
-    abstract parse(line: string): Result.Any;
+    abstract parse(line: string, context?: any): Result.Any;
 
     load(json: any) {
         this.current = json;

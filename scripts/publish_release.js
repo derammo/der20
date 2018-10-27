@@ -31,6 +31,6 @@ const releaseSpec = {
     target_commitish: 'master'
 };
 
-publishRelease(releaseSpec, function (err, release) {
+publishRelease(releaseSpec, (err, release) => {
     console.log(release);
 })

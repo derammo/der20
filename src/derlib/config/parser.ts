@@ -19,11 +19,11 @@ export class ConfigurationParser {
         return [clean.substr(0, space), clean.substr(space + 1)];
     }
 
-    static parse(line: string, configuration: any): Result.Any {
+    static parse(line: string, configuration: any, context?: any): Result.Any {
         let debug = console.debug || console.log;
         debug(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
         if (configuration instanceof ConfigurationStep) {
-            return configuration.parse(line);
+            return configuration.parse(line, context);
         }
         let tokens = ConfigurationParser.tokenizeFirst(line);
         if (configuration.hasOwnProperty(tokens[0])) {
@@ -31,7 +31,7 @@ export class ConfigurationParser {
             if (target == null) {
                 throw new Error(`property '${tokens[0]}' should be an empty configuration object instead of null`);
             }
-            let result = ConfigurationParser.parse(tokens[1], target);
+            let result = ConfigurationParser.parse(tokens[1], target, context);
             if (!(result.hasEvents())) {
                 return result;
             }

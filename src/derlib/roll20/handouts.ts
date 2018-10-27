@@ -107,7 +107,7 @@ export class Handouts {
 
     readHandout(handout: any) {
         let target: Handouts = this;
-        handout.get('gmnotes', function(text: string) {
+        handout.get('gmnotes', (text: string) => {
             console.log(`scanning handout '${handout.get('name')}'`);
             if (!text.match(/^(<p>)?!/g)) {
                 // as long as some plugin command is the first line, we invest the time to read through
@@ -133,7 +133,7 @@ export class Handouts {
                     for (let line of paragraph.split('<br>')) {
                         // from https://stackoverflow.com/users/113083/hegemon
                         let cleaned = line.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, "").trim();
-                        let decoded = cleaned.replace(/&#(\d+);/g, function(regexMatch: string, code: string) {
+                        let decoded = cleaned.replace(/&#(\d+);/g, (regexMatch: string, code: string) => {
                             return String.fromCharCode(parseInt(code, 10));
                         });
                         lines.push(decoded);
@@ -195,9 +195,8 @@ export class Handouts {
     }
 
     private hookHandouts() {
-        let target = this;
-        on('change:handout', function(current: any, previous: any) {
-            target.handoutChanged(current, previous);
+        on('change:handout', (current: any, previous: any) => {
+            this.handoutChanged(current, previous);
         });    
     }    
 }
