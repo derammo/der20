@@ -3,11 +3,8 @@ import { ConfigurationEventHandler, ConfigurationUpdate, ConfigurationParser } f
 import { Result } from "derlib/config/result";
 import { cloneExcept } from "derlib/utility";
 
-// from Roll20
-// REVISIT use derlib/rol20/api.d.ts
-// REVISIT support mock20?
-declare function on(event: 'change:handout', callback: (current: any, previous: any) => void): void;
-declare function findObjs(properties: { [property: string]: any }, options?: any): any[];
+// from Roll20, missing in types file
+declare function on(event: 'change:handout', callback: (current: Handout, previous: Handout) => void): void;
 
 export class HandoutsOptions extends ConfigurationEventHandler {
     journal: ConfigurationBoolean = new ConfigurationBoolean(true);
@@ -105,6 +102,7 @@ export class Handouts {
         }
     }
 
+    // WARNING: the Handout type in api.d.ts is incorrectly claiming gmnotes is a synchronous read property, so we can't use the type here
     readHandout(handout: any) {
         let target: Handouts = this;
         handout.get('gmnotes', (text: string) => {
@@ -115,34 +113,8 @@ export class Handouts {
                 return;
             }
             // read text
-            let lines;
-            if (text.startsWith('<p>')) {
-                // formatted into paragraph tags by interactive use
-                let regex = /<p>(.*?)<\/p>/g;
-                lines = [];
-                // REVISIT configurable
-                let limit = 1000;
-                for (let i=0; i<limit; i++) {
-                    let match = regex.exec(text);
-                    // NOTE: regex.exec returns null instead of undefined
-                    if (match === null) {
-                        break;
-                    }
-                    const paragraph = match[1];
-                    // editing in UI will add break tags
-                    for (let line of paragraph.split('<br>')) {
-                        // from https://stackoverflow.com/users/113083/hegemon
-                        let cleaned = line.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, "").trim();
-                        let decoded = cleaned.replace(/&#(\d+);/g, (regexMatch: string, code: string) => {
-                            return String.fromCharCode(parseInt(code, 10));
-                        });
-                        lines.push(decoded);
-                    }
-                }
-            } else {
-                // raw text set by code
-                lines = text.split('\n');
-            }
+            let lines = Handouts.extractLines(text);
+            
             const command = `!${target.pluginName}`;
             for (let line of lines) {
                 let tokens = ConfigurationParser.tokenizeFirst(line);
@@ -153,6 +125,38 @@ export class Handouts {
                 target.dispatchCommand(tokens[1]);
             }
         });
+    }
+
+    static extractLines(text: string): string[] {
+        let lines: string[];
+        if (text.startsWith('<p>')) {
+            // formatted into paragraph tags by interactive use
+            let regex = /<p>(.*?)<\/p>/g;
+            lines = [];
+            // REVISIT configurable
+            let limit = 1000;
+            for (let i=0; i<limit; i++) {
+                let match = regex.exec(text);
+                // NOTE: regex.exec returns null instead of undefined
+                if (match === null) {
+                    break;
+                }
+                const paragraph = match[1];
+                // editing in UI will add break tags
+                for (let line of paragraph.split('<br>')) {
+                    // from https://stackoverflow.com/users/113083/hegemon
+                    let cleaned = line.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, "").trim();
+                    let decoded = cleaned.replace(/&#(\d+);/g, (regexMatch: string, code: string) => {
+                        return String.fromCharCode(parseInt(code, 10));
+                    });
+                    lines.push(decoded);
+                }
+            }
+        } else {
+            // raw text set by code
+            lines = text.split('\n');
+        }
+        return lines;       
     }
 
     dispatchCommand(line: string) {
@@ -177,7 +181,7 @@ export class Handouts {
         }
     }
 
-    handoutChanged(current: any, previous: any): void {
+    handoutChanged(current: Handout, previous: Handout): void {
         let archived = current.get('archived');
         if (archived === undefined) {
             console.log("object received in handout change handler was not a handout");
