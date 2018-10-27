@@ -5,4 +5,4 @@ class Configuration {
     option: Options = new Options();
 }
 
-start('handout_test', new Configuration());
+start('handout_test', Configuration);
