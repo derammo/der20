@@ -1,2 +1,2 @@
 package-lock.json
-src/derlib/roll20/api.d.ts
+src/types/api.d.ts
