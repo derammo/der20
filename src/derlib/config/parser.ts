@@ -1,9 +1,6 @@
 import { ConfigurationStep } from './atoms'
 import { Result } from './result';
-    
-export interface ConfigurationParsing {
-    parse(line: string): Result.Any;
-}
+import { ParserContext } from './context';
 
 export class ConfigurationParser {
     // this string can be substituted for the command path by the caller
@@ -19,7 +16,7 @@ export class ConfigurationParser {
         return [clean.substr(0, space), clean.substr(space + 1)];
     }
 
-    static parse(line: string, configuration: any, context?: any): Result.Any {
+    static parse(line: string, configuration: any, context: ParserContext): Result.Any {
         let debug = console.debug || console.log;
         debug(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
         if (configuration instanceof ConfigurationStep) {
@@ -36,7 +33,7 @@ export class ConfigurationParser {
                 return result;
             }
             if (configuration instanceof ConfigurationEventHandler) {
-                return configuration.handleEvents(tokens[0], result);
+                result = configuration.handleEvents(tokens[0], context, result);
             }
             return result;
         }
@@ -59,32 +56,6 @@ export class ConfigurationParser {
         // empty token was claimed by no item, that is ok
         return new Result.Success('no configuration changed');
     }
-
-    static restore(from: any, to: any) {
-        if (from === undefined) {
-            return;
-        }
-        if (to instanceof ConfigurationStep) {
-            // console.log(`restoring configuration step from '${JSON.stringify(from)}'`)
-            to.load(from);
-            return;
-        }
-        // iterate objects, recurse	
-        for (let key in from) {
-            if (to.hasOwnProperty(key)) {
-                // console.log(`restoring property '${key}'`);
-                let target = to[key];
-                if ((target !== null) && (typeof target === 'object')) {
-                    ConfigurationParser.restore(from[key], target);
-                } else {
-                    // treat as dumb data
-                    to[key] = from[key];
-                }
-            } else {
-                console.log(`ignoring JSON property '${key}' that does not appear in configuration tree`);
-            }
-        }
-    }
 }
 
 export class ConfigurationEventHandler {
@@ -95,17 +66,16 @@ export class ConfigurationEventHandler {
         eventMap.events[event].push(update);
     }
 
-    handleEvents(source: string, result: Result.Any): Result.Any {
+    handleEvents(source: string, context: ParserContext, result: Result.Any): Result.Any {
         let listeners: ConfigurationEventHandler.EventMap = this.handlers.fetch(source);
         if (listeners === undefined) {
             return result;
         }
-        let handlerResult = result;
         // iterate event types posted on configuration result
         for (let event of result.events) {
             // process all handlers[event] until one changes the result to a failure
             for (let handler of listeners.events[event]) {
-                handlerResult = handler.execute(this, result);
+                let handlerResult = handler.execute(this, context, result);
                 if (handlerResult.kind === Result.Kind.Failure) {
                     return handlerResult;
                 }
@@ -151,7 +121,7 @@ export namespace ConfigurationUpdate {
     // WARNING: descendants of this class must not maintain direct references to config objects because 
     // these items are shared by all clones of the config subtree
     export abstract class Base {
-        abstract execute(configuration: any, result: Result.Any): Result.Any;
+        abstract execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any;
     }  
 
     export class Default<SOURCE, TARGET> extends Base {
@@ -159,7 +129,7 @@ export namespace ConfigurationUpdate {
             super();
         }
 
-        execute(configuration: SOURCE, result: Result.Any): Result.Any {
+        execute(configuration: SOURCE, context: ParserContext, result: Result.Any): Result.Any {
             let value = this.calculator.apply(configuration);
             // XXX can this be made type safe?
             let walk: any = configuration;

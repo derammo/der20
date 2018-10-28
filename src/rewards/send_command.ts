@@ -5,7 +5,8 @@ import { ConfigurationChooser } from 'derlib/config/array';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { ConfigurationStep } from 'derlib/config/atoms';
-import { Rules, Multiplied } from './rules';
+import { Rules } from './rules';
+import { ParserContext } from 'derlib/config/context';
 
 export class SendCommand extends RenderCommand {
     constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>, private rules: Rules, private preview: boolean) {
@@ -17,8 +18,8 @@ export class SendCommand extends RenderCommand {
         return undefined;
     }
 
-    parse(line: string): Result.Any {
-        this.tryLoad();
+    parse(line: string, context: ParserContext): Result.Any {
+        this.tryLoad(context);
 
         let dialog = new Der20Dialog('!rewards ');
         let destination = Result.Dialog.Destination.Caller;

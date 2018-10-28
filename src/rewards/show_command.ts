@@ -1,9 +1,10 @@
-import { ConfigurationStep, ConfigurationCommand } from 'derlib/config/atoms';
+import { ConfigurationCommand } from 'derlib/config/atoms';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { Der20Dialog } from 'derlib/roll20/dialog';
 import { Result } from 'derlib/config/result';
 import { ConfigurationChooser } from 'derlib/config/array';
+import { ParserContext } from 'derlib/config/context';
 
 export abstract class RenderCommand extends ConfigurationCommand {
     protected dm: ConfigurationChooser<DungeonMaster>;
@@ -15,13 +16,13 @@ export abstract class RenderCommand extends ConfigurationCommand {
         this.module = module;
     }
 
-    protected tryLoad(): Result.Any {
+    protected tryLoad(context: ParserContext): Result.Any {
         let result: Result.Any = new Result.Success('no configuration changed');
         if (this.dm.current == null) {
-            result = this.dm.parse('');
+            result = this.dm.parse('', context);
         }
         if (this.module.current == null) {
-            result = this.module.parse('');
+            result = this.module.parse('', context);
         }
         if (result.kind === Result.Kind.Success && this.dm.current == null) {
             return new Result.Failure(new Error('no dm loaded'));
@@ -38,9 +39,9 @@ export class ShowCommand extends RenderCommand {
         return undefined;
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         // load if possible
-        let result = this.tryLoad();
+        let result = this.tryLoad(context);
         switch (result.kind) {
             case Result.Kind.Success:
                 break;

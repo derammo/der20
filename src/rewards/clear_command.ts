@@ -1,4 +1,4 @@
-import { ConfigurationStep, ConfigurationCommand } from "derlib/config/atoms";
+import { ConfigurationCommand } from "derlib/config/atoms";
 import { Result } from "derlib/config/result";
 
 interface Clearable {

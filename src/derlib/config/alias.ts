@@ -1,5 +1,6 @@
 import { ConfigurationCommand } from './atoms';
 import { ConfigurationParser } from './parser';
+import { ParserContext } from './context';
 
 export class ConfigurationAlias extends ConfigurationCommand {
     root: any;
@@ -15,7 +16,7 @@ export class ConfigurationAlias extends ConfigurationCommand {
         return undefined;
     }
 
-    parse(line: string) {
-        return ConfigurationParser.parse(`${this.path} ${line}`, this.root);
+    parse(line: string, context: ParserContext) {
+        return ConfigurationParser.parse(`${this.path} ${line}`, this.root, context);
     }
 }

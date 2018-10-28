@@ -1,5 +1,5 @@
-PLUGINS := rewards anonymous
-SCRIPTS := parser_test handout_test
+PLUGINS := rewards anonymous handout_test
+SCRIPTS := parser_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 SCRIPT := dist/rewards_api_script.js
@@ -16,12 +16,13 @@ theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
 dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt Makefile
-	mkdir -p dist
-	rm -f $@
-	cat include/header.js.txt > $@
-	sed -e 's/    Object\.defineProperty(.*);$$/    \/\/ local module initialized by embedded loader below/' < $< >> $@
-	cat include/trailer.js.txt >> $@
-	chmod 444 $@
+	@mkdir -p dist
+	@rm -f $@
+	@cat include/header.js.txt > $@
+	@sed -e 's/    Object\.defineProperty(.*);$$/    \/\/ local module initialized by embedded loader below/' < $< >> $@
+	@cat include/trailer.js.txt >> $@
+	@chmod 444 $@
+	@echo packaging $< as $@ for Roll20
 run: build/$(DEFAULT).js tmp
 	node build/$(DEFAULT).js | egrep --color -e '^\tresult of parse: {"kind":3.*$$' -e $$
 tmp:
@@ -29,7 +30,7 @@ tmp:
 print:
 	json_pp < tmp/der20_$(DEFAULT)_state.json
 build/%.js: $(SRC) src/%/tsconfig.json node_modules
-	mkdir -p build
+	@mkdir -p build
 	node_modules/typescript/bin/tsc -p src/$*/tsconfig.json
 src/%/tsconfig.json:
 	echo '{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/$*.js" }, "include": [ "**/*.ts", "../sys/loader.js", "../types/*.d.ts" ] }' > $@

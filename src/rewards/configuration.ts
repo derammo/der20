@@ -1,4 +1,3 @@
-import { ConfigurationStep, ConfigurationFloat, ConfigurationCommand } from 'derlib/config/atoms';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { TimerCommand } from './timer_command';
@@ -6,13 +5,18 @@ import { ClearCommand } from './clear_command';
 import { SendCommand } from './send_command';
 import { ShowCommand } from './show_command';
 import { Der20Dialog } from 'derlib/roll20/dialog';
-import { clone, DefaultConstructed } from 'derlib/utility';
 import { ConfigurationArray, ConfigurationChooser } from 'derlib/config/array';
 import { ConfigurationDeleteItemCommand } from 'derlib/config/deleteitem';
 import { ConfigurationAlias } from 'derlib/config/alias';
 import { Rules } from './rules';
-import { HandoutsOptions } from 'derlib/roll20/handouts';
 import { Options } from 'derlib/roll20/options';
+
+// add handouts support to plugin by loading optional module
+import { HandoutsOptions } from 'derlib/roll20/handouts';
+
+class PluginOptions {
+    handouts: HandoutsOptions = new HandoutsOptions(Options.pluginOptionsKey);
+}
 
 class Definitions {
     rules: Rules = new Rules();
@@ -36,7 +40,7 @@ class DeleteCommands {
 
 export class Configuration {
     // static configuration
-    option: Options = new Options();
+    option: PluginOptions = new PluginOptions();
     define: Definitions = new Definitions();
     delete: DeleteCommands = new DeleteCommands(this.define);
 

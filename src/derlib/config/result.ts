@@ -37,7 +37,7 @@ export namespace Result {
 
     export namespace Dialog {
         export enum Destination {
-            Caller,
+            Caller = 1,
             GM,
             AllPlayers,
             All

@@ -1,7 +1,7 @@
-import { DefaultConstructed } from '../utility';
 import { Result } from './result';
+import { ParserContext, ConfigurationParsing, ConfigurationLoading, LoaderContext } from './context';
 
-export abstract class ConfigurationStep<T> {
+export abstract class ConfigurationStep<T> implements ConfigurationParsing, ConfigurationLoading {
     keyword: string = ConfigurationStep.NO_VALUE;
     protected current: T = ConfigurationStep.NO_VALUE;
     default: T = ConfigurationStep.NO_VALUE;
@@ -10,9 +10,9 @@ export abstract class ConfigurationStep<T> {
         this.default = defaultValue;
     }
 
-    abstract parse(line: string, context?: any): Result.Any;
+    abstract parse(line: string, context: ParserContext): Result.Any;
 
-    load(json: any) {
+    load(json: any, context: LoaderContext) {
         this.current = json;
     }
 
@@ -60,7 +60,7 @@ export class ConfigurationString extends ConfigurationStep<string> {
         super(defaultValue);
     }
 
-    parse(line: string, context?: any): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         this.current = line;
         return new Result.Change(`set string value '${this.current}'`);
     }
@@ -76,7 +76,7 @@ export class ConfigurationInteger extends ConfigurationStep<number> {
         super(defaultValue);
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         if (line.length === 0) {
             this.current = ConfigurationStep.NO_VALUE;
         } else {
@@ -96,7 +96,7 @@ export class ConfigurationFloat extends ConfigurationStep<number> {
         super(defaultValue);
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         if (line.length === 0) {
             this.current = ConfigurationStep.NO_VALUE;
         } else {
@@ -116,7 +116,7 @@ export class ConfigurationDate extends ConfigurationStep<number> {
         super(defaultValue);
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         if (line.length === 0) {
             this.current = Date.now();
         } else if (line.match(/^-?[0-9]*\.?[0-9]+$/)) {
@@ -140,7 +140,7 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
         super(defaultValue);
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         if (line.length === 0) {
             this.current = ConfigurationStep.NO_VALUE;
         } else {

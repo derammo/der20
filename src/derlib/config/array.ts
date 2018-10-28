@@ -3,6 +3,8 @@ import { ConfigurationParser } from './parser';
 import { DefaultConstructed, cloneExcept } from 'derlib/utility';
 import { Result } from './result';
 import { DialogFactory } from 'derlib/ui';
+import { ConfigurationLoader } from './loader';
+import { ParserContext, LoaderContext } from './context';
 
 export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep<T[]> {
     current: T[] = [];
@@ -16,7 +18,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         this.keyword = singularName;
     }
 
-    toJSON() {
+    toJSON(): any {
         return this.current;
     }
 
@@ -25,22 +27,24 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         this.ids = {};
     }
 
-    load(json: any) {
+    load(json: any, context: LoaderContext) {
         this.clear();
         if (!Array.isArray(json)) {
             // ignore, might be schema change we can survive
-            console.log('ignoring non-array JSON in saved state; configuration array reset');
+            context.addMessage('ignoring non-array JSON in saved state; configuration array reset');
             return;
         }
-        json.forEach((node, index) => {
-            let item = new (this.classType)();
-            ConfigurationParser.restore(node, item);
+        // tslint:disable-next-line:forin
+        for (let key in json) {
+            let item = new this.classType();
+            let child: any = json[key];
+            ConfigurationLoader.restore(child, item, context);
             this.ids[item.id] = this.current.length;
             this.current.push(item);
-        });
+        }
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let id: string = tokens[0];
         if (id.length < 1) {
@@ -49,10 +53,10 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         let index: number;
         if (this.ids.hasOwnProperty(id)) {
             index = this.ids[id];
-            return ConfigurationParser.parse(tokens[1], this.current[index]);
+            return ConfigurationParser.parse(tokens[1], this.current[index], context);
         } else {
-            index = this.addItem(id, new (this.classType)());
-            let result = ConfigurationParser.parse(tokens[1], this.current[index]);
+            index = this.addItem(id, new this.classType());
+            let result = ConfigurationParser.parse(tokens[1], this.current[index], context);
             result.messages.unshift(`created item ${id}`);
             return result;
         }
@@ -102,7 +106,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         this.path = path;
     }
 
-    toJSON() {
+    toJSON(): any {
         // shallow copy so we can overwrite id (must not be changed)
         let result: any = {};
         if (this.hasConfiguredValue()) {
@@ -116,30 +120,30 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         return result;
     }
 
-    load(json: any) {
+    load(json: any, context: LoaderContext): Result.Any {
         this.selectedId = json.id;
         // now we wait until this object is used, because the array may not have loaded yet
         // NOTE: any per-session overrides are now lost
+        return new Result.Change('restored selection from array');
     }
 
     private createChooserDialog(rest: string): Result.Dialog {
         // we don't know what command word was used to call us, so we let the caller fix it up
-        let dialog = new (this.dialogFactory)(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
+        let dialog = new this.dialogFactory(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
         dialog.addTitle(`Selection for '${this.path}'`);
         dialog.addSeparator();
-        dialog.addSubTitle('Please choose an item:')
-        const choices = this.array.current.map((item: T) => { return [item.id, item.name]; });
+        dialog.addSubTitle('Please choose an item:');
         dialog.addChoiceControlGroup(this.array.keyword, this.path, this.array.current, rest);
         return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
     }
 
-    private handleCurrent(rest: string): Result.Any {
+    private handleCurrent(rest: string, context: ParserContext): Result.Any {
         if (this.selectedId !== undefined) {
             if (this.current === ConfigurationStep.NO_VALUE) {
-                 // right after restoring from JSON, the item data has not been loaded yet
-                 return this.loadItem(this.selectedId, rest);
+                // right after restoring from JSON, the item data has not been loaded yet
+                return this.loadItem(this.selectedId, rest, context);
             }
-            return ConfigurationParser.parse(rest, this.current);
+            return ConfigurationParser.parse(rest, this.current, context);
         }
         if (this.array.current.length > 1) {
             // present interactive chooser
@@ -149,23 +153,23 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
             // auto select only defined item, if any
             let id = this.array.current[0].id;
             console.log(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
-            return this.loadItem(id, rest);
+            return this.loadItem(id, rest, context);
         }
         // remaining case is no items in collection
         return new Result.Failure(new Error(`${this.array.keyword} could not be selected, because none are defined`));
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let id = tokens[0];
 
         if (id === ConfigurationChooser.MAGIC_CURRENT_ID) {
-            return this.handleCurrent(tokens[1]);
+            return this.handleCurrent(tokens[1], context);
         }
 
         if (id.length < 1) {
             // treat this the same as current, to auto load if applicable
-            return this.handleCurrent(tokens[1]);
+            return this.handleCurrent(tokens[1], context);
         }
 
         if (!this.array.ids.hasOwnProperty(id)) {
@@ -173,17 +177,17 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
             return new Result.Failure(new Error(`item "${id}" is not defined`));
         }
 
-        return this.loadItem(id, tokens[1]);
+        return this.loadItem(id, tokens[1], context);
     }
 
-    private loadItem(id: string, rest: string): Result.Any {
+    private loadItem(id: string, rest: string, context: ParserContext): Result.Any {
         let index = this.array.ids[id];
         this.current = cloneExcept(this.array.classType, this.array.current[index], ['id']);
         this.selectedId = id;
         if (rest.length < 1) {
             return new Result.Change(`selected item ${this.current.name.value() || id}`);
         }
-        return ConfigurationParser.parse(rest, this.current);
+        return ConfigurationParser.parse(rest, this.current, context);
     }
 
     clear() {
@@ -191,4 +195,3 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         this.current = ConfigurationStep.NO_VALUE;
     }
 }
-

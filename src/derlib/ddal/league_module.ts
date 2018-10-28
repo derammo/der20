@@ -28,7 +28,7 @@ export class Unlock {
     description: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
 
     // rarity value, capitalized 
-    // XXX implement string enum type and appropriate picker (Roll20 picker)
+    // XXX implement string enum type and appropriate picker (Roll20 picker), also need mapping to A.L.L. value
     rarity: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
 
     // item is considered to be from this table for trading purposes

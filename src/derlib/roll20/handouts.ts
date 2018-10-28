@@ -1,10 +1,102 @@
 import { ConfigurationBoolean } from "derlib/config/atoms";
-import { ConfigurationEventHandler, ConfigurationUpdate, ConfigurationParser } from "derlib/config/parser";
+import { ConfigurationEventHandler, ConfigurationParser, ConfigurationUpdate } from "derlib/config/parser";
+import { ConfigurationSource, LoaderContext, ParserContext } from "derlib/config/context";
+import { Options } from "./options";
 import { Result } from "derlib/config/result";
-import { cloneExcept } from "derlib/utility";
+import { addExtension, PluginLoaderContext } from "./plugin";
 
-// from Roll20, missing in types file
 declare function on(event: 'change:handout', callback: (current: Handout, previous: Handout) => void): void;
+
+// mixin to support handouts in Plugin class
+class HandoutsPluginExtension {
+    handouts: Handouts;
+    configurationRoot: any;
+    name: string;
+
+    // mixin access to host
+    handleLoaderResults: (context: PluginLoaderContext) => void;
+
+    // detect journal reading config in well known location 'options handouts ...'
+    configureHandoutsSupport() {
+        if (!this.configurationRoot.hasOwnProperty(Options.pluginOptionsKey)) {
+            console.log(`this plugin does not have plugin configuration under '${Options.pluginOptionsKey}'; no handouts support`);
+            return;
+        }
+        const pluginOptions = this.configurationRoot[Options.pluginOptionsKey];
+        if (!pluginOptions.hasOwnProperty('handouts')) {
+            console.log(`this plugin does not support handout options under '${Options.pluginOptionsKey} handouts'`);
+            return;
+        }
+        const handoutsOptions: any = pluginOptions.handouts;
+        if (!(handoutsOptions instanceof HandoutsOptions)) {
+            console.log(`this plugin uses non-standard options under '${Options.pluginOptionsKey} handouts' that are unsupported`);
+            return;
+        }
+        this.handouts = new Handouts(this.name, this.configurationRoot, handoutsOptions);
+
+        // sign up for handouts options reconfigurations
+        // REVISIT use keyof somehow to always get the right token here
+        handoutsOptions.addTrigger('journal', Result.Event.Change, new HandoutsOptionChange(this));
+        handoutsOptions.addTrigger('archived', Result.Event.Change, new HandoutsOptionChange(this));    
+
+        // read all handouts
+        let context = new PluginLoaderContext();
+        this.handouts.readHandouts(context);
+        this.handleLoaderResults(context);
+
+        // listen for change events on handouts
+        this.hookHandouts();
+    }
+
+    handoutChanged(current: Handout, previous: Handout): void {
+        let context = new PluginLoaderContext();
+        let archived = current.get('archived');
+        if (archived === undefined) {
+            console.log('object received in handout change handler was not a handout');
+            return;
+        }
+        if (archived) {
+            if (this.handouts.archived) {
+                this.handouts.readHandout(current, context);
+            }
+        } else {
+            if (this.handouts.journal) {
+                this.handouts.readHandout(current, context);
+            }
+        }
+        this.handleLoaderResults(context);
+    }
+
+    private hookHandouts() {
+        on('change:handout', (current: any, previous: any) => {
+            this.handoutChanged(current, previous);
+        });
+    }    
+}
+
+
+class HandoutsOptionChange extends ConfigurationUpdate.Base {
+    constructor(private target: HandoutsPluginExtension) {
+        super();
+        // generated code
+    }
+
+    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+        if (configuration instanceof HandoutsOptions) {
+            this.target.handouts.configure(configuration);
+
+            //  we need to get a configuration loader context, so we need to be in the plugin module
+            let loaderContext = new PluginLoaderContext();
+
+            // REVISIT: we currently reread all of them even if some were already enabled
+            this.target.handouts.readHandouts(loaderContext);
+
+            // fire any resulting commands at configuration level
+            this.target.handleLoaderResults(loaderContext);
+        }
+        return new Result.Success('handouts options updated');
+    }
+}
 
 export class HandoutsOptions extends ConfigurationEventHandler {
     journal: ConfigurationBoolean = new ConfigurationBoolean(true);
@@ -25,7 +117,7 @@ export class HandoutsOptions extends ConfigurationEventHandler {
     }
 }
 
-export class Handouts {
+class Handouts {
     pluginName: string;
     
     // stable config from last update
@@ -42,15 +134,6 @@ export class Handouts {
         for (let key of options.subtrees) {
             this.addSubtree(key, configurationRoot[key]);
         }
-
-        // install configuration change trigger
-        // REVISIT use keyof somehow to always get the right token here
-        options.addTrigger('journal', Result.Event.Change, new HandoutsOptionChange(this));
-        options.addTrigger('archived', Result.Event.Change, new HandoutsOptionChange(this));    
-        
-        // start
-        this.readHandouts();
-        this.hookHandouts();
     }
 
     // permit a subtree to be reconfigured from handouts
@@ -73,12 +156,15 @@ export class Handouts {
         this.journal = options.journal.value();
     }
 
-    // XXX this creates a lot of async reading work and we do not provide any way for the caller to wait until it is finished
-    //
-    // need something like: plugin.tasks and tasks can be API commands waiting to be executed and asynch work ahead of them, including
-    // on startup so we can finish asynch work before doing another command (this would help BeyondImporter also)
-    //
-    readHandouts() {
+    // creates async configuration work
+    readHandouts(context: LoaderContext) {
+        const handouts = this.getHandouts();
+        for (let handout of handouts) {
+            this.readHandout(handout, context);
+        }
+    }        
+    
+    private getHandouts(): Handout[] {
         let search: { _type: string, archived?: boolean } = { _type: 'handout' };
         if (this.archived) {
             if (this.journal) {
@@ -95,22 +181,39 @@ export class Handouts {
             } else {
                 // nothing supported
                 console.log('reading of configuration from handouts is disabled');
-                return;
+                return [];
             }
         }
         // console.log(`searching for objects matching ${JSON.stringify(search)}`);
         let handouts = findObjs(search);
         console.log(`scanning ${handouts.length} handouts`);
-        for (let handout of handouts) {
-            this.readHandout(handout);
-        }
+        return handouts.map((object) => {
+            if (object === undefined) {
+                throw new Error('unexpected undefined handout in result array');
+            }
+            return <Handout>object;
+        });
     }
 
+
     // WARNING: the Handout type in api.d.ts is incorrectly claiming gmnotes is a synchronous read property, so we can't use the type here
-    readHandout(handout: any) {
-        let target: Handouts = this;
-        handout.get('gmnotes', (text: string) => {
-            console.log(`scanning handout '${handout.get('name')}'`);
+    readHandout(handout: any, context: LoaderContext) {
+        // check ownership of handout to make sure it is not editable by player, who could be sending us commands
+        let controllers = handout.get('controlledby');
+        let name = handout.get('name');
+        if (controllers !== undefined) {
+            if (controllers.length > 0) {
+                context.addMessage(`handout ${name} is controlled by ${controllers} and may therefore not be used for configuration`);
+                return;
+            }
+        }
+        let promise = new Promise<string>((resolve, reject) => {
+            handout.get('gmnotes', (text: string) => {
+                resolve(text);
+            });
+        });
+        let whenDone = (text: string) => {
+            console.log(`scanning handout '${name}'`);
             if (!text.match(/^(<p>)?!/g)) {
                 // as long as some plugin command is the first line, we invest the time to read through
                 console.log('ignoring handout that does not have a command in the first line of GM Notes');
@@ -118,17 +221,17 @@ export class Handouts {
             }
             // read text
             let lines = Handouts.extractLines(text);
-            
-            const command = `!${target.pluginName}`;
+            const command = `!${this.pluginName}`;
             for (let line of lines) {
                 let tokens = ConfigurationParser.tokenizeFirst(line);
                 if (tokens[0] !== command) {
                     // console.log(`ignoring command '${tokens[0]}' for other plugin`);
                     continue;
                 }
-                target.dispatchCommand(tokens[1]);
+                this.dispatchCommand(<Handout>handout, tokens[1], context);
             }
-        });
+        };
+        context.addAsynchronousLoad(promise, whenDone);
     }
 
     static extractLines(text: string): string[] {
@@ -163,7 +266,7 @@ export class Handouts {
         return lines;       
     }
 
-    dispatchCommand(line: string) {
+    dispatchCommand(handout: Handout, line: string, context: LoaderContext) {
         let tokens = ConfigurationParser.tokenizeFirst(line);  
         let subtree = this.subtrees[tokens[0]];
         if (subtree === undefined) {
@@ -177,50 +280,10 @@ export class Handouts {
             prefix = `${line.substring(0, limit-3)}...`;
         }
         console.log(prefix);
-        let result = ConfigurationParser.parse(tokens[1], subtree);
-        if (result.kind === Result.Kind.Failure) {
-            for (let error of (<Result.Failure>result).errors) {
-                console.log(`handout contains command '${prefix}' that resulted in error ${error.message}`);
-            }
-        }
-    }
-
-    handoutChanged(current: Handout, previous: Handout): void {
-        let archived = current.get('archived');
-        if (archived === undefined) {
-            console.log("object received in handout change handler was not a handout");
-            return;
-        }
-        if (archived) {
-            if (this.archived) {
-                this.readHandout(current);
-            }
-        } else {
-            if (this.journal) {
-                this.readHandout(current);
-            }
-        }
-    }
-
-    private hookHandouts() {
-        on('change:handout', (current: any, previous: any) => {
-            this.handoutChanged(current, previous);
-        });    
-    }    
-}
-
-class HandoutsOptionChange extends ConfigurationUpdate.Base {
-    constructor(private target: Handouts) {
-        super();
-        // generated code
-    }
-
-    execute(configuration: any, result: Result.Any): Result.Any {
-        if (configuration instanceof HandoutsOptions) {
-            this.target.configure(configuration);
-            // REVISIT: we currently reread all of them even if some were already enabled
-            this.target.readHandouts();
-        }
-        return new Result.Success('handouts options updated');
+        const source = new ConfigurationSource.Journal('handout', handout.get('_id'));
+        context.addCommand(source, line);
     }
 }
+
+// extend Plugin
+addExtension(HandoutsPluginExtension);

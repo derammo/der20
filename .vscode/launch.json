@@ -7,9 +7,20 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Parser Test",
             "program": "${workspaceFolder}/src/parser_test/main.ts",
             "preLaunchTask": "tsc: build - src/parser_test/tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Handout Test",
+            "program": "${workspaceFolder}/src/handout_test/main.ts",
+            "preLaunchTask": "tsc: build - src/handout_test/tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],

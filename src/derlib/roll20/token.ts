@@ -1,6 +1,7 @@
 import { Der20Character } from './character';
 import { Result } from 'derlib/config/result';
 import { ConfigurationCommand } from 'derlib/config/atoms';
+import { ParserContext, ConfigurationSource } from 'derlib/config/context';
 
 class TokenImage {
     constructor(private token: Graphic) {
@@ -65,8 +66,12 @@ export class Der20Token {
 }
 
 export abstract class SelectedTokensCommand extends ConfigurationCommand {
-    parse(line: string, context: any): Result.Any {
-        let message = <ApiChatEventData>context.message;
+    parse(line: string, context: ParserContext): Result.Any {
+        if (context.source.kind !== ConfigurationSource.Kind.Api) {
+            throw new Error('selected tokens command requires api source');
+        }
+        let source = <ConfigurationSource.Api>context.source;
+        let message = <ApiChatEventData>source.message;
         let tokens = Der20Token.selected(message).filter((item: Der20Token | undefined) => {
             return item !== undefined;
         });

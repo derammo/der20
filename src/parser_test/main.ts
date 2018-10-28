@@ -1,18 +1,37 @@
 // application under test
 import { Configuration } from "../rewards/configuration";
 
+// OS
+import { exec, ExecException } from 'child_process';
+
 // libs
 import { Der20Dialog } from "derlib/roll20/dialog";
-import { ConfigurationStep } from "derlib/config/atoms";
-import { LeagueModule } from "derlib/ddal/league_module";
 import { startPersistence } from "derlib/persistence";
 import { Result } from "derlib/config/result";
 import { Options } from "derlib/roll20/options";
+import { ConfigurationParser } from "derlib/config/parser";
+import { ConfigurationLoader } from "derlib/config/loader";
+import { LoaderContext, ConfigurationSource, ParserContext } from "derlib/config/context";
+
+class MockContext implements LoaderContext, ParserContext {
+	asyncVariables: Record<string, any> = {};
+	source: ConfigurationSource.Any = new ConfigurationSource.Journal('test', 'main');
+
+	addCommand(source: ConfigurationSource.Any, command: string): void {
+		throw new Error("Method not implemented.");
+	}
+	addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void {
+		throw new Error("Method not implemented.");
+	}
+	addMessage(message: string): void {
+		console.log(message);
+	}
+}
 
 let configurationRoot = new Configuration();
 let persistence = startPersistence('parser_test');
 let json = persistence.load();
-ConfigurationParser.restore(json, configurationRoot);
+ConfigurationLoader.restore(json, configurationRoot, new MockContext());
 
 let test = `
 	reset all configuration
@@ -104,7 +123,7 @@ export function testRun(): string {
 }
 
 export function testDialog(command: string): string {
-	let result = ConfigurationParser.parse(command, configurationRoot);
+	let result = ConfigurationParser.parse(command, configurationRoot, new MockContext());
 	if (result.kind === Result.Kind.Dialog) {
 		return (<Result.Dialog>result).dialog;
 	}
@@ -130,6 +149,8 @@ function testParse(): void {
 
 	// separate tests for breakpointing
 	testParse2();
+
+	testParse3();
 }
 
 function testLine(line: string) {
@@ -141,7 +162,7 @@ function testLine(line: string) {
 		configurationRoot = new Configuration();
 		return;
 	}
-	let result = ConfigurationParser.parse(command, configurationRoot);
+	let result = ConfigurationParser.parse(command, configurationRoot, new MockContext());
 	handleResult(result);	
 }
 
@@ -163,8 +184,6 @@ function testParse1() {
 	}
 }
 
-import { exec, ExecException } from 'child_process';
-import { ConfigurationParser } from "derlib/config/parser";
 function tidy(text: string): string {
 	if (!exec) {
 		// if running under Roll20, we don't have child_process
