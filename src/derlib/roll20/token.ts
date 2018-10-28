@@ -76,7 +76,8 @@ export abstract class SelectedTokensCommand extends ConfigurationCommand {
         let messages: string[] = [];
         let asyncResult: Result.Asynchronous;
         let result: Result.Any;
-        tokens.forEach((token: Der20Token, index: number) =>  {
+        let index = 0;
+        for (let token of tokens) {
             result = this.handleToken(token, context, index);
             switch (result.kind) {
                 case Result.Kind.Asynchronous: 
@@ -89,11 +90,12 @@ export abstract class SelectedTokensCommand extends ConfigurationCommand {
                     messages = messages.concat(result.messages);
                     break;
                 default:
-                    // prepend any collected messages
+                    // prepend any collected messages, then abort iteration
                     result.messages = messages.concat(result.messages);
                     return result;
             }
-        });
+            index++;
+        }
         if (asyncResult) {
             result = asyncResult;
         } else {
