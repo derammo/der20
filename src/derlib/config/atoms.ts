@@ -23,6 +23,17 @@ export abstract class ConfigurationStep<T> {
         return this.current;
     }
 
+    // get value(): T {
+    //     if (!this.hasConfiguredValue()) {
+    //         return this.default;
+    //     }
+    //     return this.current;
+    // }
+
+    // set value(newValue: T) {
+    //     this.current = newValue;
+    // }
+
     hasConfiguredValue(): boolean {
         return this.current !== ConfigurationStep.NO_VALUE;
     }
@@ -34,7 +45,7 @@ export abstract class ConfigurationStep<T> {
 
 export namespace ConfigurationStep {
     // this is the value we use for unpopulated data
-    export const NO_VALUE = undefined;
+    export const NO_VALUE: any = undefined;
 }
 
 // no actual data, subclassed by steps that just take an action in code
@@ -49,7 +60,7 @@ export class ConfigurationString extends ConfigurationStep<string> {
         super(defaultValue);
     }
 
-    parse(line: string): Result.Any {
+    parse(line: string, context?: any): Result.Any {
         this.current = line;
         return new Result.Change(`set string value '${this.current}'`);
     }

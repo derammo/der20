@@ -13,7 +13,7 @@ export class SendCommand extends RenderCommand {
         // generated code
     }
 
-    toJSON() {
+    toJSON(): any {
         return undefined;
     }
 

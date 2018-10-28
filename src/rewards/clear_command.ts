@@ -2,7 +2,7 @@ import { ConfigurationStep, ConfigurationCommand } from "derlib/config/atoms";
 import { Result } from "derlib/config/result";
 
 interface Clearable {
-    clear();
+    clear(): void;
 }
 
 export class ClearCommand extends ConfigurationCommand {
@@ -13,7 +13,7 @@ export class ClearCommand extends ConfigurationCommand {
         this.targets = targets;
     }
 
-    toJSON() {
+    toJSON(): any {
         return undefined;
     }
 

@@ -29,7 +29,7 @@ class DeleteCommands {
         this.dm = new ConfigurationDeleteItemCommand(definitions.dms);
     }
 
-    toJSON() {
+    toJSON(): any {
         return undefined;
     }
 }

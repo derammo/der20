@@ -23,6 +23,10 @@ export namespace Result {
         hasEvents(): boolean {
             return this.events.size > 0;
         }
+
+        isSuccess(): boolean {
+            return this.kind === Result.Kind.Success;
+        }
     }
 
     export class Dialog extends Any {

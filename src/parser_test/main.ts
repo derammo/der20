@@ -123,7 +123,7 @@ function handleResult(result: Result.Any) {
 	}
 }
 
-console.debug = ((message) => { /* ignore */ });
+console.debug = ((message: any) => { /* ignore */ });
 
 function testParse(): void {
 	testParse1();

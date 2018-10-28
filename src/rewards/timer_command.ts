@@ -14,7 +14,7 @@ export class TimerCommand extends ConfigurationCommand {
         this.property = property;
     }
 
-    toJSON() {
+    toJSON(): any {
         return undefined;
     }
 

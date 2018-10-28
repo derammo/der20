@@ -34,7 +34,7 @@ export abstract class RenderCommand extends ConfigurationCommand {
 }
 
 export class ShowCommand extends RenderCommand {
-    toJSON() {
+    toJSON(): any {
         return undefined;
     }
 

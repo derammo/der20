@@ -11,7 +11,7 @@ export class ConfigurationAlias extends ConfigurationCommand {
         this.path = path;
     }
 
-    toJSON() {
+    toJSON(): any {
         return undefined;
     }
 

@@ -3,5 +3,5 @@ export abstract class ConfigurationPersistence {
         return false;
     }
     abstract load(): object;
-    abstract save(configuration: object);
+    abstract save(configuration: object): void;
 }

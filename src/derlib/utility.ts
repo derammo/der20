@@ -3,7 +3,7 @@ export interface DefaultConstructed<T> {
 }
 
 export interface Clonable {
-    clone();
+    clone(): any;
 }
 
 export function serializeWithoutNulls(content: any): string {

@@ -206,14 +206,14 @@ namespace Plugin {
     }
 }
 
-var plugin;
+var plugin: Plugin<any>;
 
 export function start<T>(pluginName: string, factory: DefaultConstructed<T>) {
     if (typeof log !== 'function') {
         throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script');
     }
 
-    console.log = message => {
+    console.log = (message: any) => {
         let stamp = new Date().toISOString();
         log(`${stamp} ${pluginName || 'der20'}: ${message}`);
     };

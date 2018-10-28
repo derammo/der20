@@ -32,7 +32,7 @@ export class ConfigurationParser {
                 throw new Error(`property '${tokens[0]}' should be an empty configuration object instead of null`);
             }
             let result = ConfigurationParser.parse(tokens[1], target, context);
-            if (!(result.hasEvents())) {
+            if (!(result.hasEvents)) {
                 return result;
             }
             if (configuration instanceof ConfigurationEventHandler) {
@@ -124,7 +124,7 @@ export namespace ConfigurationEventHandler {
             return this;
         }
 
-        toJSON() {
+        toJSON(): any {
             return undefined;
         }
 
@@ -162,7 +162,7 @@ export namespace ConfigurationUpdate {
         execute(configuration: SOURCE, result: Result.Any): Result.Any {
             let value = this.calculator.apply(configuration);
             // XXX can this be made type safe?
-            let walk = configuration;
+            let walk: any = configuration;
             for (let segment of this.path) {
                 walk = walk[segment];
             }

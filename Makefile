@@ -1,4 +1,4 @@
-PLUGINS := rewards
+PLUGINS := rewards anonymous
 SCRIPTS := parser_test handout_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
@@ -15,10 +15,12 @@ scripts: $(patsubst %,build/%.js,$(SCRIPTS))
 theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
-dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt
+dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt Makefile
 	mkdir -p dist
 	rm -f $@
-	cat include/header.js.txt $< include/trailer.js.txt > $@
+	cat include/header.js.txt > $@
+	sed -e 's/    Object\.defineProperty(.*);$$/    \/\/ local module initialized by embedded loader below/' < $< >> $@
+	cat include/trailer.js.txt >> $@
 	chmod 444 $@
 run: build/$(DEFAULT).js tmp
 	node build/$(DEFAULT).js | egrep --color -e '^\tresult of parse: {"kind":3.*$$' -e $$

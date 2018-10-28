@@ -74,6 +74,10 @@ export class Handouts {
     }
 
     // XXX this creates a lot of async reading work and we do not provide any way for the caller to wait until it is finished
+    //
+    // need something like: plugin.tasks and tasks can be API commands waiting to be executed and asynch work ahead of them, including
+    // on startup so we can finish asynch work before doing another command (this would help BeyondImporter also)
+    //
     readHandouts() {
         let search: { _type: string, archived?: boolean } = { _type: 'handout' };
         if (this.archived) {
