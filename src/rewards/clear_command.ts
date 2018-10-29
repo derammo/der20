@@ -19,7 +19,7 @@ export class ClearCommand extends ConfigurationCommand {
 
     parse(line: string): Result.Any {
         // REVISIT: could selectively clear
-        console.log('clearing current item selections and session data');
+        debug.log('clearing current item selections and session data');
         for (let target of this.targets) {
             target.clear();
         }

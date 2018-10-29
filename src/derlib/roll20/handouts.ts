@@ -19,17 +19,17 @@ class HandoutsPluginExtension {
     // detect journal reading config in well known location 'options handouts ...'
     configureHandoutsSupport() {
         if (!this.configurationRoot.hasOwnProperty(Options.pluginOptionsKey)) {
-            console.log(`this plugin does not have plugin configuration under '${Options.pluginOptionsKey}'; no handouts support`);
+            debug.log(`this plugin does not have plugin configuration under '${Options.pluginOptionsKey}'; no handouts support`);
             return;
         }
         const pluginOptions = this.configurationRoot[Options.pluginOptionsKey];
         if (!pluginOptions.hasOwnProperty('handouts')) {
-            console.log(`this plugin does not support handout options under '${Options.pluginOptionsKey} handouts'`);
+            debug.log(`this plugin does not support handout options under '${Options.pluginOptionsKey} handouts'`);
             return;
         }
         const handoutsOptions: any = pluginOptions.handouts;
         if (!(handoutsOptions instanceof HandoutsOptions)) {
-            console.log(`this plugin uses non-standard options under '${Options.pluginOptionsKey} handouts' that are unsupported`);
+            debug.log(`this plugin uses non-standard options under '${Options.pluginOptionsKey} handouts' that are unsupported`);
             return;
         }
         this.handouts = new Handouts(this.name, this.configurationRoot, handoutsOptions);
@@ -52,7 +52,7 @@ class HandoutsPluginExtension {
         let context = new PluginLoaderContext();
         let archived = current.get('archived');
         if (archived === undefined) {
-            console.log('object received in handout change handler was not a handout');
+            debug.log('object received in handout change handler was not a handout');
             return;
         }
         if (archived) {
@@ -143,7 +143,7 @@ class Handouts {
             throw new Error('the static plugin options subtree cannot be configured from handouts');
         }
         if (configuration === undefined) {
-            console.log(`ignoring non-existent configuration subtree '${key}' in handouts`);
+            debug.log(`ignoring non-existent configuration subtree '${key}' in handouts`);
             return;
         }
         this.subtrees[key] = configuration;
@@ -169,24 +169,24 @@ class Handouts {
         if (this.archived) {
             if (this.journal) {
                 // no restriction
-                console.log('configuration will be read from all handouts');
+                debug.log('configuration will be read from all handouts');
             } else {
-                console.log('configuration will be read from archived handouts');
+                debug.log('configuration will be read from archived handouts');
                 search.archived = true;
             }
         } else {
             if (this.journal) {
-                console.log('configuration will be read from handouts listed in the journal');
+                debug.log('configuration will be read from handouts listed in the journal');
                 search.archived = false;
             } else {
                 // nothing supported
-                console.log('reading of configuration from handouts is disabled');
+                debug.log('reading of configuration from handouts is disabled');
                 return [];
             }
         }
-        // console.log(`searching for objects matching ${JSON.stringify(search)}`);
+        // debug.log(`searching for objects matching ${JSON.stringify(search)}`);
         let handouts = findObjs(search);
-        console.log(`scanning ${handouts.length} handouts`);
+        debug.log(`scanning ${handouts.length} handouts`);
         return handouts.map((object) => {
             if (object === undefined) {
                 throw new Error('unexpected undefined handout in result array');
@@ -213,10 +213,10 @@ class Handouts {
             });
         });
         let whenDone = (text: string) => {
-            console.log(`scanning handout '${name}'`);
+            debug.log(`scanning handout '${name}'`);
             if (!text.match(/^(<p>)?!/g)) {
                 // as long as some plugin command is the first line, we invest the time to read through
-                console.log('ignoring handout that does not have a command in the first line of GM Notes');
+                debug.log('ignoring handout that does not have a command in the first line of GM Notes');
                 return;
             }
             // read text
@@ -225,7 +225,7 @@ class Handouts {
             for (let line of lines) {
                 let tokens = ConfigurationParser.tokenizeFirst(line);
                 if (tokens[0] !== command) {
-                    // console.log(`ignoring command '${tokens[0]}' for other plugin`);
+                    // debug.log(`ignoring command '${tokens[0]}' for other plugin`);
                     continue;
                 }
                 this.dispatchCommand(<Handout>handout, tokens[1], context);
@@ -271,7 +271,7 @@ class Handouts {
         let subtree = this.subtrees[tokens[0]];
         if (subtree === undefined) {
             const good = Object.keys(this.subtrees).join(', ');
-            console.log(`ignoring '!${this.pluginName} ${tokens[0]} in handout, because this plugin only permits [ ${good} ]`);
+            debug.log(`ignoring '!${this.pluginName} ${tokens[0]} in handout, because this plugin only permits [ ${good} ]`);
             return;
         }
         const limit = 100;
@@ -279,7 +279,7 @@ class Handouts {
         if (line.length > limit) {
             prefix = `${line.substring(0, limit-3)}...`;
         }
-        console.log(prefix);
+        debug.log(prefix);
         const source = new ConfigurationSource.Journal('handout', handout.get('_id'));
         context.addCommand(source, line);
     }

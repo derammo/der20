@@ -1,3 +1,5 @@
+debug.log = console.log;
+
 // application under test
 import { Configuration } from "../rewards/configuration";
 
@@ -25,7 +27,7 @@ class MockContext implements LoaderContext, ParserContext {
 		throw new Error("Method not implemented.");
 	}
 	addMessage(message: string): void {
-		console.log(message);
+		debug.log(message);
 	}
 }
 
@@ -140,7 +142,7 @@ function handleResult(result: Result.Any) {
 		persistence.save(cleaned);
 	}
 	if (result.kind !== Result.Kind.Success) {
-		console.log(`	result of parse: ${JSON.stringify(result).substr(0,119)}`)
+		debug.log(`	result of parse: ${JSON.stringify(result).substr(0,119)}`)
 	}
 }
 
@@ -158,7 +160,7 @@ function testParse(): void {
 function testLine(line: string) {
 	let command = line.trim();
 	// run including blank lines
-	console.log(`testing: ${command}`);
+	debug.log(`testing: ${command}`);
 	if (command === 'reset all configuration') {
 		// this is implemented in the plugin, so we fake it here
 		configurationRoot = new Configuration();
@@ -202,4 +204,4 @@ function tidy(text: string): string {
 }
 
 testParse();
-console.log(tidy(testDialog('show')));
+debug.log(tidy(testDialog('show')));

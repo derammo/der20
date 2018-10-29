@@ -4,19 +4,6 @@ import { Result } from 'derlib/config/result';
 import { Der20Character } from 'derlib/roll20/character';
 import { ParserContext, LoaderContext } from 'derlib/config/context';
 
-class PrintCommand extends SelectedTokensCommand {
-    handleToken(token: Der20Token): Result.Any {
-        let character = token.character;
-        if (character !== undefined) {
-            character.raw.get('_defaulttoken', (text: string) => {
-                // how do we handle this nonsense, because we have to go async for everything now?
-                console.log(`${token.id} ${character.id}: ${text}`);
-            });
-        }
-        return new Result.Success(`token ${token.id} ${token.image.url}`);
-    }
-}
-
 var defaultToken: string;
 
 class SetCommand extends SelectedTokensCommand {
@@ -109,7 +96,4 @@ export class Configuration {
 
     // reveal the selected tokens' real identites
     reveal: RevealCommand = new RevealCommand();
-
-    // debug command
-    print: PrintCommand = new PrintCommand();
 }

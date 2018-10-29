@@ -17,8 +17,7 @@ export class ConfigurationParser {
     }
 
     static parse(line: string, configuration: any, context: ParserContext): Result.Any {
-        let debug = console.debug || console.log;
-        debug(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
+        debug.log(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
         if (configuration instanceof ConfigurationStep) {
             return configuration.parse(line, context);
         }

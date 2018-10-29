@@ -10,9 +10,6 @@ import { ConfigurationSource,  ConfigurationContext, LoaderContext, ParserContex
 import { PromiseQueue } from 'derlib/promise';
 import { HelpCommand } from 'derlib/config/help';
 
-// from our module header
-declare var console: any;
-
 // from Roll20, missing in types file 
 declare function playerIsGM(playerid: string): boolean;
 
@@ -40,6 +37,10 @@ class Plugin<T> {
 
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
+
+        // uncomment the following line to enable debug logging
+        // debug.log = console.log;
+        // REVISIT make this a plugin option that is always supported, and parse ahead for it in the json during restoreConfiguration
 
         // configure work priorities, from most urgent to least urgent
         this.levels.fetches = this.work.createPriorityLevel({ concurrency: 16, name: 'asynchronous reads' });
@@ -88,6 +89,8 @@ class Plugin<T> {
     }
 
     handleParserResult(context: PluginParserContext, result: Result.Any): void {
+        // REVISIT make this a debuggable thing, maybe include last few ones in dump?
+        debug.log(`parser result: ${JSON.stringify(result)}`)
         if (result.events.has(Result.Event.Change)) {
             this.saveConfiguration();
         }
@@ -98,7 +101,7 @@ class Plugin<T> {
                 let source = <ConfigurationSource.Api>context.source;
                 sendChat(this.name, `/w "${source.player.get('_displayname')}" ${message}`, null, { noarchive: true });
             } else {
-                console.log(`  ${message}`);
+                debug.log(`  ${message}`);
             }
         }
 
@@ -112,13 +115,13 @@ class Plugin<T> {
                 break;
             case Result.Kind.Dialog:
                 if (context.source.kind !== ConfigurationSource.Kind.Api) {
-                    console.log(`error: dialog generated for non-interactive configuration command '${context.rest}; ignored`);
+                    debug.log(`error: dialog generated for non-interactive configuration command '${context.rest}; ignored`);
                     break;
                 }
                 let source = <ConfigurationSource.Api>context.source;
                 let dialogResult = <Result.Dialog>result;
                 let dialog = dialogResult.dialog.replace(new RegExp(ConfigurationParser.MAGIC_COMMAND_STRING, 'g'), context.command);
-                console.log(`dialog from parse: ${dialog.substr(0, 16)}...`);
+                debug.log(`dialog from parse: ${dialog.substr(0, 16)}...`);
                 switch (dialogResult.destination) {
                     case Result.Dialog.Destination.All:
                     case Result.Dialog.Destination.AllPlayers:
@@ -164,7 +167,7 @@ class Plugin<T> {
     }
 
     parserRetry(context: PluginParserContext) {
-        console.log('parser retry');
+        debug.log('parser retry');
         let result = ConfigurationParser.parse(context.rest, this.configurationRoot, context);
         this.handleParserResult(context, result);
     }
@@ -177,14 +180,14 @@ class Plugin<T> {
     }
 
     reportParseError(error: Error) {
-        console.log(`error from parse: ${error.message}`);
+        debug.log(`error from parse: ${error.message}`);
         sendChat(this.name, `/w GM ${error.message}`, null, { noarchive: true });
     }
 
     handleLoaderResults(context: PluginLoaderContext) {
         // send any messages to log, regardless of result
         for (let message of context.messages) {
-            console.log(message);
+            debug.log(message);
         }
 
         // now that we have loaded all the sync parts without throwing, schedule async loads
@@ -221,7 +224,7 @@ class Plugin<T> {
                 for (let line of lines) {
                     let tokens = ConfigurationParser.tokenizeFirst(line);
                     if (!validCommands.has(tokens[0])) {
-                        // console.log(`ignoring command for other plugin: ${line}`);
+                        debug.log(`ignoring command for other plugin: ${line.substring(0, 78)}`);
                         continue;
                     }
 
@@ -234,9 +237,17 @@ class Plugin<T> {
                         return;
                     }
 
-                    // now run as configuration command
-                    let result = ConfigurationParser.parse(context.rest, this.configurationRoot, context);
-                    this.handleParserResult(context, result);
+                    // short circuit dump command for debugging
+                    if (context.rest === 'dump') {
+                        this.dispatchCommand(context);
+                        return;
+                    }   
+
+                    // run on command queue, which does not execute unless everything else is done
+                    this.work.scheduleWork(this.levels.commands, () => {
+                        this.dispatchCommand(context);
+                        return Promise.resolve();
+                    });
                 }
             } catch (error) {
                 this.reportParseError(error);
@@ -252,7 +263,7 @@ class Plugin<T> {
             this.configureHandoutsSupport();
             this.work.scheduleWork(this.levels.commands, () => {
                 // this will run when everything else is done and we are ready for commands
-                console.log(`${this.name} loaded`);
+                log(`${this.name} loaded`);
                 return Promise.resolve();
             });
         });
@@ -264,16 +275,22 @@ class Plugin<T> {
     }
 }
 
+// plugin singleton, populated by calling 'start' function
+// NOTE: the plugin class is not exposed to the actual plugins and is not exported from this module
+// so that we can create different plugin cores without breaking existing plugins
 var plugin: Plugin<any>;
 
 export function start<T>(pluginName: string, factory: DefaultConstructed<T>) {
     if (typeof log !== 'function') {
         throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script or run in Roll20');
     }
+
+    // configure our host script to log under our name
     console.log = (message: any) => {
         let stamp = new Date().toISOString();
         log(`${stamp} ${pluginName || 'der20'}: ${message}`);
     };
+
     // singleton, make sure this is set before we do any work on start up
     plugin = new Plugin(pluginName, factory);
     plugin.start();
@@ -302,6 +319,7 @@ export class DumpCommand extends ConfigurationCommand {
         let dialog = new Der20Dialog(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
         dialog.beginControlGroup();
         dialog.addTextLine(JSON.stringify(plugin.configurationRoot));
+        dialog.addTextLine(JSON.stringify(plugin.work));
         dialog.endControlGroup();
         return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
     }

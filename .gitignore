@@ -4,3 +4,4 @@ releases/
 .*.swp
 node_modules/
 tmp/
+test/testquery.js

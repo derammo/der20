@@ -160,8 +160,9 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         if (this.array.current.length === 1) {
             // auto select only defined item, if any
             let id = this.array.current[0].id;
-            console.log(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
-            return this.loadItem(id, rest, context);
+            let result = this.loadItem(id, rest, context);
+            result.messages.unshift(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
+            return result;
         }
         // remaining case is no items in collection
         return new Result.Failure(new Error(`${this.array.keyword} could not be selected, because none are defined`));

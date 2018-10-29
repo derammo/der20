@@ -56,13 +56,13 @@ export class PromiseQueue {
     private schedule(priority: PromiseQueue.Level, task: Task<any>) {
         let queue = this.levels[priority];
         if (this.mayRun(priority)) {
-            console.log(`scheduler debug: immediately executing task of level '${queue.name}'`);
+            debug.log(`scheduler debug: immediately executing task of level '${queue.name}'`);
             this.run(queue, task);
         } else {
             if (queue.waiting.length >= queue.limit) {
                 throw new Error(`queue limit of ${queue.limit} for queue ${queue.name} was exceeded; system may be deadlocked`);
             }
-            console.log(`scheduler debug: scheduling task on queue '${queue.name}'`);
+            debug.log(`scheduler debug: scheduling task on queue '${queue.name}'`);
             queue.waiting.push(task);
         }
     }
@@ -73,7 +73,7 @@ export class PromiseQueue {
             if (task.work === undefined) {
                 throw new Error('work function must be specified for task that does not already have a promise attached');
             }
-            console.log(`scheduler debug: executing work from queue '${queue.name}'`);
+            debug.log(`scheduler debug: executing work from queue '${queue.name}'`);
             try {
                 task.promise = task.work();
             } catch (err) {
@@ -84,12 +84,12 @@ export class PromiseQueue {
         task.promise
             .then(value => {
                 if (task.handler !== undefined) {
-                    console.log(`scheduler debug: calling result handler for task from queue '${queue.name}'`);
+                    debug.log(`scheduler debug: calling result handler for task from queue '${queue.name}'`);
                     task.handler(value);
                 }
             })
             .catch((reason) => {
-                console.log(`failed work on queue '${queue.name}'`);
+                debug.log(`scheduler debug: failed work on queue '${queue.name}'`);
             })
             .then(() => {
                 queue.running--;

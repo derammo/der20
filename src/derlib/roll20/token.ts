@@ -58,7 +58,7 @@ export class Der20Token {
         }
         let journalEntry = getObj('character', characterId);
         if (journalEntry === undefined) {
-            console.log(`character id '${characterId}' does not identify a valid character`);
+            debug.log(`character id '${characterId}' does not identify a valid character`);
             return undefined;
         }
         return new Der20Character(journalEntry);

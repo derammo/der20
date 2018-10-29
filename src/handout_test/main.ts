@@ -1,3 +1,5 @@
+debug.log = console.log;
+
 import { start } from 'derlib/roll20/plugin';
 import { Options } from 'derlib/roll20/options';
 
@@ -13,6 +15,6 @@ class Configuration {
 }
 
 let testObject = new Configuration();
-console.log(JSON.stringify(testObject));
+debug.log(JSON.stringify(testObject));
 
 start('handout_test', Configuration);

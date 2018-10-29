@@ -16,7 +16,7 @@ export class Der20Character {
     static byName(name: string): Der20Character | undefined {
         let objects = findObjs( { _type: 'character', name: name } );
         if ((objects.length < 1) || (objects[0] === undefined)) {
-            console.log(`character with name '${name}' was not found`);
+            debug.log(`character with name '${name}' was not found`);
             return undefined
         }
         if (objects.length > 1) {

@@ -1,3 +1,4 @@
+debug.log = console.log;
 import { PromiseQueue } from 'derlib/promise';
 
 function test() {
@@ -8,20 +9,20 @@ function test() {
     // run some configuration that must finish before we take requests
     let promise = new Promise<number>((resolve, reject) => {
         // async load value
-        console.log('doing config work');
+        debug.log('doing config work');
         resolve(5);
     });
     let handler = (value: number) => {
         // store it or something
-        console.log('config done handler called');
-        console.log(value);
+        debug.log('config done handler called');
+        debug.log(value);
     };
     queue.trackPromise(config, promise, handler);
 
     // run a new command that must not execute until configuration is done
     queue.scheduleWork(api, () => {
         // do all the work for one retry of command, then reschedule if we need to
-        console.log('doing command work');
+        debug.log('doing command work');
         return Promise.resolve();
     });
 }

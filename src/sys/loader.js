@@ -1,3 +1,6 @@
+// debug log function or dummy
+let debug = { log: (message) => { /* ignore */ } };
+
 // simple loader for AMD style modules included in this file
 var derModules;
 function define(module_name, requires, start_function) {
@@ -13,7 +16,7 @@ function derModuleStart(module_name) {
             // if testing under Node.js, we can use local modules
             module = { requires: [], exports: require(module_name) };
         } else {
-            console.log(`        module '${module_name}' is not supported on this platform`);
+            debug.log(`        module '${module_name}' is not supported on this platform`);
             module = { requires: [], exports: {} };
         }
         derModules[module_name] = module;
@@ -38,7 +41,7 @@ function derModuleStart(module_name) {
         // exports of provider becomes argument to our start function in same position
         args.push(derModules[provider].exports);
     }
-    console.log(`loading module '${module_name}'`);
+    debug.log(`loading module '${module_name}'`);
     module.start_function.apply(null, args);
     module.starting = false;
     if (Object.keys(args[0]).length > 0) {
