@@ -11,7 +11,7 @@ Outside Roll20, code can be referenced from testing executables and run under No
 not duplicate the effort of "Mock20" and so there is no local emulation of Roll20 functions.  Instead, functionality is 
 written in a generic way so it only becomes dependent on Roll20 for final presentation of dialogs etc.
 
-Currently, local testing of individual dialogs can be down in a browser.  See test/show.html for an example.
+Currently, local testing of individual dialogs can be done in a browser.  See test/show.html for an example.
 
 Please contact derammo for creating a release.  The tools required are included in the Makefile, but please don't do it :)
 
