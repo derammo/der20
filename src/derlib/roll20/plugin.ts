@@ -35,6 +35,9 @@ class Plugin<T> {
         commands: PromiseQueue.Level;
     } = { fetches: undefined, retries: undefined, config: undefined, commands: undefined };
 
+    // all '!' commands supported by this plugin
+    private commands: Set<string>;
+    
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
 
@@ -55,6 +58,12 @@ class Plugin<T> {
     reset() {
         // create the world
         this.configurationRoot = new this.factory();
+
+        // top-level commands for this plugin
+        this.commands = new Set([`!${this.name}`]);
+        if (this.configurationRoot.show !== undefined) {
+            this.commands.add(`!${this.name}-show`);
+        } 
 
         // add debug commmand
         if (this.configurationRoot.dump === undefined) {
@@ -135,6 +144,7 @@ class Plugin<T> {
                 }
                 break;
             case Result.Kind.Success:
+                // REVISIT: make this a generic feature to allow additional commands to trigger follow ups
                 if (context.command.endsWith('-show')) {
                     // execute show action after executing command, used in interactive dialogs to
                     // render the new state of the dialog
@@ -220,10 +230,9 @@ class Plugin<T> {
             try {
                 let player = getObj('player', message.playerid);
                 let lines = message.content.split('\n');
-                let validCommands = new Set([`!${this.name}`, `!${this.name}-show`]);
                 for (let line of lines) {
                     let tokens = ConfigurationParser.tokenizeFirst(line);
-                    if (!validCommands.has(tokens[0])) {
+                    if (!this.commands.has(tokens[0])) {
                         debug.log(`ignoring command for other plugin: ${line.substring(0, 78)}`);
                         continue;
                     }
@@ -263,7 +272,9 @@ class Plugin<T> {
             this.configureHandoutsSupport();
             this.work.scheduleWork(this.levels.commands, () => {
                 // this will run when everything else is done and we are ready for commands
-                log(`${this.name} loaded`);
+                for (let command of this.commands) {
+                    log(`plugin command ${command} loaded`);
+                }
                 return Promise.resolve();
             });
         });
