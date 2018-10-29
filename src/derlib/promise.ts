@@ -74,7 +74,12 @@ export class PromiseQueue {
                 throw new Error('work function must be specified for task that does not already have a promise attached');
             }
             console.log(`scheduler debug: executing work from queue '${queue.name}'`);
-            task.promise = task.work();
+            try {
+                task.promise = task.work();
+            } catch (err) {
+                console.log(`error caught from work function: ${err.message}`);
+                task.promise = Promise.reject(err.message);
+            }
         }
         task.promise
             .then(value => {
@@ -82,9 +87,12 @@ export class PromiseQueue {
                     console.log(`scheduler debug: calling result handler for task from queue '${queue.name}'`);
                     task.handler(value);
                 }
-                queue.running--;
+            })
+            .catch((reason) => {
+                console.log(`failed work on queue '${queue.name}'`);
             })
             .then(() => {
+                queue.running--;
                 this.update();
             });
     }
