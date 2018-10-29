@@ -5,9 +5,11 @@ export abstract class ConfigurationStep<T> implements ConfigurationParsing, Conf
     keyword: string = ConfigurationStep.NO_VALUE;
     protected current: T = ConfigurationStep.NO_VALUE;
     default: T = ConfigurationStep.NO_VALUE;
+    help: string;
 
-    constructor(defaultValue: T) {
+    constructor(defaultValue: T, help?: string) {
         this.default = defaultValue;
+        this.help = help;
     }
 
     abstract parse(line: string, context: ParserContext): Result.Any;
@@ -57,7 +59,7 @@ export abstract class ConfigurationCommand extends ConfigurationStep<boolean> {
 
 export class ConfigurationString extends ConfigurationStep<string> {
     constructor(defaultValue: string) {
-        super(defaultValue);
+        super(defaultValue, 'STRING');
     }
 
     parse(line: string, context: ParserContext): Result.Any {
@@ -73,7 +75,7 @@ export class ConfigurationString extends ConfigurationStep<string> {
 
 export class ConfigurationInteger extends ConfigurationStep<number> {
     constructor(defaultValue: number) {
-        super(defaultValue);
+        super(defaultValue, 'INTEGER');
     }
 
     parse(line: string, context: ParserContext): Result.Any {
@@ -93,7 +95,7 @@ export class ConfigurationInteger extends ConfigurationStep<number> {
 
 export class ConfigurationFloat extends ConfigurationStep<number> {
     constructor(defaultValue: number) {
-        super(defaultValue);
+        super(defaultValue, 'NUMBER');
     }
 
     parse(line: string, context: ParserContext): Result.Any {
@@ -113,7 +115,7 @@ export class ConfigurationFloat extends ConfigurationStep<number> {
 
 export class ConfigurationDate extends ConfigurationStep<number> {
     constructor(defaultValue: number) {
-        super(defaultValue);
+        super(defaultValue, 'DATE/HOURS/BLANK');
     }
 
     parse(line: string, context: ParserContext): Result.Any {
@@ -137,7 +139,7 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
     static readonly trueValues = new Set(['true', 'True', 'TRUE', '1']);
 
     constructor(defaultValue: boolean) {
-        super(defaultValue);
+        super(defaultValue, 'TRUE/FALSE');
     }
 
     parse(line: string, context: ParserContext): Result.Any {

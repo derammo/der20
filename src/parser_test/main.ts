@@ -12,6 +12,7 @@ import { Options } from "derlib/roll20/options";
 import { ConfigurationParser } from "derlib/config/parser";
 import { ConfigurationLoader } from "derlib/config/loader";
 import { LoaderContext, ConfigurationSource, ParserContext } from "derlib/config/context";
+import { HelpCommand } from "derlib/config/help";
 
 class MockContext implements LoaderContext, ParserContext {
 	asyncVariables: Record<string, any> = {};
@@ -28,7 +29,8 @@ class MockContext implements LoaderContext, ParserContext {
 	}
 }
 
-let configurationRoot = new Configuration();
+let configurationRoot: any = new Configuration();
+configurationRoot.help = new HelpCommand(configurationRoot);
 let persistence = startPersistence('parser_test');
 let json = persistence.load();
 ConfigurationLoader.restore(json, configurationRoot, new MockContext());

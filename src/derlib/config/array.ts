@@ -87,6 +87,10 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         }
         return copied;
     }
+
+    collectionItem(): T {
+        return new this.classType();
+    }
 }
 
 export class ConfigurationChooser<T extends CollectionItem> extends ConfigurationStep<T> {
@@ -125,6 +129,10 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         // now we wait until this object is used, because the array may not have loaded yet
         // NOTE: any per-session overrides are now lost
         return new Result.Change('restored selection from array');
+    }
+
+    collectionItem(): T {
+        return new this.array.classType();
     }
 
     private createChooserDialog(rest: string): Result.Dialog {

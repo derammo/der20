@@ -8,6 +8,7 @@ import { DefaultConstructed } from 'derlib/utility';
 import { ConfigurationLoader } from 'derlib/config/loader';
 import { ConfigurationSource,  ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
 import { PromiseQueue } from 'derlib/promise';
+import { HelpCommand } from 'derlib/config/help';
 
 // from our module header
 declare var console: any;
@@ -46,7 +47,7 @@ class Plugin<T> {
         this.levels.config = this.work.createPriorityLevel({ concurrency: 16, name: 'configuration' });
         this.levels.commands = this.work.createPriorityLevel({ concurrency: 1, name: 'commands' });
 
-        // create the world
+        // initialization code shared with reset command
         this.reset();
     }
 
@@ -62,6 +63,11 @@ class Plugin<T> {
         // add reset command
         if (this.configurationRoot.reset === undefined) {
             this.configurationRoot.reset = new ResetCommand();
+        }
+
+        // add help command
+        if (this.configurationRoot.help === undefined) {
+            this.configurationRoot.help = new HelpCommand(this.configurationRoot);
         }
     }
 

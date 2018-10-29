@@ -17,4 +17,10 @@ export class ConfigurationDeleteItemCommand<T extends CollectionItem> extends Co
         }
         return new Result.Success(`item ${key} does not exist`);
     }
+
+    collectionItem(): T {
+        // this tells our help generator (and potentially others) that
+        // this is a collection without any keys past the item id
+        return undefined;
+    }
 }
