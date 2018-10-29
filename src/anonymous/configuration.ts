@@ -73,7 +73,7 @@ class CharacterConfiguration extends ConfigurationString {
         let imageSource = context.asyncVariables[imageKey];
         if (imageSource !== undefined) {
             defaultToken = imageSource.url;
-            return new Result.Change(`loaded anonymous icon from character '${name}'`);
+            return new Result.Change(`loaded anonymous icon from character '${this.value()}'`);
         }
         let result: Result.Any = super.parse(line, context);
         if (!result.isSuccess()) {
