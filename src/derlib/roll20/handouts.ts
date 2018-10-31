@@ -4,6 +4,7 @@ import { ConfigurationSource, LoaderContext, ParserContext } from "derlib/config
 import { Options } from "./options";
 import { Result } from "derlib/config/result";
 import { addExtension, PluginLoaderContext } from "./plugin";
+import { common } from "../config/help";
 
 declare function on(event: 'change:handout', callback: (current: Handout, previous: Handout) => void): void;
 
@@ -99,7 +100,9 @@ class HandoutsOptionChange extends ConfigurationUpdate.Base {
 }
 
 export class HandoutsOptions extends ConfigurationEventHandler {
+    @common('PLUGIN')
     journal: ConfigurationBoolean = new ConfigurationBoolean(true);
+    @common('PLUGIN')
     archived: ConfigurationBoolean = new ConfigurationBoolean(true);
     
     // list of top-level configuration subtree keys that are allowed to be used in handouts
