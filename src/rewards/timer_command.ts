@@ -5,6 +5,7 @@ import { ConfigurationChooser } from "derlib/config/array";
 import { ConfigurationParser } from "derlib/config/parser";
 import { ParserContext } from "derlib/config/context";
 
+// XXX remove?  confirm that an alias to the actual config item would do the same thing and more
 export class TimerCommand extends ConfigurationCommand {
     private module: ConfigurationChooser<LeagueModule>;
     private property: string;

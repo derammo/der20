@@ -1,0 +1,10 @@
+<div class='title'>
+<span class='plugin'>!PLUGIN</span>
+<span class='command' id='PLUGIN/option_command'>option command</span>
+<span class='format'>[ID]</span>
+</div>
+<div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
+<div class='description'>This setting adds a command word that can be used instead of the name of the plugin.  
+Please note that plugins must all have distinct names, so don't choose the name of another plugin.  To remove 
+a name from the recognized list, use <a href='#PLUGIN/option_delete_command'>delete</a>.</div>
+<div class='validation'>Command words must consist entirely of a-z, 0-9, and the underscore character.</div>

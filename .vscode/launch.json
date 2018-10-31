@@ -25,6 +25,17 @@
                 "${workspaceFolder}/build/**/*.js"
             ],
             "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Help Test",
+            "program": "${workspaceFolder}/src/help_test/main.ts",
+            "preLaunchTask": "tsc: build - src/help_test/tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "sourceMaps": true
         }
     ]
 }

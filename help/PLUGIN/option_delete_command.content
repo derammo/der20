@@ -1,0 +1,7 @@
+<div class='title'>
+<span class='plugin'>!PLUGIN</span>
+<span class='command' id='PLUGIN/option_delete_command'>option delete command</span>
+<span class='format'>[ID]</span>
+</div>
+<div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
+<div class='description'>This delete command removes a string from the set of additional command words configured.</div>

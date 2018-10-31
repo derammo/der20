@@ -1,0 +1,7 @@
+<div class='title'>
+<span class='plugin'>!PLUGIN</span>
+<span class='command' id='PLUGIN/dump'>dump</span>
+</div>
+<div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
+<div class='description'>This command prints the current configuration state as JSON, followed by the some debugging information as JSON.  
+Please include this output when filing <a href='https://github.com/derammo/der20/issues'>bugs</a>.</div>

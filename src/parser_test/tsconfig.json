@@ -1,1 +1,9 @@
-{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/parser_test.js" }, "include": [ "**/*.ts", "../sys/loader.js", "../types/*.d.ts", "mock.js" ] }
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outFile": "../../build/parser_test.js",
+        "noUnusedLocals": false,
+        "noUnusedParameters": false
+    },
+    "include": ["**/*.ts", "../sys/loader.js", "../types/*.d.ts", "mock.js"]
+}

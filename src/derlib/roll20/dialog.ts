@@ -7,9 +7,10 @@ import {
     ConfigurationFloat,
     CollectionItem
 } from 'derlib/config/atoms';
+import { Dialog } from 'derlib/ui';
 
 // styling and layout based on https://github.com/RobinKuiper/Roll20APIScripts, with thanks
-export class Der20Dialog {
+export class Der20Dialog implements Dialog {
     text: string[] = [];
     commandPrefix: string;
     static readonly dialogStyle: string = 'margin-top: 0.5em; overflow: hidden; border: 1px solid Black; padding: 5px; border-radius: 5px;';
@@ -82,6 +83,12 @@ export class Der20Dialog {
 
     addTextLine(label: string) {
         this.text.push(`<li style="${Der20Dialog.itemStyle}">`);
+        this.text.push(label);
+        this.text.push('</li>');
+    }
+
+    addIndentedTextLine(label: string) {
+        this.text.push(`<li style="${Der20Dialog.itemStyle} margin-left: 3em;">`);
         this.text.push(label);
         this.text.push('</li>');
     }

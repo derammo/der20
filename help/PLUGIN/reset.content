@@ -1,0 +1,7 @@
+<div class='title'>
+<span class='plugin'>!PLUGIN</span>
+<span class='command' id='PLUGIN/reset'>reset</span>
+</div>
+<div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
+<div class='description'>This command discards all stored state and configuration and restarts the plugin.  If the plugin supports handout
+configuration, configuration stored in handouts is then read.</div>

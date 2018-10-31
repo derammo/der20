@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/define_module_x_session'>define module [ID] session</span>
+<span class='format'>[STRING]</span>
+</div>
+<div class='description'></div>

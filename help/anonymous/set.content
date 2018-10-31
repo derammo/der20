@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!anonymous</span>
+<span class='command' id='anonymous/set'>set</span>
+</div>
+<div class='description'>This command sets the selected tokens to be anonymous, showing only the creature type instead of a name
+and showing the icon from the configured anonymous character.</div>

@@ -1,10 +1,21 @@
 import { ConfigurationStep } from './atoms'
 import { Result } from './result';
 import { ParserContext } from './context';
+import { PropertyDecoratorFunction, Der20Meta } from './meta';
+
+// keyword to use for this property instead of its name, e.g. singular name for collections
+export function keyword(keywordToken: string): PropertyDecoratorFunction {
+    return function(prototype: any, propertyName: string): void {
+        Der20Meta.getOrCreateProperty(prototype, propertyName).keyword = keywordToken;
+    };
+}
 
 export class ConfigurationParser {
-    // this string can be substituted for the command path by the caller
+    // this string will be substituted for the command currently executed by the caller
     static readonly MAGIC_COMMAND_STRING: string = 'DER20_MAGIC_COMMAND_STRING';
+
+    // this string will be substituted for the currently running plugin's name
+    static readonly MAGIC_PLUGIN_STRING: string = 'DER20_MAGIC_PLUGIN_STRING';
 
     // returns first word and rest of line as array
     static tokenizeFirst(line: string) {
@@ -36,13 +47,27 @@ export class ConfigurationParser {
             }
             return result;
         }
+
+        // consult meta info
+        let meta = Der20Meta.fetch(configuration.constructor.prototype);
+        if (meta !== undefined) {
+            for (let key in meta.properties) {
+                if (!meta.properties.hasOwnProperty(key)) {
+                    continue;
+                }  
+                if (meta.properties[key].keyword === tokens[0]) {
+                    return configuration[key].parse(tokens[1]);
+                }
+            }
+        }
+
         // search for property that has special key word
+        // NOTE: we have to support both meta info and class internal support for keyword
         for (let key in configuration) {
             if (!configuration.hasOwnProperty(key)) {
                 continue;
             }
             let item = configuration[key];
-            // XXX for some reason instanceof ConfigurationStep returns false for ConfigurationArray<...>
             if ((item != null) && item.hasOwnProperty('keyword')) {
                 if (item.keyword === tokens[0]) {
                     return item.parse(tokens[1]);

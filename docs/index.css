@@ -1,0 +1,65 @@
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;   
+    overflow: hidden;  
+    margin: 0px;  
+    display: flex;  
+    box-sizing: border-box;
+    font-family: "Open Sans", Lato, "Helvetica Neue", Helvetica, Arial, sans-serif
+}
+
+.column {
+    height: 100%;  
+    display: flex;
+    flex-direction: column;  
+}
+
+.column.left {
+    flex-shrink: 0; 
+    /* padding-right: 20px; fixed size for scroll bar */
+}
+
+.column.right {
+    padding: 0.5em;
+}
+
+ul.toplevel {
+    list-style: none;
+    padding-left: 0.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+ul.toplevel > li > a {
+    text-decoration: none !important;
+}
+
+.content {
+    flex-grow: 1;  
+    overflow-y: auto;  
+}
+
+.title {
+    padding-top: 0.5em;
+    margin-top: 0.5em;
+    font-size: 150%;
+    border-top: 1px solid Lightgray;
+}
+
+.plugin, .command, .format {
+    display: inline;
+}
+
+.description, .validation {
+    margin-top: 0.5em;
+    padding-left: 2em;
+}
+
+h1, .repolink, .copyright {
+    text-align: center;
+}

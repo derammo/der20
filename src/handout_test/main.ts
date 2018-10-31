@@ -11,7 +11,7 @@ class PluginOptions {
 }
 
 class Configuration {
-    option: PluginOptions = new PluginOptions();
+    options: PluginOptions = new PluginOptions();
 }
 
 let testObject = new Configuration();

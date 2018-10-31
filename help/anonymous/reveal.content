@@ -1,0 +1,5 @@
+<div class='title'>
+<span class='plugin'>!anonymous</span>
+<span class='command' id='anonymous/reveal'>reveal</span>
+</div>
+<div class='description'>This command sets the selected tokens to be revealed, showing their real name and icon.</div>

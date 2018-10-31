@@ -2,14 +2,13 @@ import { Result } from './result';
 import { ParserContext, ConfigurationParsing, ConfigurationLoading, LoaderContext } from './context';
 
 export abstract class ConfigurationStep<T> implements ConfigurationParsing, ConfigurationLoading {
-    keyword: string = ConfigurationStep.NO_VALUE;
     protected current: T = ConfigurationStep.NO_VALUE;
     default: T = ConfigurationStep.NO_VALUE;
-    help: string;
+    format: string;
 
-    constructor(defaultValue: T, help?: string) {
+    constructor(defaultValue: T, format?: string) {
         this.default = defaultValue;
-        this.help = help;
+        this.format = format;
     }
 
     abstract parse(line: string, context: ParserContext): Result.Any;
@@ -160,4 +159,8 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
 export interface CollectionItem {
     id: string;
     name: ConfigurationString;
+}
+
+export interface Collection {
+    removeItem(id: string): boolean;
 }

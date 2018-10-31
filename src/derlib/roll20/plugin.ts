@@ -8,10 +8,13 @@ import { DefaultConstructed } from 'derlib/utility';
 import { ConfigurationLoader } from 'derlib/config/loader';
 import { ConfigurationSource,  ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
 import { PromiseQueue } from 'derlib/promise';
-import { HelpCommand } from 'derlib/config/help';
+import { HelpCommand, common } from 'derlib/config/help';
 
 // from Roll20, missing in types file 
 declare function playerIsGM(playerid: string): boolean;
+
+// from our wrapper
+declare var der20Mode: string | undefined;
 
 // if we add more events, we need to repeat declaration overrides here:
 // declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
@@ -68,20 +71,30 @@ class Plugin<T> {
         // add debug commmand
         if (this.configurationRoot.dump === undefined) {
             this.configurationRoot.dump = new DumpCommand();
+            common('PLUGIN')(this.configurationRoot.constructor.prototype, 'dump');
         }
 
         // add reset command
         if (this.configurationRoot.reset === undefined) {
             this.configurationRoot.reset = new ResetCommand();
+            common('PLUGIN')(this.configurationRoot.constructor.prototype, 'reset');
         }
 
         // add help command
         if (this.configurationRoot.help === undefined) {
             this.configurationRoot.help = new HelpCommand(this.configurationRoot);
+            common('PLUGIN')(this.configurationRoot.constructor.prototype, 'help');
         }
     }
 
     start() {
+        // help generator mode
+        if (der20Mode === 'help generator') {
+            let help = new HelpCommand(this.configurationRoot);
+            process.stdout.write(JSON.stringify(help).replace(new RegExp(ConfigurationParser.MAGIC_PLUGIN_STRING, 'g'), `${this.name}`));
+            return;
+        }
+
         // start up on ready event
         this.hookReady();
     }
@@ -129,7 +142,9 @@ class Plugin<T> {
                 }
                 let source = <ConfigurationSource.Api>context.source;
                 let dialogResult = <Result.Dialog>result;
-                let dialog = dialogResult.dialog.replace(new RegExp(ConfigurationParser.MAGIC_COMMAND_STRING, 'g'), context.command);
+                let dialog = dialogResult.dialog
+                    .replace(new RegExp(ConfigurationParser.MAGIC_COMMAND_STRING, 'g'), context.command)
+                    .replace(new RegExp(ConfigurationParser.MAGIC_PLUGIN_STRING, 'g'), this.name);
                 debug.log(`dialog from parse: ${dialog.substr(0, 16)}...`);
                 switch (dialogResult.destination) {
                     case Result.Dialog.Destination.All:

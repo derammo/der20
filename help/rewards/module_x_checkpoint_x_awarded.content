@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/module_x_checkpoint_x_awarded'>module [ID/current] checkpoint [ID] awarded</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'></div>

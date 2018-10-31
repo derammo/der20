@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/module_x_stop'>module [ID/current] stop</span>
+<span class='format'>[DATE/HOURS/BLANK]</span>
+</div>
+<div class='description'></div>

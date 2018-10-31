@@ -1,4 +1,5 @@
 (function() {
+    var der20Mode = 'roll20';
     let console = { 
         log: ((message) => {
             let stamp = new Date().toISOString();

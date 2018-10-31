@@ -95,7 +95,12 @@ let test = `
 	send
 `;
 
-let test2 = `define module ddal12-01 level minimum 2`;
+let test2 = `option command hi
+option command hello there
+option command hello,
+delete option command hello there
+`;
+
 let test3 = `
 reset all configuration
 delete module ddal08-74
@@ -203,5 +208,6 @@ function tidy(text: string): string {
 	return output;
 }
 
-testParse();
-debug.log(tidy(testDialog('show')));
+testParse2();
+debug.log(JSON.stringify(configurationRoot));
+// debug.log(tidy(testDialog('show')));

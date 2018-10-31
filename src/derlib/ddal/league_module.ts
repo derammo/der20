@@ -3,7 +3,7 @@ import { clone } from 'derlib/utility';
 import { ConfigurationEventHandler, ConfigurationUpdate } from 'derlib/config/parser';
 import { Result } from 'derlib/config/result';
 import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
-import { ConfigurationArray } from '../config/array';
+import { ConfigurationArray } from 'derlib/config/array';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it

@@ -1,15 +1,16 @@
 PLUGINS := rewards anonymous handout_test
-SCRIPTS := parser_test
+SCRIPTS := parser_test help_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(SCRIPTS))
 DIST := $(patsubst %,dist/der20_%.js,$(PLUGINS))
+HELP_JSON := $(patsubst %,build/%_help.json,$(PLUGINS))
 
-.PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts
+.PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts documentation
 .PRECIOUS: build/%.js src/%/tsconfig.json
 
-all: node_modules plugins scripts
+all: node_modules plugins scripts documentation
 plugins: $(DIST)
 scripts: $(patsubst %,build/%.js,$(SCRIPTS))
 theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
@@ -35,7 +36,7 @@ build/%.js: $(SRC) src/%/tsconfig.json node_modules
 src/%/tsconfig.json:
 	echo '{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/$*.js" }, "include": [ "**/*.ts", "../sys/loader.js", "../types/*.d.ts" ] }' > $@
 clean:
-	rm -rf build dist
+	rm -rf build dist docs/index.html
 squeaky: clean
 	rm -rf node_modules
 cloc: /usr/local/bin/cloc
@@ -63,4 +64,19 @@ create_draft:
 	git push origin v${RELEASE}
 	node scripts/publish_release.js ${RELEASE}
 list:
-	@echo ${SRC}
+	@echo $(SRC)
+documentation: docs/index.html
+docs/index.html: help include/index_header.html.txt include/index_middle.html.txt include/index_trailer.html.txt $(wildcard help/*/*)
+	cat include/index_header.html.txt \
+		help/*/*.index \
+		include/index_middle.html.txt \
+		help/*/*.content \
+		include/index_trailer.html.txt > $@
+build/%_help.json: build/%.js scripts/help_generation_wrapper.js 
+	node scripts/help_generation_wrapper.js $* > $@
+help: $(HELP_JSON) scripts/update_helpfiles.js 
+	mkdir -p help
+	cd help; for file in $(HELP_JSON) ; do \
+		node ../scripts/update_helpfiles.js < ../$${file} ; \
+	done
+	touch help

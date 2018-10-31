@@ -2,6 +2,10 @@ export interface DefaultConstructed<T> {
     new (): T;
 }
 
+export interface ValueConstructed<T> {
+    new (from: any): T;
+}
+
 export interface Clonable {
     clone(): any;
 }
@@ -42,3 +46,12 @@ export function cloneExcept<T>(
     }
     return copied;
 }
+
+export function escapeHtml(text: string): string {
+    return text
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }

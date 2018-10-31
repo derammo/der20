@@ -5,13 +5,12 @@ import { ParserContext } from './context';
 export class ConfigurationAlias extends ConfigurationCommand {
     root: any;
     path: string;
-    help: string;
 
     constructor(root: any, path: string) {
         super();
         this.root = root;
         this.path = path;
-        this.help = `-> ${path}`;
+        this.format = `-> ${path}`;
     }
 
     toJSON(): any {

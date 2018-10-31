@@ -18,7 +18,8 @@
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": false 
+        "noUnusedParameters": false,
+        "experimentalDecorators": true
     },
     "compileOnSave": true,
     "include": [ "src/derlib/**/*.ts", "src/sys/loader.js", "src/types/*.d.ts" ],

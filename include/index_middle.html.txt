@@ -1,0 +1,7 @@
+			</ul>
+		</div>
+		<div class='column right content'>
+			<h1>Der20 Plugins Help</h1>
+			<div class='text copyright'>Copyright 2018 Ammo Goettsch</div>
+			<div class='text repolink'><a href='https://github.com/derammo/der20/releases'>New Releases</a></div>
+			<div class='text repolink'><a href='https://github.com/derammo/der20/issues'>Feature Requests and Bugs</a></div>

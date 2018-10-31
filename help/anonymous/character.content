@@ -1,0 +1,8 @@
+<div class='title'>
+<span class='plugin'>!anonymous</span>
+<span class='command' id='anonymous/character'>character</span>
+<span class='format'>[STRING]</span>
+</div>
+<div class='description'>This setting specifies the complete case-sensitive name of a Character that must be present in the Roll20 
+Journal.  If found, the default token for this character is used for anonymous tokens.  If not set, this features defaults to using
+the a character named &#039;Anonymous&#039;, which the user must create.</div>

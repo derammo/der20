@@ -13,8 +13,10 @@ import { Options } from 'derlib/roll20/options';
 
 // add handouts support to plugin by loading optional module
 import { HandoutsOptions } from 'derlib/roll20/handouts';
+import { keyword } from 'derlib/config/parser';
+import { format } from 'derlib/config/help';
 
-class PluginOptions {
+class RewardsOptions extends Options {
     handouts: HandoutsOptions = new HandoutsOptions(Options.pluginOptionsKey);
 }
 
@@ -28,7 +30,7 @@ class DeleteCommands {
     module: ConfigurationDeleteItemCommand<LeagueModule>;
     dm: ConfigurationDeleteItemCommand<DungeonMaster>;
 
-    constructor(definitions: Definitions) {
+    constructor(definitions: Definitions, options: RewardsOptions) {
         this.module = new ConfigurationDeleteItemCommand(definitions.modules);
         this.dm = new ConfigurationDeleteItemCommand(definitions.dms);
     }
@@ -40,9 +42,10 @@ class DeleteCommands {
 
 export class Configuration {
     // static configuration
-    option: PluginOptions = new PluginOptions();
+    @keyword('option')
+    options: RewardsOptions = new RewardsOptions();
     define: Definitions = new Definitions();
-    delete: DeleteCommands = new DeleteCommands(this.define);
+    delete: DeleteCommands = new DeleteCommands(this.define, this.options);
 
     // current session objects initialized from from definitions
     dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms, Der20Dialog, 'dm');
@@ -57,13 +60,15 @@ export class Configuration {
     send: SendCommand = new SendCommand(this.dm, this.module, this.define.rules, false);
 
     // aliases for configuration that frequently has to change per session
+    @format('-> module current checkpoint')
     checkpoint: ConfigurationAlias = new ConfigurationAlias(this.module, 'current checkpoint');
+    @format('-> module current session')
     session: ConfigurationAlias = new ConfigurationAlias(this.module, 'current session');
 
     constructor() {
         // delete commands are allowed so that handouts can own an item entirely, via delete and then define
         // REVISIT: how do you assert that this.option is this[Options.pluginOptionsKey] in a sane way?
-        this.option.handouts.subtrees.push('delete');
-        this.option.handouts.subtrees.push('define');
+        this.options.handouts.subtrees.push('delete');
+        this.options.handouts.subtrees.push('define');
     }
 }

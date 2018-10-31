@@ -1,4 +1,4 @@
-import { ConfigurationStep, CollectionItem } from './atoms';
+import { ConfigurationStep, CollectionItem, Collection } from './atoms';
 import { ConfigurationParser } from './parser';
 import { DefaultConstructed, cloneExcept } from 'derlib/utility';
 import { Result } from './result';
@@ -6,14 +6,14 @@ import { DialogFactory } from 'derlib/ui';
 import { ConfigurationLoader } from './loader';
 import { ParserContext, LoaderContext } from './context';
 
-export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep<T[]> {
+export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep<T[]> implements Collection {
     current: T[] = [];
     ids: { [index: string]: number } = {};
-
     classType: DefaultConstructed<T>;
+    keyword: string;
 
     constructor(singularName: string, itemClass: DefaultConstructed<T>) {
-        super([]);
+        super([], 'ID');
         this.classType = itemClass;
         this.keyword = singularName;
     }
@@ -62,6 +62,10 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         }
     }
 
+    collectionItem(): DefaultConstructed<T> {
+        return this.classType;
+    }
+
     addItem(id: string, item: T) {
         let index = this.current.length;
         item.id = id;
@@ -87,10 +91,6 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         }
         return copied;
     }
-
-    collectionItem(): T {
-        return new this.classType();
-    }
 }
 
 export class ConfigurationChooser<T extends CollectionItem> extends ConfigurationStep<T> {
@@ -104,7 +104,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     dialogFactory: DialogFactory;
 
     constructor(array: ConfigurationArray<T>, dialogFactory: DialogFactory, path: string) {
-        super(ConfigurationStep.NO_VALUE);
+        super(ConfigurationStep.NO_VALUE, 'ID/current');
         this.array = array;
         this.dialogFactory = dialogFactory;
         this.path = path;
@@ -131,8 +131,8 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         return new Result.Change('restored selection from array');
     }
 
-    collectionItem(): T {
-        return new this.array.classType();
+    collectionItem(): DefaultConstructed<T> {
+        return this.array.classType;
     }
 
     private createChooserDialog(rest: string): Result.Dialog {
