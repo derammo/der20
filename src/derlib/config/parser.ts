@@ -1,4 +1,4 @@
-import { ConfigurationStep } from './atoms'
+import { ConfigurationStep } from './atoms';
 import { Result } from './result';
 import { ParserContext } from './context';
 import { PropertyDecoratorFunction, Der20Meta } from './meta';
@@ -32,31 +32,35 @@ export class ConfigurationParser {
         if (configuration instanceof ConfigurationStep) {
             return configuration.parse(line, context);
         }
-        let tokens = ConfigurationParser.tokenizeFirst(line);
+        let tokens: string[] = ConfigurationParser.tokenizeFirst(line);
+        let result = ConfigurationParser.parseTokens(tokens, configuration, context);
+        if (!result.hasEvents) {
+            return result;
+        }
+        if (configuration instanceof ConfigurationEventHandler) {
+            return configuration.handleEvents(tokens[0], context, result);
+        }
+        return result;
+    }
+
+    // determine result, without handling it
+    static parseTokens(tokens: string[], configuration: any, context: ParserContext): Result.Any {
         if (configuration.hasOwnProperty(tokens[0])) {
             let target = configuration[tokens[0]];
             if (target == null) {
                 throw new Error(`property '${tokens[0]}' should be an empty configuration object instead of null`);
             }
-            let result = ConfigurationParser.parse(tokens[1], target, context);
-            if (!(result.hasEvents)) {
-                return result;
-            }
-            if (configuration instanceof ConfigurationEventHandler) {
-                result = configuration.handleEvents(tokens[0], context, result);
-            }
-            return result;
+            return ConfigurationParser.parse(tokens[1], target, context);
         }
-
         // consult meta info
         let meta = Der20Meta.fetch(configuration.constructor.prototype);
         if (meta !== undefined) {
             for (let key in meta.properties) {
                 if (!meta.properties.hasOwnProperty(key)) {
                     continue;
-                }  
+                }
                 if (meta.properties[key].keyword === tokens[0]) {
-                    return configuration[key].parse(tokens[1]);
+                    return ConfigurationParser.parse(tokens[1], configuration[key], context);
                 }
             }
         }
@@ -68,15 +72,17 @@ export class ConfigurationParser {
                 continue;
             }
             let item = configuration[key];
-            if ((item != null) && item.hasOwnProperty('keyword')) {
+            if (item != null && item.hasOwnProperty('keyword')) {
                 if (item.keyword === tokens[0]) {
-                    return item.parse(tokens[1]);
+                    return ConfigurationParser.parse(tokens[1], item, context);
                 }
             }
         }
+
         if (tokens[0].length > 0) {
             return new Result.Failure(new Error(`token '${tokens[0]}' did not match any configuration command`));
         }
+
         // empty token was claimed by no item, that is ok
         return new Result.Success('no configuration changed');
     }
@@ -141,12 +147,12 @@ export namespace ConfigurationEventHandler {
     }
 }
 
-export namespace ConfigurationUpdate {  
-    // WARNING: descendants of this class must not maintain direct references to config objects because 
+export namespace ConfigurationUpdate {
+    // WARNING: descendants of this class must not maintain direct references to config objects because
     // these items are shared by all clones of the config subtree
     export abstract class Base {
         abstract execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any;
-    }  
+    }
 
     export class Default<SOURCE, TARGET> extends Base {
         constructor(private path: string[], private calculator: () => TARGET) {

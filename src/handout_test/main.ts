@@ -5,13 +5,15 @@ import { Options } from 'derlib/roll20/options';
 
 // add handouts support to plugin
 import { HandoutsOptions } from 'derlib/roll20/handouts';
+import { keyword } from 'derlib/config/parser';
 
-class PluginOptions {
+class HandoutTestOptions extends Options {
     handouts: HandoutsOptions = new HandoutsOptions(Options.pluginOptionsKey);
 }
 
 class Configuration {
-    options: PluginOptions = new PluginOptions();
+    @keyword('option')
+    options: HandoutTestOptions = new HandoutTestOptions();
 }
 
 let testObject = new Configuration();

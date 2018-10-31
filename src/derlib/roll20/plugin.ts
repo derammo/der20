@@ -1,7 +1,7 @@
 import { Result } from 'derlib/config/result';
 import { startPersistence } from 'derlib/persistence';
 import { ConfigurationPersistence } from 'derlib/config/persistence';
-import { ConfigurationParser } from 'derlib/config/parser';
+import { ConfigurationParser, ConfigurationUpdate } from 'derlib/config/parser';
 import { ConfigurationCommand } from 'derlib/config/atoms';
 import { Der20Dialog } from './dialog';
 import { DefaultConstructed } from 'derlib/utility';
@@ -9,6 +9,7 @@ import { ConfigurationLoader } from 'derlib/config/loader';
 import { ConfigurationSource,  ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
 import { PromiseQueue } from 'derlib/promise';
 import { HelpCommand, common } from 'derlib/config/help';
+import { Options } from './options';
 
 // from Roll20, missing in types file 
 declare function playerIsGM(playerid: string): boolean;
@@ -107,7 +108,21 @@ class Plugin<T> {
         // because named promises do not work for loading.  parsing is only considering one path to root at
         // a time, so it is different than loading the entire tree
         ConfigurationLoader.restore(json, this.configurationRoot, context);
-        this.handleLoaderResults(context);
+
+        // add support for optional command strings
+        if (this.configurationRoot[Options.pluginOptionsKey] !== undefined) {
+            let options = <Options>this.configurationRoot[Options.pluginOptionsKey];
+            debug.log(`plugin has common options: ${JSON.stringify(options)}`);
+            for (let command of options.commands.value()) {
+                let bangCommand = `!${command}`;
+                debug.log(`enabling additional command string '${bangCommand}'`)
+                this.commands.add(bangCommand);
+            }
+            options.addTrigger('command', Result.Event.Change, new UpdateCommands(this.commands));
+        }
+
+        // potentially schedule some commands
+        this.handleLoaderResults(context);   
     }
 
     handleParserResult(context: PluginParserContext, result: Result.Any): void {
@@ -404,5 +419,22 @@ export class PluginCommandExecution extends PluginParserContext {
         super(command, rest);
         // generated code
         this.source = new ConfigurationSource.Api(player, message);
+    }
+}
+
+class UpdateCommands extends ConfigurationUpdate.Base {
+    constructor(private commands: Set<string>) {
+        super();
+        // generated
+    }
+
+    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+        let options = <Options>configuration;
+        for (let command of options.commands.value()) {
+            let bangCommand = `!${command}`;
+            debug.log(`enabling additional command string '${bangCommand}'`)
+            this.commands.add(bangCommand);
+        }
+        return result;
     }
 }

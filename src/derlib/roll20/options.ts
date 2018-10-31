@@ -1,11 +1,11 @@
 import { RegexValidator, validation } from 'derlib/config/validation';
 import { format, common } from 'derlib/config/help';
-import { keyword } from 'derlib/config/parser';
+import { keyword, ConfigurationEventHandler } from 'derlib/config/parser';
 import { ConfigurationSet } from 'derlib/config/set';
 import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
 import { ConfigurationDeleteItemCommand } from 'derlib/config/deleteitem';
 
-export class Options {
+export class Options extends ConfigurationEventHandler {
     // this object contains plugin options and is stored under this key in the configuration root
     static readonly pluginOptionsKey: string = 'options';
 

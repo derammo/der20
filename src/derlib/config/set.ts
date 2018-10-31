@@ -27,7 +27,7 @@ export class ConfigurationSet extends ConfigurationStep<Set<string>> implements 
 
     parse(line: string, context: ParserContext): Result.Any {
         this.current.add(line);
-        return new Result.Success('item added to set, if not already presnt');
+        return new Result.Change('item added to set, if not already presnt');
     }
 
     removeItem(id: string): boolean {
