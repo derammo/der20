@@ -217,9 +217,10 @@ class Handouts {
         });
         let whenDone = (text: string) => {
             debug.log(`scanning handout '${name}'`);
-            if (!text.match(/^(<p>)?!/g)) {
+            if (!text.match(/^(<[a-z0-9]+>)*"?!/g)) {
                 // as long as some plugin command is the first line, we invest the time to read through
                 debug.log('ignoring handout that does not have a command in the first line of GM Notes');
+                debug.log(`ignored handout starts with '${text.substring(0,10)}...'`)
                 return;
             }
             // read text
@@ -239,8 +240,8 @@ class Handouts {
 
     static extractLines(text: string): string[] {
         let lines: string[];
-        if (text.startsWith('<p>')) {
-            // formatted into paragraph tags by interactive use
+        if (text.startsWith('<')) {
+            // formatted by interactive use
             let regex = /<p>(.*?)<\/p>/g;
             lines = [];
             // REVISIT configurable
@@ -254,8 +255,11 @@ class Handouts {
                 const paragraph = match[1];
                 // editing in UI will add break tags
                 for (let line of paragraph.split('<br>')) {
-                    // from https://stackoverflow.com/users/113083/hegemon
-                    let cleaned = line.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, "").trim();
+                    let cleaned = line
+                        .replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, '') // from https://stackoverflow.com/users/113083/hegemon
+                        .replace(/&[a-z]+;/g, ' ') // replace any entities with spaces
+                        .replace(/  +/g, ' ') // collapse runs of spaces
+                        .trim();
                     let decoded = cleaned.replace(/&#(\d+);/g, (regexMatch: string, code: string) => {
                         return String.fromCharCode(parseInt(code, 10));
                     });
