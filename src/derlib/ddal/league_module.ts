@@ -4,6 +4,7 @@ import { ConfigurationEventHandler, ConfigurationUpdate } from 'derlib/config/pa
 import { Result } from 'derlib/config/result';
 import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
 import { ConfigurationArray } from 'derlib/config/array';
+import { ConfigurationEnumerated } from 'derlib/config/enum';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it
@@ -17,6 +18,9 @@ export class CheckPoint {
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 }
 
+// can't use enum type in generic, so we use a list of possible values instead
+export const Rarity: string[] = [ "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique" ];
+
 export class Unlock {
     // can't be undefined, because we need to detect that we can configurat it
     id: string = null;
@@ -28,8 +32,10 @@ export class Unlock {
     description: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
 
     // rarity value, capitalized 
-    // XXX implement string enum type and appropriate picker (Roll20 picker), also need mapping to A.L.L. value
-    rarity: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
+    rarity: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationStep.NO_VALUE, Rarity);
+
+    // tier restriction for item
+    tier: ConfigurationInteger = new ConfigurationInteger(1);
 
     // item is considered to be from this table for trading purposes
     table: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);

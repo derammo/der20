@@ -1,5 +1,5 @@
 // adapted from https://stackoverflow.com/questions/1714786/query-string-encoding-of-a-javascript-object
-function serialize(obj: any, prefix: string) {
+function serialize(obj: any, prefix: string): string {
     let text: string[] = [];
     let key: string;
     for (key in obj) {

@@ -25,6 +25,12 @@ class Plugin<T> {
     configurationRoot: any;
     persistence: ConfigurationPersistence;
     work: PromiseQueue = new PromiseQueue();
+
+    // REVISIT: the reason there are so many levels is because we don't have explicit dependencies 
+    // between work items.  Because config work is concurrent, there could be several currently running
+    // configuration work items (or existing Promises being tracked,) and waiting for them to complete
+    // requires scheduling at a lower (NOTE: lower priority is numerically larger) level.  Scheduling at 
+    // the same level does not enforce ordering, because concurrency is set > 1.
     levels: {
         // async value reads required to retry things
         fetches: PromiseQueue.Level;
@@ -35,9 +41,13 @@ class Plugin<T> {
         // configuration reading
         config: PromiseQueue.Level;
 
+        // configuration check, after all reading is done but before any commands are executed
+        // NOTE: this level is used to schedule more config work as follow-ups when previous config work is done
+        followups: PromiseQueue.Level;
+
         // API commands
         commands: PromiseQueue.Level;
-    } = { fetches: undefined, retries: undefined, config: undefined, commands: undefined };
+    } = { fetches: undefined, retries: undefined, config: undefined, followups: undefined, commands: undefined };
 
     // all '!' commands supported by this plugin
     private commands: Set<string>;
@@ -49,10 +59,12 @@ class Plugin<T> {
         // debug.log = console.log;
         // REVISIT make this a plugin option that is always supported, and parse ahead for it in the json during restoreConfiguration
 
-        // configure work priorities, from most urgent to least urgent
+        // Configure work priorities, from most urgent to least urgent.  WARNING: do not set concurrency on the commands level to 
+        // anything greater than 1,because ordering matters at that level.
         this.levels.fetches = this.work.createPriorityLevel({ concurrency: 16, name: 'asynchronous reads' });
         this.levels.retries = this.work.createPriorityLevel({ concurrency: 1, name: 'command retries' });
         this.levels.config = this.work.createPriorityLevel({ concurrency: 16, name: 'configuration' });
+        this.levels.followups = this.work.createPriorityLevel({ concurrency: 1, name: 'configuration follow up' });
         this.levels.commands = this.work.createPriorityLevel({ concurrency: 1, name: 'commands' });
 
         // initialization code shared with reset command
@@ -89,8 +101,8 @@ class Plugin<T> {
     }
 
     start() {
-        // help generator mode
         if (der20Mode === 'help generator') {
+            // help generator mode is called from build system to emit command list as JSON
             let help = new HelpCommand(this.configurationRoot);
             process.stdout.write(JSON.stringify(help).replace(new RegExp(ConfigurationParser.MAGIC_PLUGIN_STRING, 'g'), `${this.name}`));
             return;
@@ -118,7 +130,7 @@ class Plugin<T> {
                 debug.log(`enabling additional command string '${bangCommand}'`)
                 this.commands.add(bangCommand);
             }
-            options.addTrigger('command', Result.Event.Change, new UpdateCommands(this.commands));
+            options.addTrigger('command', Result.Event.Change, new UpdateValidCommands(this.commands));
         }
 
         // potentially schedule some commands
@@ -225,6 +237,8 @@ class Plugin<T> {
     }
 
     handleLoaderResults(context: PluginLoaderContext) {
+        let followUpWork = false;
+
         // send any messages to log, regardless of result
         for (let message of context.messages) {
             debug.log(message);
@@ -232,15 +246,38 @@ class Plugin<T> {
 
         // now that we have loaded all the sync parts without throwing, schedule async loads
         for (let task of context.asyncLoads) {
+            followUpWork = true;
             this.work.trackPromise(this.levels.config, task.promise, task.handler);
         }
 
         // schedule any commands that are ready, but at config level
         for (let command of context.commands) {
+            followUpWork = true;
             this.work.scheduleWork(this.levels.config, () => {
                 let parsing = new PluginParserContext(`!${this.name}`, command.line);
                 parsing.source = command.source;
                 this.dispatchCommand(parsing);
+                return Promise.resolve();
+            });
+        }
+
+        // Unlike parser work, we don't retry loader work.  Therefore, we have to
+        // check if any of our async follow-up work created more async follow-up work.
+        // For example, this happens when we read configuration from an asynchronous
+        // source.  The loader work will have async loads, after which it will schedule
+        // configuration commands to be run.
+        if (followUpWork) {
+            debug.log('loader work resulted in additional async follow-ups');
+
+            // don't repeat these messages / work lists
+            context.messages = [];
+            context.asyncLoads = [];
+            context.commands = [];
+
+            // after async work is completed, check for new requests
+            this.work.scheduleWork(this.levels.followups, () => {
+                debug.log('checking results of follow-up loader work');
+                this.handleLoaderResults(context);
                 return Promise.resolve();
             });
         }
@@ -422,7 +459,7 @@ export class PluginCommandExecution extends PluginParserContext {
     }
 }
 
-class UpdateCommands extends ConfigurationUpdate.Base {
+class UpdateValidCommands extends ConfigurationUpdate.Base {
     constructor(private commands: Set<string>) {
         super();
         // generated

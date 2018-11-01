@@ -208,6 +208,6 @@ function tidy(text: string): string {
 	return output;
 }
 
-testParse2();
+testParse();
 debug.log(JSON.stringify(configurationRoot));
 // debug.log(tidy(testDialog('show')));

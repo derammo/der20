@@ -228,7 +228,7 @@ class Handouts {
             for (let line of lines) {
                 let tokens = ConfigurationParser.tokenizeFirst(line);
                 if (tokens[0] !== command) {
-                    // debug.log(`ignoring command '${tokens[0]}' for other plugin`);
+                    debug.log(`ignoring command '${tokens[0]}' for other plugin`);
                     continue;
                 }
                 this.dispatchCommand(<Handout>handout, tokens[1], context);

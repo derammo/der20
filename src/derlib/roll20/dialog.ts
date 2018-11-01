@@ -8,6 +8,7 @@ import {
     CollectionItem
 } from 'derlib/config/atoms';
 import { Dialog } from 'derlib/ui';
+import { ConfigurationEnumerated } from 'derlib/config/enum';
 
 // styling and layout based on https://github.com/RobinKuiper/Roll20APIScripts, with thanks
 export class Der20Dialog implements Dialog {
@@ -72,6 +73,15 @@ export class Der20Dialog implements Dialog {
         } else if (config instanceof ConfigurationBoolean) {
             text = `${(<ConfigurationBoolean>config).value() === true}`;
             link = `${path} ${!config.value()}`;
+        } else if (config instanceof ConfigurationEnumerated) {
+            text = this.getStringText((<ConfigurationEnumerated>config).value());
+            let choices = (<ConfigurationEnumerated>config).choices().map((value) => {
+                if (value.length < 1) {
+                    return `${Der20Dialog.undefinedLabel},`;
+                }
+                return `${value},${value}`;
+            }).join('|');
+            link = `${path} ?${label}|${choices}`;
         }
         if (config.hasConfiguredValue()) {
             this.addButton(text, link);
