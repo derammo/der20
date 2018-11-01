@@ -62,7 +62,7 @@ releases/${RELEASE}/%.js: dist/%.js LICENSE
 publish: checkout_release create_draft checkout_master
 create_draft:
 	git push origin v${RELEASE}
-	node scripts/publish_release.js ${RELEASE}
+	node scripts/publish_release.js ${RELEASE} 'src/derlib src/sys include LICENSE' $(patsubst %,src/%,$(PLUGINS)) 
 list:
 	@echo $(SRC)
 documentation: docs/index.html
