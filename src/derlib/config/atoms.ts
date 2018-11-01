@@ -62,7 +62,11 @@ export class ConfigurationString extends ConfigurationStep<string> {
     }
 
     parse(line: string, context: ParserContext): Result.Any {
-        this.current = line;
+        if (line.length === 0) {
+            this.current = ConfigurationStep.NO_VALUE;;
+        } else {
+            this.current = line;
+        }
         return new Result.Change(`set string value '${this.current}'`);
     }
 
