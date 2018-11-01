@@ -132,6 +132,7 @@ export class PromiseQueue {
                 return;
             }
             this.run(queue, queue.waiting.pop());
+            return;
         }
     }
 }
