@@ -35,7 +35,7 @@ export class Unlock {
     rarity: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationStep.NO_VALUE, Rarity);
 
     // tier restriction for item
-    tier: ConfigurationInteger = new ConfigurationInteger(1);
+    tier: ConfigurationInteger = new ConfigurationInteger(ConfigurationStep.NO_VALUE);
 
     // item is considered to be from this table for trading purposes
     table: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);

@@ -85,8 +85,11 @@ export class ShowCommand extends RenderCommand {
         }
         dialog.endControlGroup();
         dialog.addSeparator();
+
+        // REVISIT select from all player controlled creatures for automatic APL and to include/exclude in rewards
+
         dialog.addSubTitle('Consumables');
-        // XXX put a section here to provider a player picker for who received what consumable
+        // REVISIT put a section here to provider a player picker for who received what consumable
         dialog.addSeparator();
         dialog.addSubTitle('Current Totals');
         dialog.beginControlGroup();

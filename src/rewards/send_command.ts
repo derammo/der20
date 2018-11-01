@@ -7,7 +7,7 @@ import { LeagueModule } from 'derlib/ddal/league_module';
 import { ConfigurationStep } from 'derlib/config/atoms';
 import { Rules } from './rules';
 import { ParserContext } from 'derlib/config/context';
-import { AllLogEntry, AllMagicItem, AllRarity } from './adventurers_league_log';
+import { AdventurersLeagueLog } from './adventurers_league_log';
 
 export class SendCommand extends RenderCommand {
     constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>, private rules: Rules, private preview: boolean) {
@@ -86,11 +86,13 @@ export class SendCommand extends RenderCommand {
             dialog.addSeparator();
         }
 
+        // REVISIT record participants (based on creatures selected in show) and add to notes in A.L.L. entry
+
         if (this.preview) {
             dialog.addCommand('Send to Players', 'send');
         } else {
             destination = Result.Dialog.Destination.All;
-            let log = new AllLogEntry();
+            let log = new AdventurersLeagueLog.LogEntry();
             log.advancement_checkpoints = acp;
             log.adventure_title = moduleName;
             log.dm_dci_number = dci;
@@ -106,20 +108,20 @@ export class SendCommand extends RenderCommand {
                 if (!item.awarded.value()) {
                     continue;
                 }
-                let magicItem = new AllMagicItem();
+                let magicItem = new AdventurersLeagueLog.MagicItem();
                 magicItem.location_found = moduleName;
                 magicItem.name = item.name.value();
                 magicItem.notes = item.description.value();
-                magicItem.rarity = AllRarity[item.rarity.value()];
+                magicItem.rarity = AdventurersLeagueLog.Rarity[item.rarity.value()];
                 magicItem.table = item.table.value();
                 magicItem.table_result = undefined;
                 magicItem.tier = item.tier.value();
                 log.magic_items_attributes.push(magicItem);
             }
 
-            // XXX HACK TEST
-            let importQuery = 'http://localhost:3000/character_log_imports/new?character_log_entry%5Badvancement_checkpoints%5D=4&character_log_entry%5Badventure_title%5D=Imported+Wonder+Land&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5B_destroy%5D=false&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Bcharacter_id%5D=17&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Bid%5D=1&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Blocation_found%5D=&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Bname%5D=Axe+of+Wow&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Bnot_included_in_count%5D=false&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Bnotes%5D=&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Brarity%5D=very_rare&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Btable%5D=H&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Btable_result%5D=&character_log_entry%5Bmagic_items_attributes%5D%5B1%5D%5Btier%5D=2&character_log_entry%5Btier%5D=2&character_log_entry%5Btreasure_checkpoints%5D=4';
-
+            let parameters = AdventurersLeagueLog.createRailsQueryString(log, 'character_log_entry');
+            // XXX HACK TEST local server
+            let importQuery = `http://localhost:3000/character_log_imports/new?${parameters}`;
             dialog.addExternalLinkButton('Import to adventurersleaguelog.com', importQuery);
         }
 
