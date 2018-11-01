@@ -121,10 +121,11 @@ export class SendCommand extends RenderCommand {
                 log.magic_items_attributes.push(magicItem);
             }
 
-            let parameters = AdventurersLeagueLog.createRailsQueryString(log, 'character_log_entry');
+            // XXX to enable this, we need to finish https://github.com/Ariel-Thomas/adventurers-league-log/issues/157
+            // let parameters = AdventurersLeagueLog.createRailsQueryString(log, 'character_log_entry');
             // XXX HACK TEST local server
-            let importQuery = `http://localhost:3000/character_log_imports/new?${parameters}`;
-            dialog.addExternalLinkButton('Import to adventurersleaguelog.com', importQuery);
+            // let importQuery = `http://localhost:3000/character_log_imports/new?${parameters}`;
+            // dialog.addExternalLinkButton('Import to adventurersleaguelog.com', importQuery);
         }
 
         return new Result.Dialog(destination, dialog.render());
