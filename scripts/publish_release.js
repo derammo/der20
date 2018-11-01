@@ -22,7 +22,7 @@ for (let group of groups) {
     let changes = getHistory(group);
     if (changes.length > 0) {
         notes.push(`### Changes: ${group.replace(/^.*\//g, '')}`);
-        notes.push();
+        notes.push(changes);
     }
 }
 let commonChanges = getHistory(common);
