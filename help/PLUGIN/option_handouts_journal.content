@@ -4,4 +4,5 @@
 <span class='format'>[TRUE/FALSE]</span>
 </div>
 <div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
-<div class='description'></div>
+<div class='description'>If set to false, this setting prevents configuration being read from handouts in the journal.  By 
+default, both archived and journal handouts are read.</div>
