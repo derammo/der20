@@ -41,13 +41,16 @@ class Plugin<T> {
         // configuration reading
         config: PromiseQueue.Level;
 
+        // commands from configuration being parsed, 1 at a time to preserve order
+        configparse: PromiseQueue.Level;
+
         // configuration check, after all reading is done but before any commands are executed
         // NOTE: this level is used to schedule more config work as follow-ups when previous config work is done
         followups: PromiseQueue.Level;
 
         // API commands
         commands: PromiseQueue.Level;
-    } = { fetches: undefined, retries: undefined, config: undefined, followups: undefined, commands: undefined };
+    } = { fetches: undefined, retries: undefined, config: undefined, configparse: undefined, followups: undefined, commands: undefined };
 
     // all '!' commands supported by this plugin
     private commands: Set<string>;
@@ -64,6 +67,7 @@ class Plugin<T> {
         this.levels.fetches = this.work.createPriorityLevel({ concurrency: 16, name: 'asynchronous reads' });
         this.levels.retries = this.work.createPriorityLevel({ concurrency: 1, name: 'command retries' });
         this.levels.config = this.work.createPriorityLevel({ concurrency: 16, name: 'configuration' });
+        this.levels.configparse = this.work.createPriorityLevel({ concurrency: 1, name: 'configuration parsing' });
         this.levels.followups = this.work.createPriorityLevel({ concurrency: 1, name: 'configuration follow up' });
         this.levels.commands = this.work.createPriorityLevel({ concurrency: 1, name: 'commands' });
 
@@ -250,10 +254,10 @@ class Plugin<T> {
             this.work.trackPromise(this.levels.config, task.promise, task.handler);
         }
 
-        // schedule any commands that are ready, but at config level
+        // schedule any commands that are ready, but at configparse level
         for (let command of context.commands) {
             followUpWork = true;
-            this.work.scheduleWork(this.levels.config, () => {
+            this.work.scheduleWork(this.levels.configparse, () => {
                 let parsing = new PluginParserContext(`!${this.name}`, command.line);
                 parsing.source = command.source;
                 this.dispatchCommand(parsing);

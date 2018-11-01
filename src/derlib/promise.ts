@@ -131,7 +131,7 @@ export class PromiseQueue {
                 // nothing new to run, but we have tasks running at this level, so nothing may execute
                 return;
             }
-            this.run(queue, queue.waiting.pop());
+            this.run(queue, queue.waiting.shift());
             return;
         }
     }
