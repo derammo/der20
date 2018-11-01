@@ -33,7 +33,13 @@ export class HelpCommand extends ConfigurationCommand {
         });
     }
 
+    // output for persistence and dump
     toJSON(): any {
+        return undefined;
+    }
+
+    // output for help generator
+    generated(): any {
         return this.helpItems;
     }
 

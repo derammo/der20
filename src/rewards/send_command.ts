@@ -52,6 +52,8 @@ export class SendCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.beginControlGroup();
 
+        // REVISIT: add hours played for clarity
+        
         dialog.addTextLine(`${acp} Advancement CP`);
         if (module.hardcover.value() && module.level.maximum.value() > 10) {
             // if hard cover, double treasure award for Tier 3+ characters

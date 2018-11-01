@@ -104,7 +104,7 @@ class Plugin<T> {
         if (der20Mode === 'help generator') {
             // help generator mode is called from build system to emit command list as JSON
             let help = new HelpCommand(this.configurationRoot);
-            process.stdout.write(JSON.stringify(help).replace(new RegExp(ConfigurationParser.MAGIC_PLUGIN_STRING, 'g'), `${this.name}`));
+            process.stdout.write(JSON.stringify(help.generated()).replace(new RegExp(ConfigurationParser.MAGIC_PLUGIN_STRING, 'g'), `${this.name}`));
             return;
         }
 
