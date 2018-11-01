@@ -1,4 +1,4 @@
-PLUGINS := rewards anonymous handout_test
+PLUGINS := rewards anonymous
 SCRIPTS := parser_test help_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
