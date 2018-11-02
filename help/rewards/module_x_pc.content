@@ -3,4 +3,6 @@
 <span class='command' id='rewards/module_x_pc'>module [ID/current] pc</span>
 <span class='format'>[USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting is used by the interactive UI to select which currently present 
+player owned characters are part of the adventure.  The parameters required to use this setting are
+not generally available to users, so this command cannot readily be used manually.</div>
