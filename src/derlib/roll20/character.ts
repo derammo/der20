@@ -52,7 +52,7 @@ export class Der20Character {
         return results;
     }
 
-    isNpc() {
+    isNpc(): boolean {
         return this.checkFlag('npc');
     }
 

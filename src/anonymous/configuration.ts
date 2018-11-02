@@ -9,7 +9,7 @@ var defaultToken: string;
 class SetCommand extends SelectedTokensCommand {
     handleToken(token: Der20Token, parserContext: any, tokenIndex: number): Result.Any {
         let character = token.character;
-        if (!character.isNpc) {
+        if (!character.isNpc()) {
             return new Result.Success(`'${character.name}' is not an NPC/Monster and won't be changed`);
         }
         let midnight = new Date();
@@ -30,7 +30,7 @@ class SetCommand extends SelectedTokensCommand {
 class RevealCommand extends SelectedTokensCommand {
     handleToken(token: Der20Token, context: ParserContext, tokenIndex: number): Result.Any {
         let character = token.character;
-        if (!character.isNpc) {
+        if (!character.isNpc()) {
             return new Result.Success(`'${character.name}' is not an NPC/Monster and won't be changed`);
         }
         // because of request fan-out (selected tokens) we may have many images for which we are waiting
@@ -46,12 +46,16 @@ class RevealCommand extends SelectedTokensCommand {
 
 function makeImageSourceURL(imageSource: string) {
     if (imageSource.includes('?')) {
-        return imageSource;
+        return thumbify(imageSource);
     }
     let midnight = new Date();
     midnight.setHours(0, 0, 0, 0);
     let cacheDefeat = `${midnight.valueOf() / 1000}`;
-    return `${imageSource}?${cacheDefeat}`;
+    return thumbify(`${imageSource}?${cacheDefeat}`);
+}
+
+function thumbify(imageSource: string) {
+    return imageSource.replace(/\/[a-z]+\.png(\?[0-9]+)$/, '/thumb.png$1');
 }
 
 class CharacterConfiguration extends ConfigurationString {
