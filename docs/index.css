@@ -73,3 +73,8 @@ pre {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
 }
+
+/* allow to scroll up to align index jump */
+.column.right div:last-child {
+    padding-bottom: 2000px; /* 1vh gets collapsed (Safari 12.0) */
+}
