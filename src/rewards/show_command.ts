@@ -86,19 +86,39 @@ export class ShowCommand extends RenderCommand {
         dialog.endControlGroup();
         dialog.addSeparator();
 
-        // REVISIT select from all player controlled creatures for automatic APL and to include/exclude in rewards
+        // select from all player controlled creatures for automatic APL and to include/exclude in rewards
+        dialog.addSubTitle('Players');
+        dialog.beginControlGroup();
+        for (let pc of module.pcs.characters) {
+            let levelString = '';
+            let level = pc.character.level();
+            if (level > 0) {
+                levelString = ` (level ${level})`;
+            }
+            dialog.addEditControl(
+                `${pc.player.name}: ${pc.character.name}${levelString}`,
+                `module current pc ${pc.player.userid} character ${pc.character.id} selected`,
+                pc.selected
+            );
+        }
+        dialog.endControlGroup();
+        dialog.addSeparator();
 
         dialog.addSubTitle('Consumables');
         // REVISIT put a section here to provider a player picker for who received what consumable
         dialog.addSeparator();
         dialog.addSubTitle('Current Totals');
         dialog.beginControlGroup();
-        if (module.hardcover.value() && (module.level.maximum.value() > 10)) {
+        let count = module.pcs.count();
+        dialog.addTextLine(`${count} Character${count!==1?'s':''} at ${module.pcs.averagePartyLevel()} APL`);
+        if (module.hardcover.value() && module.level.maximum.value() > 10) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
-            const explicitAwards = module.checkpoints.current.some((checkpoint) => { return checkpoint.awarded.value(); });
+            const explicitAwards = module.checkpoints.current.some(checkpoint => {
+                return checkpoint.awarded.value();
+            });
             if (explicitAwards) {
-                // there should not be explicit check point awards in a hard cover, because the rules assume 
+                // there should not be explicit check point awards in a hard cover, because the rules assume
                 // time-based awards, so make the DM figure this out if the rules allow this in the future
                 dialog.addTextLine(`You must manually calculate the treasure award for Tier 3 & 4 Characters`);
             } else {

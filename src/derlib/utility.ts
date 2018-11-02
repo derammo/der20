@@ -24,6 +24,9 @@ export function clone<T>(factory: DefaultConstructed<T>, from: T) {
     /* tslint:disable-next-line forin */
     for (let key in from) {
         let item: any = from[key];
+        if (item.clone === undefined) {
+            throw new Error(`clone function is not implemented on key '${key}' of class ${factory.name}`);
+        }
         copied[key] = item.clone();
     }
     return copied;
@@ -42,6 +45,9 @@ export function cloneExcept<T>(
             continue;
         }
         let item: any = from[key];
+        if (item.clone === undefined) {
+            throw new Error(`clone function is not implemented on key '${key}' of class ${factory.name}`);
+        }
         copied[key] = item.clone();
     }
     return copied;

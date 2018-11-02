@@ -8,7 +8,7 @@ import { ParserContext, LoaderContext } from './context';
 
 export class ConfigurationArray<T extends CollectionItem> extends ConfigurationStep<T[]> implements Collection {
     current: T[] = [];
-    ids: { [index: string]: number } = {};
+    private idToIndex: { [index: string]: number } = {};
     classType: DefaultConstructed<T>;
     keyword: string;
 
@@ -24,7 +24,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
 
     clear() {
         this.current = [];
-        this.ids = {};
+        this.idToIndex = {};
     }
 
     load(json: any, context: LoaderContext) {
@@ -35,13 +35,45 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
             return;
         }
         // tslint:disable-next-line:forin
-        for (let key in json) {
+        for (let jsonItem of json) {
             let item = new this.classType();
-            let child: any = json[key];
-            ConfigurationLoader.restore(child, item, context);
-            this.ids[item.id] = this.current.length;
-            this.current.push(item);
+            ConfigurationLoader.restore(jsonItem, item, context);
+            if (this.findItem(item.id) !== undefined) {
+                console.log(`error: id '${item.id}' is already in collection and cannot be restored`);
+                continue;
+            }
+            this.addItem(item.id, item);
         }
+    }
+
+    addItem(id: string, item: T) {
+        item.id = id;
+        let index = this.current.length;
+        this.current.push(item);
+        this.idToIndex[id] = index;
+        return index;
+    }
+
+    removeItem(id: string): boolean {
+        let index = this.idToIndex[id];
+        if (index === undefined) {
+            return false;
+        }
+        delete this.idToIndex[id];
+        let removed = this.current.splice(index, 1);
+        // recreate index for moved items
+        for (let i=index; i<this.current.length; i++) {
+            this.idToIndex[this.current[i].id] = i;
+        }
+        if (removed[0].id !== id) {
+            throw new Error('broken implementation: item removed was not one selected');
+        }
+        debug.log(`collection after remove: ${this.current.map((item) => { return item.id })}`);
+        return true;
+    }
+
+    findItem(id: string): number | undefined {
+        return this.idToIndex[id];
     }
 
     parse(line: string, context: ParserContext): Result.Any {
@@ -50,9 +82,8 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         if (id.length < 1) {
             return new Result.Failure(new Error('interactive selection from array is unimplemented'));
         }
-        let index: number;
-        if (this.ids.hasOwnProperty(id)) {
-            index = this.ids[id];
+        let index = this.findItem(id);
+        if (index !== undefined) {
             return ConfigurationParser.parse(tokens[1], this.current[index], context);
         } else {
             index = this.addItem(id, new this.classType());
@@ -64,24 +95,6 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
 
     collectionItem(): DefaultConstructed<T> {
         return this.classType;
-    }
-
-    addItem(id: string, item: T) {
-        let index = this.current.length;
-        item.id = id;
-        this.current.push(item);
-        this.ids[id] = index;
-        return index;
-    }
-
-    removeItem(id: string): boolean {
-        let index = this.ids[id];
-        if (index === undefined) {
-            return false;
-        }
-        delete this.ids[id];
-        this.current.splice(index, 1);
-        return true;
     }
 
     clone(): ConfigurationArray<T> {
@@ -181,7 +194,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
             return this.handleCurrent(tokens[1], context);
         }
 
-        if (!this.array.ids.hasOwnProperty(id)) {
+        if (this.array.findItem(id) === undefined) {
             this.clear();
             return new Result.Failure(new Error(`item "${id}" is not defined`));
         }
@@ -190,7 +203,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     }
 
     private loadItem(id: string, rest: string, context: ParserContext): Result.Any {
-        let index = this.array.ids[id];
+        let index = this.array.findItem(id);
         this.current = cloneExcept(this.array.classType, this.array.current[index], ['id']);
         this.selectedId = id;
         if (rest.length < 1) {

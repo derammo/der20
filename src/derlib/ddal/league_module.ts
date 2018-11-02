@@ -5,6 +5,8 @@ import { Result } from 'derlib/config/result';
 import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
 import { ConfigurationArray } from 'derlib/config/array';
 import { ConfigurationEnumerated } from 'derlib/config/enum';
+import { PlayerCharacters } from './player_characters';
+import { ParserContext } from 'derlib/config/context';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it
@@ -67,6 +69,9 @@ export class LeagueModule extends ConfigurationEventHandler {
     session: ConfigurationString = new ConfigurationString(ConfigurationStep.NO_VALUE);
     start: ConfigurationDate = new ConfigurationDate(ConfigurationStep.NO_VALUE);
     stop: ConfigurationDate = new ConfigurationDate(ConfigurationStep.NO_VALUE);
+
+    // @keyword('pc')
+    pcs: PlayerCharacters = new PlayerCharacters();
 
     minimumLevelForTier(): number {
         switch (this.tier.value()) {
@@ -196,6 +201,7 @@ export class LeagueModule extends ConfigurationEventHandler {
         this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'advancement'], this.hourlyAdvancement));
         this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
         this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['duration'], this.defaultDuration));
+        this.addTrigger('start', Result.Event.Change, new PlayerScan());
     }
 }
 
@@ -215,5 +221,17 @@ export namespace LeagueModule {
         clone(): Hourly {
             return clone(LeagueModule.Hourly, this);
         }
+    }
+}
+
+class PlayerScan extends ConfigurationUpdate.Base {
+    constructor() {
+        super();
+        // generated
+    }
+
+    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+        configuration.pcs.scan();
+        return result;
     }
 }

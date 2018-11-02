@@ -1,3 +1,5 @@
+import { parseCommaSeparatedList } from "./format";
+
 class CharacterImage {
     constructor(private imageSource: string) {
         // generated source
@@ -25,6 +27,31 @@ export class Der20Character {
         return new Der20Character(<Character>objects[0]);
     }
 
+    // returns all characters owned by at least one player but not all players
+    static owned(): (Der20Character & { controlledby?: string[] }) [] {
+        let objects = findObjs({ _type: 'character' });
+        let results = [];
+        for (let object of objects) {
+            if (object === undefined) {
+                continue;
+            }
+            let character = <Character>object;
+            let owners = parseCommaSeparatedList(character.get('controlledby'))
+            if (owners.length === 0) {
+                // unowned
+                continue;
+            }
+            if (owners.some((owner) => { return owner === 'all' })) {
+                // owned by everyone
+                continue;
+            }
+            let wrapper: Der20Character & { controlledby?: string[] } = new Der20Character(character);
+            wrapper.controlledby = owners;
+            results.push(wrapper);
+        }
+        return results;
+    }
+
     isNpc() {
         return this.checkFlag('npc');
     }
@@ -49,6 +76,14 @@ export class Der20Character {
         return this.journalEntry;
     }
     
+    level(): number {
+        let attribute = this.attribute('level');
+        if (attribute === undefined) {
+            return 0;
+        }
+        return parseInt(attribute.get('current'), 10);
+    }
+
     // XXX make this safe for unknown attributes (log and create dummy that creates on write?) 
     attribute(attributeName: string): Attribute | undefined {
         let attributes = findObjs({

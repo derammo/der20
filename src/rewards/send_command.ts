@@ -53,7 +53,7 @@ export class SendCommand extends RenderCommand {
         dialog.beginControlGroup();
 
         // REVISIT: add hours played for clarity
-        
+
         dialog.addTextLine(`${acp} Advancement CP`);
         if (module.hardcover.value() && module.level.maximum.value() > 10) {
             // if hard cover, double treasure award for Tier 3+ characters
@@ -71,8 +71,8 @@ export class SendCommand extends RenderCommand {
         } else {
             dialog.addTextLine(`${tcp} Treasure CP`);
         }
-        dialog.addTextLine(`${downtime} Downtime`)
-        dialog.addTextLine(`${renown} Renown`)
+        dialog.addTextLine(`${downtime} Downtime`);
+        dialog.addTextLine(`${renown} Renown`);
         dialog.endControlGroup();
         dialog.addSeparator();
 
@@ -88,7 +88,21 @@ export class SendCommand extends RenderCommand {
             dialog.addSeparator();
         }
 
-        // REVISIT record participants (based on creatures selected in show) and add to notes in A.L.L. entry
+        let includedPcs = module.pcs.included();
+        if (includedPcs.length > 0) {
+            dialog.addSubTitle('Awarded to:');
+            dialog.beginControlGroup();
+            for (let pc of includedPcs) {
+                let levelString = '';
+                let level = pc.character.level();
+                if (level > 0) {
+                    levelString = ` (level ${level})`;
+                }
+                dialog.addTextLine(`${pc.character.name}${levelString}`);
+            }
+            dialog.endControlGroup();
+            dialog.addSeparator();
+        }
 
         if (this.preview) {
             dialog.addCommand('Send to Players', 'send');
@@ -101,7 +115,7 @@ export class SendCommand extends RenderCommand {
             log.dm_name = dm;
             log.downtime_gained = downtime;
             log.magic_items_attributes = [];
-            log.notes = undefined;  // XXX
+            log.notes = undefined; // XXX
             log.renown_gained = renown;
             log.treasure_checkpoints = tcp;
             log.treasure_tier = tier;
@@ -121,6 +135,9 @@ export class SendCommand extends RenderCommand {
                 log.magic_items_attributes.push(magicItem);
             }
 
+            // XXX include character names that participated, in an array outside the log entry, so we can try to match them in the log site for auto-selection
+
+            // XXX shorten character_log_entry and magic_items_attributes both here and in the import controller on the server
             // XXX to enable this, we need to finish https://github.com/Ariel-Thomas/adventurers-league-log/issues/157
             // let parameters = AdventurersLeagueLog.createRailsQueryString(log, 'character_log_entry');
             // XXX HACK TEST local server
@@ -130,5 +147,4 @@ export class SendCommand extends RenderCommand {
 
         return new Result.Dialog(destination, dialog.render());
     }
-
 }

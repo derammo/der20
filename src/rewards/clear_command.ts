@@ -1,7 +1,7 @@
 import { ConfigurationCommand } from "derlib/config/atoms";
 import { Result } from "derlib/config/result";
 
-interface Clearable {
+export interface Clearable {
     clear(): void;
 }
 
