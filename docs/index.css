@@ -55,11 +55,21 @@ ul.toplevel > li > a {
     display: inline;
 }
 
-.description, .validation {
+.description, .validation, .postcontent {
     margin-top: 0.5em;
     padding-left: 2em;
 }
 
 h1, .repolink, .copyright {
     text-align: center;
+}
+
+pre {
+    font-size: 150%;
+}
+
+.postcontent img {
+    border: 1px solid LightGray;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }

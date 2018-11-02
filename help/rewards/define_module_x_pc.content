@@ -3,4 +3,4 @@
 <span class='command' id='rewards/define_module_x_pc'>define module [ID] pc</span>
 <span class='format'>[USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This settings should not be used.  It will be removed in a future version.</div>
