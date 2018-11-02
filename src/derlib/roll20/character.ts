@@ -84,8 +84,8 @@ export class Der20Character {
         return parseInt(attribute.get('current'), 10);
     }
 
-    // XXX make this safe for unknown attributes (log and create dummy that creates on write?) 
-    attribute(attributeName: string): Attribute | undefined {
+    // REVISIT make this safe for unknown attributes (log and create dummy that creates on write?) 
+    attribute(attributeName: string): Attribute {
         let attributes = findObjs({
             type: 'attribute',
             characterid: this.journalEntry.id,
@@ -95,7 +95,7 @@ export class Der20Character {
             console.log(`unexpected number (${attributes.length}) of instances of attribute '${attributeName}' on character '${this.journalEntry.id}'; using first one`)
         }
         if (attributes.length < 1) {
-            return undefined;
+            return new MissingAttribute(this, attributeName);
         }
         return <Attribute>attributes[0];
     }
@@ -107,5 +107,45 @@ export class Der20Character {
                 resolve (new CharacterImage(data.imgsrc));
             });
         });  
+    }
+}
+
+class MissingAttribute implements Attribute {
+    id: string;
+
+    set<K extends "name" | "current" | "max">(property: K, value: AttributeMutableSynchronousGetProperties[K]): void;
+    set(properties: Partial<AttributeMutableSynchronousGetProperties>): void;
+    set(property: any, value?: any) {
+        // XXX create on write
+        debug.log(this.parent);
+        throw new Error("Method not implemented.");
+    }
+
+    setWithWorker<K extends "name" | "current" | "max">(property: K, value: AttributeMutableSynchronousGetProperties[K]): void;
+    setWithWorker(properties: Partial<AttributeMutableSynchronousGetProperties>): void;
+    setWithWorker(property: any, value?: any) {
+        // XXX create on write
+        throw new Error("Method not implemented.");
+    }
+
+    remove(): void {
+        // it is already not present, no problem
+    }
+
+    constructor(private parent: Der20Character, private attributeName: string) {
+        // generated code
+    }
+
+    get(valueName: string) {
+        switch (valueName) {
+            case 'name':
+                return this.attributeName;
+            case 'current':
+                return '';
+            case 'max':
+                return '';
+            default:
+                return undefined;
+        }
     }
 }
