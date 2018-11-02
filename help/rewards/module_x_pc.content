@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/module_x_pc'>module [ID/current] pc</span>
+<span class='format'>[USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK]</span>
+</div>
+<div class='description'></div>
