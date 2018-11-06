@@ -78,6 +78,13 @@ export class PromiseQueue {
                 task.promise = task.work();
             } catch (err) {
                 console.log(`error caught from work function: ${err.message}`);
+                let frames = err.stack;
+                if (frames !== undefined) {
+                    console.log('stack trace (please include in filed bugs):');
+                    for (let line of frames.split('\n')) {
+                        console.log(line);
+                    }
+                }
                 task.promise = Promise.reject(err.message);
             }
         }

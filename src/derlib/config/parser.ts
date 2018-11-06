@@ -144,6 +144,7 @@ export class ConfigurationEventHandler {
         for (let event of result.events) {
             // process all handlers[event] until one changes the result to a failure
             for (let handler of listeners.events[event]) {
+                debug.log(`handling configuration event of type '${event}'`);
                 let handlerResult = handler.execute(this, context, result);
                 if (handlerResult.kind === Result.Kind.Failure) {
                     return handlerResult;
