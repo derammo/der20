@@ -1,5 +1,9 @@
-// debug log function or dummy
-let debug = { log: (message) => { /* ignore */ } };
+// debug output function, discards output by default
+let debug = { 
+    log: ((message) => {
+        // ignore
+    }) 
+};
 
 // simple loader for AMD style modules included in this file
 var derModules;

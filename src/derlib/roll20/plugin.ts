@@ -53,7 +53,7 @@ class Plugin<T> {
     } = { fetches: undefined, retries: undefined, config: undefined, configparse: undefined, followups: undefined, commands: undefined };
 
     // all '!' commands supported by this plugin
-    private commands: Set<string>;
+    private commands: Set<string> = new Set();
     
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
@@ -78,12 +78,6 @@ class Plugin<T> {
     reset() {
         // create the world
         this.configurationRoot = new this.factory();
-
-        // top-level commands for this plugin
-        this.commands = new Set([`!${this.name}`]);
-        if (this.configurationRoot.show !== undefined) {
-            this.commands.add(`!${this.name}-show`);
-        } 
 
         // add debug commmand
         if (this.configurationRoot.dump === undefined) {
@@ -126,19 +120,37 @@ class Plugin<T> {
         ConfigurationLoader.restore(json, this.configurationRoot, context);
 
         // add support for optional command strings
-        if (this.configurationRoot[Options.pluginOptionsKey] !== undefined) {
-            let options = <Options>this.configurationRoot[Options.pluginOptionsKey];
-            debug.log(`plugin has common options: ${JSON.stringify(options)}`);
-            for (let command of options.commands.value()) {
-                let bangCommand = `!${command}`;
-                debug.log(`enabling additional command string '${bangCommand}'`)
-                this.commands.add(bangCommand);
-            }
-            options.addTrigger('command', Result.Event.Change, new UpdateValidCommands(this.commands));
-        }
-
+        this.registerCommonOptions();
+     
         // potentially schedule some commands
         this.handleLoaderResults(context);   
+    }
+
+    private registerCommonOptions() {
+        // built in top-level commands for this plugin
+        let builtinCommands = [`!${this.name}`];
+        if (this.configurationRoot.show !== undefined) {
+            builtinCommands.push(`!${this.name}-show`);
+        } 
+        
+        if (this.configurationRoot[Options.pluginOptionsKey] === undefined) {
+            // options not supported, so we use fixed configuration
+            this.commands = new Set(builtinCommands);
+            return;
+        }
+
+        let options = <Options>this.configurationRoot[Options.pluginOptionsKey];
+        debug.log(`plugin has common options: ${JSON.stringify(options)}`);
+
+        // additional commands
+        let commandsHandler = new UpdateValidCommands(this.commands, builtinCommands);
+        commandsHandler.readOptions(options);
+        options.addTrigger('command', Result.Event.Change, commandsHandler);
+
+        // debugging
+        let debugHandler = new UpdateDebug();
+        debugHandler.readOptions(options);
+        options.addTrigger('debug', Result.Event.Change, debugHandler);
     }
 
     handleParserResult(context: PluginParserContext, result: Result.Any): void {
@@ -464,18 +476,41 @@ export class PluginCommandExecution extends PluginParserContext {
 }
 
 class UpdateValidCommands extends ConfigurationUpdate.Base {
-    constructor(private commands: Set<string>) {
+    constructor(private commands: Set<string>, private builtin: string[]) {
         super();
         // generated
     }
 
     execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
         let options = <Options>configuration;
+        this.readOptions(options);
+        return result;
+    }
+
+    readOptions(options: Options) {
+        this.commands.clear();
+        for (let builtinCommand of this.builtin) {
+            this.commands.add(builtinCommand);
+        }
         for (let command of options.commands.value()) {
             let bangCommand = `!${command}`;
             debug.log(`enabling additional command string '${bangCommand}'`)
             this.commands.add(bangCommand);
         }
+    }
+}
+
+class UpdateDebug extends ConfigurationUpdate.Base {
+    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+        this.readOptions(<Options>configuration);
         return result;
+    }
+
+    readOptions(options: Options) {
+        if (options.debug.value()) {
+            debug.log = console.log;
+        } else {
+            debug.log = (message: string) => { /* ignore */ };
+        }
     }
 }

@@ -4,8 +4,5 @@
         log: ((message) => {
             let stamp = new Date().toISOString();
             log(`${stamp} der20: ${message}`)
-        }), 
-        debug: ((message) => {
-
-        }) 
+        })
     };
