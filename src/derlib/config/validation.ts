@@ -13,7 +13,7 @@ export class RegexValidator extends Validator {
         if (line.match(this.regularExpression)) {
             return new Result.Success('validated by matching regular expression');
         }
-        return new Result.Success(this.humanReadable);
+        return new Result.Failure(new Error(this.humanReadable));
     }
 }
 
@@ -23,7 +23,7 @@ export class TokenRegexValidator extends RegexValidator {
         if (tokens[0].match(this.regularExpression)) {
             return new Result.Success('validated by matching regular expression');
         }
-        return new Result.Success(this.humanReadable);
+        return new Result.Failure(new Error(this.humanReadable));
     }
 }
 

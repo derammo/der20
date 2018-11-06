@@ -29,38 +29,82 @@ export class ConfigurationParser {
 
     static parse(line: string, configuration: any, context: ParserContext): Result.Any {
         debug.log(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
+
         if (configuration instanceof ConfigurationStep) {
+            // configuration object implements its own parsing; validation and events
+            // were done one frame higher
             return configuration.parse(line, context);
         }
-        let tokens: string[] = ConfigurationParser.tokenizeFirst(line);
-        let result = ConfigurationParser.parseTokens(tokens, configuration, context);
+
+        // try to route keyword
+        let result = new Result.Success('no configuration changed');
+        const tokens: string[] = ConfigurationParser.tokenizeFirst(line);
+        const keywordToken = tokens[0];
+        const rest = tokens[1];
+        const route = ConfigurationParser.route(keywordToken, configuration);
+        if (route === undefined) {
+            if (keywordToken.length > 0) {
+                return new Result.Failure(new Error(`token '${keywordToken}' did not match any configuration command`));
+            }
+
+            // empty token was claimed by no item, that is ok
+            return result;
+        }
+
+        // validation
+        let meta = Der20Meta.fetch(configuration.constructor.prototype);
+        if (meta !== undefined) {
+            let propertyMeta = meta.properties[route.propertyName];
+            if (propertyMeta !== undefined) {
+                if (propertyMeta.validation !== undefined) {
+                    debug.log(`validating input '${rest}'`);
+                    result = propertyMeta.validation.validate(rest);
+                }
+            }
+        }
+
+        // execute
+        if (result.kind === Result.Kind.Success) {
+            result = ConfigurationParser.parse(rest, route.target, context);
+        }
+
+        // handle events from child properties
         if (!result.hasEvents) {
             return result;
         }
         if (configuration instanceof ConfigurationEventHandler) {
-            return configuration.handleEvents(tokens[0], context, result);
+            return configuration.handleEvents(keywordToken, context, result);
         }
+
         return result;
     }
 
     // determine result, without handling it
-    static parseTokens(tokens: string[], configuration: any, context: ParserContext): Result.Any {
-        if (configuration.hasOwnProperty(tokens[0])) {
-            let target = configuration[tokens[0]];
+    static parseProperty(tokens: string[], target: any, context: ParserContext): Result.Any {
+        return ConfigurationParser.parse(tokens[1], target, context);
+    }
+
+    // route command to configuration object
+    static route(keywordToken: string, configuration: any): { target: any; propertyName: string } | undefined {
+        // route property that matches the keyword
+        if (configuration.hasOwnProperty(keywordToken)) {
+            let target = configuration[keywordToken];
             if (target == null) {
-                throw new Error(`property '${tokens[0]}' should be an empty configuration object instead of null`);
+                throw new Error(`property '${keywordToken}' should be an empty configuration object instead of null`);
             }
-            return ConfigurationParser.parse(tokens[1], target, context);
+            return { target: target, propertyName: keywordToken };
         }
-        // consult meta info
+
+        // consult meta info to see if one of the properties claims this keyword even though
+        // it does not match the key of the property
         let meta = Der20Meta.fetch(configuration.constructor.prototype);
         if (meta !== undefined) {
             for (let key in meta.properties) {
                 if (!meta.properties.hasOwnProperty(key)) {
                     continue;
                 }
-                if (meta.properties[key].keyword === tokens[0]) {
-                    return ConfigurationParser.parse(tokens[1], configuration[key], context);
+                if (meta.properties[key].keyword === keywordToken) {
+                    return { target: configuration[key], propertyName: key };
                 }
             }
         }
@@ -71,20 +115,15 @@ export class ConfigurationParser {
             if (!configuration.hasOwnProperty(key)) {
                 continue;
             }
-            let item = configuration[key];
-            if (item != null && item.hasOwnProperty('keyword')) {
-                if (item.keyword === tokens[0]) {
-                    return ConfigurationParser.parse(tokens[1], item, context);
+            let target = configuration[key];
+            if (target != null && target.hasOwnProperty('keyword')) {
+                if (target.keyword === keywordToken) {
+                    return { target: target, propertyName: key };
                 }
             }
         }
 
-        if (tokens[0].length > 0) {
-            return new Result.Failure(new Error(`token '${tokens[0]}' did not match any configuration command`));
-        }
-
-        // empty token was claimed by no item, that is ok
-        return new Result.Success('no configuration changed');
+        return undefined;
     }
 }
 

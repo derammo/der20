@@ -10,7 +10,7 @@ export class Options extends ConfigurationEventHandler {
     static readonly pluginOptionsKey: string = 'options';
 
     @format('ID')
-    @validation(new RegexValidator(/[a-z0-9_]+/, 'commands must consist entirely of a-z, 0-9, and the underscore character'))
+    @validation(new RegexValidator(/^[a-z0-9_]+$/, 'commands must consist entirely of a-z, 0-9, and the underscore character'))
     @keyword('command')
     @common('PLUGIN')
     commands: ConfigurationSet = new ConfigurationSet();
