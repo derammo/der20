@@ -147,6 +147,10 @@ class Plugin<T> {
         commandsHandler.readOptions(options);
         options.addTrigger('command', Result.Event.Change, commandsHandler);
 
+        // NOTE: we have to listen at this level because we need the options object in the handler, but
+        // really we would not want to listen for all deletes, just command ones
+        options.addTrigger('delete', Result.Event.Change, commandsHandler);
+
         // debugging
         let debugHandler = new UpdateDebug();
         debugHandler.readOptions(options);
