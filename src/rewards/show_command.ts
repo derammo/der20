@@ -111,7 +111,7 @@ export class ShowCommand extends RenderCommand {
         dialog.beginControlGroup();
         let count = module.pcs.count();
         dialog.addTextLine(`${count} Character${count!==1?'s':''} at ${module.pcs.averagePartyLevel()} APL`);
-        if (module.hardcover.value() && module.level.maximum.value() > 10) {
+        if (module.hasTierRewardsDifference()) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
             const explicitAwards = module.checkpoints.current.some(checkpoint => {

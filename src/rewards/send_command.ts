@@ -55,7 +55,7 @@ export class SendCommand extends RenderCommand {
         // REVISIT: add hours played for clarity
 
         dialog.addTextLine(`${acp} Advancement CP`);
-        if (module.hardcover.value() && module.level.maximum.value() > 10) {
+        if (module.hasTierRewardsDifference()) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${tcp} Treasure CP for Tier 1 & 2 Characters`);
             const explicitCheckpoints = module.checkpoints.current.some(checkpoint => {

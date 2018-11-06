@@ -144,6 +144,11 @@ export class LeagueModule extends ConfigurationEventHandler {
             return treasure;
         }
 
+        // hourly rewards count double for tier 3 and 4
+        if ((this.tier.value() > 2) && (!this.hasTierRewardsDifference())) {
+            hours *= 2.0;
+        }
+
         // add any hourly treasure, which should be mutually exclusive with checkpoints
         // but there may be modules in the future that change this
         treasure += this.hourly.treasure.value() * hours;
@@ -190,6 +195,10 @@ export class LeagueModule extends ConfigurationEventHandler {
             return Math.floor(this.duration.value());
         }
         return Math.floor(hours);
+    }
+
+    hasTierRewardsDifference(): boolean {
+        return (this.hardcover.value() && (this.level.maximum.value() > 10) && (this.level.minimum.value() < 11));
     }
 
     constructor() {
