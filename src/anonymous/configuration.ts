@@ -3,6 +3,8 @@ import { ConfigurationString } from 'derlib/config/atoms';
 import { Result } from 'derlib/config/result';
 import { Der20Character } from 'derlib/roll20/character';
 import { ParserContext, LoaderContext } from 'derlib/config/context';
+import { Options } from 'derlib/roll20/options';
+import { keyword } from 'derlib/config/parser';
 
 var defaultToken: string;
 
@@ -23,7 +25,8 @@ class SetCommand extends SelectedTokensCommand {
             anonymousName = '';
         }
         token.raw.set({ imgsrc: anonymousIcon, name: anonymousName, showname: true, showplayers_name: true });
-        return new Result.Success(`setting token to ${anonymousIcon}, result: ${token.image.url}`);
+        debug.log(`setting token to ${anonymousIcon}, result: ${token.image.url}`);
+        return new Result.Success(`token for '${character.name}' changed to show only creature type and anonymous icon`);
     }
 }
 
@@ -37,10 +40,10 @@ class RevealCommand extends SelectedTokensCommand {
         const imageKey = `RevealCommand_image_${tokenIndex}`;
         let imageSource = context.asyncVariables[imageKey];
         if (imageSource === undefined) {
-            return new Result.Asynchronous(`loading default token info from ${character.name}`, imageKey, character.imageLoad());
+            return new Result.Asynchronous(`loading default token info from '${character.name}'`, imageKey, character.imageLoad());
         }
         token.raw.set({ imgsrc: makeImageSourceURL(imageSource.url), name: character.name, showname: true, showplayers_name: true });
-        return new Result.Success(`setting token to show its default name and image from ${character.name}`);
+        return new Result.Success(`setting token to show its default name and image from '${character.name}'`);
     }
 }
 
@@ -92,6 +95,10 @@ class CharacterConfiguration extends ConfigurationString {
 
 
 export class Configuration {
+    // standard plugin options
+    @keyword('option')
+    options: Options = new Options();
+
     // name of a character in the journal that will provide its default token image for anonymous tokens
     character: CharacterConfiguration = new CharacterConfiguration('Anonymous');
 
