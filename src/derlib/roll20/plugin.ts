@@ -25,6 +25,7 @@ class Plugin<T> {
     configurationRoot: any;
     persistence: ConfigurationPersistence;
     work: PromiseQueue = new PromiseQueue();
+    verbose: boolean = false;
 
     // REVISIT: the reason there are so many levels is because we don't have explicit dependencies 
     // between work items.  Because config work is concurrent, there could be several currently running
@@ -155,6 +156,11 @@ class Plugin<T> {
         let debugHandler = new UpdateDebug();
         debugHandler.readOptions(options);
         options.addTrigger('debug', Result.Event.Change, debugHandler);
+
+        // verbose responses
+        let verboseHandler = new UpdateVerbose();
+        verboseHandler.readOptions(options);
+        options.addTrigger('verbose', Result.Event.Change, verboseHandler);
     }
 
     handleParserResult(context: PluginParserContext, result: Result.Any): void {
@@ -165,12 +171,14 @@ class Plugin<T> {
         }
 
         // send any messages to caller, regardless of result
-        for (let message of result.messages) {
-            if (context.source.kind === ConfigurationSource.Kind.Api) {
-                let source = <ConfigurationSource.Api>context.source;
-                sendChat(this.name, `/w "${source.player.get('_displayname')}" ${message}`, null, { noarchive: true });
-            } else {
-                debug.log(`  ${message}`);
+        if (this.verbose) {
+            for (let message of result.messages) {
+                if (context.source.kind === ConfigurationSource.Kind.Api) {
+                    let source = <ConfigurationSource.Api>context.source;
+                    sendChat(this.name, `/w "${source.player.get('_displayname')}" ${message}`, null, { noarchive: true });
+                } else {
+                    debug.log(`  ${message}`);
+                }
             }
         }
 
@@ -479,16 +487,19 @@ export class PluginCommandExecution extends PluginParserContext {
     }
 }
 
-class UpdateValidCommands extends ConfigurationUpdate.Base {
+abstract class OptionsUpdate extends ConfigurationUpdate.Base {
+    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+        this.readOptions(<Options>configuration);
+        return result;
+    }
+
+    abstract readOptions(options: Options): void;
+}
+
+class UpdateValidCommands extends OptionsUpdate {
     constructor(private commands: Set<string>, private builtin: string[]) {
         super();
         // generated
-    }
-
-    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
-        let options = <Options>configuration;
-        this.readOptions(options);
-        return result;
     }
 
     readOptions(options: Options) {
@@ -504,17 +515,18 @@ class UpdateValidCommands extends ConfigurationUpdate.Base {
     }
 }
 
-class UpdateDebug extends ConfigurationUpdate.Base {
-    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
-        this.readOptions(<Options>configuration);
-        return result;
-    }
-
+class UpdateDebug extends OptionsUpdate {
     readOptions(options: Options) {
         if (options.debug.value()) {
             debug.log = console.log;
         } else {
             debug.log = (message: string) => { /* ignore */ };
         }
+    }
+}
+
+class UpdateVerbose extends OptionsUpdate {
+    readOptions(options: Options): void {
+        plugin.verbose = options.verbose.value();
     }
 }

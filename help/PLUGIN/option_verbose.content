@@ -1,0 +1,7 @@
+<div class='title'>
+<span class='plugin'>!PLUGIN</span>
+<span class='command' id='PLUGIN/option_verbose'>option verbose</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
+<div class='description'>If set to true, the plugin will send response messages to the user, confirming the results of the command.</div>

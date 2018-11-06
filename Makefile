@@ -44,7 +44,7 @@ cloc: /usr/local/bin/cloc
 /usr/local/bin/cloc:
 	brew install cloc
 release: label_release build_release checkout_master
-build_release: checkout_release clean $(subst dist,releases/${RELEASE},$(DIST)) checkout_master
+build_release: checkout_release clean $(subst dist,releases/${RELEASE},$(DIST)) docs/index.html checkout_master
 checkout_release:
 	git checkout v${RELEASE}
 label_release:

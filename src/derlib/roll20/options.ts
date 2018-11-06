@@ -24,6 +24,10 @@ export class Options extends ConfigurationEventHandler {
     @common('PLUGIN')
     debug: ConfigurationBoolean = new ConfigurationBoolean(false);
 
+    // enable or disable response messages from commands
+    @common('PLUGIN')
+    verbose: ConfigurationBoolean = new ConfigurationBoolean(false);
+    
     // mixins will add additional fields here once we get initialization working
     // [key: string]: any;
 }
