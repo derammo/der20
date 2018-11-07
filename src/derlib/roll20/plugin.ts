@@ -16,6 +16,8 @@ declare function playerIsGM(playerid: string): boolean;
 
 // from our wrapper
 declare var der20Mode: string | undefined;
+declare var der20ScriptBeginningOffset: number;
+declare var der20ScriptFileName: string;
 
 // if we add more events, we need to repeat declaration overrides here:
 // declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
@@ -59,9 +61,10 @@ class Plugin<T> {
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
 
-        // uncomment the following line to enable debug logging
-        // debug.log = console.log;
-        // REVISIT make this a plugin option that is always supported, and parse ahead for it in the json during restoreConfiguration
+        // report errors to GM
+        this.work.errorHandler = (error: Error) => {
+            this.handleWorkError(error);
+        }
 
         // Configure work priorities, from most urgent to least urgent.  WARNING: do not set concurrency on the commands level to 
         // anything greater than 1,because ordering matters at that level.
@@ -309,6 +312,37 @@ class Plugin<T> {
                 return Promise.resolve();
             });
         }
+    }
+
+    private handleWorkError(error: Error) {
+        let frames = error.stack;
+        let remappedFrames = [];
+        if (frames !== undefined) {
+            console.log('stack trace (please include in filed bugs):');
+            const fileNameAndLine = /apiscript.js:(\d+)/;
+            for (let line of frames.split('\n')) {
+                let remapped = line;
+                const match = line.match(fileNameAndLine);
+                if (match) {
+                    remapped = line.replace(fileNameAndLine, `${der20ScriptFileName}:${parseInt(match[1], 10) - der20ScriptBeginningOffset}`);
+                }
+                console.log(remapped);
+                remappedFrames.push(remapped);
+            }
+        }
+        let dialog = new Der20Dialog('');
+        dialog.addTitle(`Error from: ${this.name}`);
+        dialog.beginControlGroup()
+        for (let frame of remappedFrames) {
+            dialog.addTextLine(frame);
+        }
+        dialog.addSeparator();
+        let title = encodeURIComponent(`[${this.name}] error: ${error.message}`);
+        let body = encodeURIComponent(remappedFrames.join('\n'));
+        // REVISIT: have build stamp actual repo used into the dialog generated
+        dialog.addExternalLinkButton('File Bug on Github.com', `https://github.com/derammo/der20/issues/new?title=${title}&body=${body}`);
+        dialog.endControlGroup();
+        sendChat(this.name, `/w GM ${dialog.render()}`, null, { noarchive: true });
     }
 
     // work function called when processing a command, may be asynchronous
