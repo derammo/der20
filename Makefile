@@ -6,6 +6,7 @@ SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(SCRIPTS))
 DIST := $(patsubst %,dist/der20_%.js,$(PLUGINS))
 HELP_JSON := $(patsubst %,build/%_help.json,$(PLUGINS))
+LICENSE_LENGTH := $(word 1, $(shell wc -l LICENSE))
 
 .PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts documentation
 .PRECIOUS: build/%.js src/%/tsconfig.json
@@ -16,10 +17,10 @@ scripts: $(patsubst %,build/%.js,$(SCRIPTS))
 theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
-dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt Makefile
+dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt Makefile LICENSE
 	@mkdir -p dist
 	@rm -f $@
-	@cat include/header.js.txt > $@
+	@sed -e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' -e 's/DER20_MAGIC_FILE_NAME/der20_$*.js/g' < include/header.js.txt > $@
 	@sed -e 's/    Object\.defineProperty(.*);$$/    \/\/ local module initialized by embedded loader below/' < $< >> $@
 	@cat include/trailer.js.txt >> $@
 	@chmod 444 $@

@@ -1,3 +1,7 @@
+// from our wrapper
+declare var der20ScriptBeginningOffset: number;
+declare var der20ScriptFileName: string;
+
 class Task<T> {
     // if set this represents async work we already started, otherwise it will be created via work function
     promise: Promise<T>;
@@ -81,8 +85,14 @@ export class PromiseQueue {
                 let frames = err.stack;
                 if (frames !== undefined) {
                     console.log('stack trace (please include in filed bugs):');
+                    const fileNameAndLine = /apiscript.js:(\d+)/;
                     for (let line of frames.split('\n')) {
-                        console.log(line);
+                        let remapped = line;
+                        const match = line.match(fileNameAndLine);
+                        if (match) {
+                            remapped = line.replace(fileNameAndLine, `${der20ScriptFileName}:${parseInt(match[1], 10) - der20ScriptBeginningOffset}`);
+                        }
+                        console.log(remapped);
                     }
                 }
                 task.promise = Promise.reject(err.message);

@@ -1,4 +1,16 @@
 (function() {
+    var der20ScriptBeginningOffset = function() {
+        const match = new Error('beginning of file marker on line 3').stack.match(/apiscript.js:(\d+)/);
+        const markerLine = parseInt(match[1], 10);
+        // adjust for license file and 2 version string lines
+        let preambleLength = DER20_MAGIC_LICENSE_TEXT_LENGTH + 2;
+        if (markerLine < preambleLength) {
+            // license file is not prepended yet and we are running alone for testing
+            return markerLine - 3;
+        }
+        return markerLine - (3 + preambleLength);
+    }();
+    var der20ScriptFileName = 'DER20_MAGIC_FILE_NAME';
     var der20Mode = 'roll20';
     let console = { 
         log: ((message) => {
