@@ -77,13 +77,13 @@ export class PromiseQueue {
             debug.log(`scheduler debug: executing work from queue '${queue.name}'`);
             try {
                 task.promise = task.work();
-            } catch (err) {
-                console.log(`error caught from work function: ${err.message}`);
-                task.promise = Promise.reject(err.message);
+            } catch (error) {
+                console.log(`error caught from work function on queue '${queue.name}': ${error.message}`);
+                task.promise = Promise.reject(error);
 
                 // notify external error observer, if any
                 if (this.errorHandler !== undefined) {
-                    this.errorHandler(err);
+                    this.errorHandler(error);
                 }
             }
         }
@@ -94,8 +94,12 @@ export class PromiseQueue {
                     task.handler(value);
                 }
             })
-            .catch((reason) => {
-                debug.log(`scheduler debug: failed work on queue '${queue.name}'`);
+            .catch((error) => {
+                console.log(`failed asynchronous work on queue '${queue.name}': ${error.message}`);
+                // notify external error observer, if any
+                if (this.errorHandler !== undefined) {
+                    this.errorHandler(error);
+                }
             })
             .then(() => {
                 queue.running--;

@@ -63,7 +63,7 @@ class Plugin<T> {
 
         // report errors to GM
         this.work.errorHandler = (error: Error) => {
-            this.handleWorkError(error);
+            this.handleErrorThrown(error);
         }
 
         // Configure work priorities, from most urgent to least urgent.  WARNING: do not set concurrency on the commands level to 
@@ -231,7 +231,7 @@ class Plugin<T> {
 
                 // once all fetches are complete, we can retry the command
                 this.work.scheduleWork(this.levels.retries, () => {
-                    this.parserRetry(context);
+                    this.dispatchCommand(context);
                     return Promise.resolve();
                 });
                 break;
@@ -247,12 +247,6 @@ class Plugin<T> {
             };
             this.work.trackPromise(level, promisesMap[asyncVariable], handler);
         }
-    }
-
-    parserRetry(context: PluginParserContext) {
-        debug.log('parser retry');
-        let result = ConfigurationParser.parse(context.rest, this.configurationRoot, context);
-        this.handleParserResult(context, result);
     }
 
     saveConfiguration() {
@@ -314,9 +308,9 @@ class Plugin<T> {
         }
     }
 
-    private handleWorkError(error: Error) {
+    private handleErrorThrown(error: Error, context?: PluginParserContext) {
         let frames = error.stack;
-        let remappedFrames = [];
+        let bodyText = [];
         if (frames !== undefined) {
             console.log('stack trace (please include in filed bugs):');
             const fileNameAndLine = /apiscript.js:(\d+)/;
@@ -327,28 +321,49 @@ class Plugin<T> {
                     remapped = line.replace(fileNameAndLine, `${der20ScriptFileName}:${parseInt(match[1], 10) - der20ScriptBeginningOffset}`);
                 }
                 console.log(remapped);
-                remappedFrames.push(remapped);
+                bodyText.push(remapped);
             }
         }
         let dialog = new Der20Dialog('');
+        let titleText = `[${this.name}] error: ${error.message}`;
         dialog.addTitle(`Error from: ${this.name}`);
+        dialog.addSubTitle('Stack Trace:');
         dialog.beginControlGroup()
-        for (let frame of remappedFrames) {
+        for (let frame of bodyText) {
             dialog.addTextLine(frame);
         }
+        dialog.endControlGroup();
         dialog.addSeparator();
-        let title = encodeURIComponent(`[${this.name}] error: ${error.message}`);
-        let body = encodeURIComponent(remappedFrames.join('\n'));
+        if (context !== undefined) {
+            dialog.addSubTitle('Command Executed:');
+            dialog.beginControlGroup()
+            let line = `${context.command} ${context.rest}`;
+            titleText = `[${this.name}] error: ${error.message} on: ${line}`;
+            bodyText.push(`command executed: ${line}`);
+            dialog.addTextLine(line);
+            for (let async of Object.keys(context.asyncVariables)) {
+                line = `${async}: ${context.asyncVariables[async]}`;
+                bodyText.push(line);
+                dialog.addTextLine(line);
+            }
+            dialog.endControlGroup();           
+            dialog.addSeparator();
+        }
+        let title = encodeURIComponent(titleText);
+        let body = encodeURIComponent(bodyText.join('\n'));
         // REVISIT: have build stamp actual repo used into the dialog generated
         dialog.addExternalLinkButton('File Bug on Github.com', `https://github.com/derammo/der20/issues/new?title=${title}&body=${body}`);
-        dialog.endControlGroup();
         sendChat(this.name, `/w GM ${dialog.render()}`, null, { noarchive: true });
     }
 
     // work function called when processing a command, may be asynchronous
     private dispatchCommand(context: PluginParserContext) {
-        let result = ConfigurationParser.parse(context.rest, this.configurationRoot, context);
-        this.handleParserResult(context, result);
+        try {
+            let result = ConfigurationParser.parse(context.rest, this.configurationRoot, context);
+            this.handleParserResult(context, result);
+        } catch (error) {
+            this.handleErrorThrown(error, context);
+        }
     }
 
     private hookChatMessage() {
