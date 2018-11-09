@@ -4,7 +4,6 @@ import { TimerCommand } from './timer_command';
 import { ClearCommand } from './clear_command';
 import { SendCommand } from './send_command';
 import { ShowCommand } from './show_command';
-import { Der20Dialog } from 'derlib/roll20/dialog';
 import { ConfigurationArray, ConfigurationChooser } from 'derlib/config/array';
 import { ConfigurationDeleteItemCommand } from 'derlib/config/deleteitem';
 import { ConfigurationAlias } from 'derlib/config/alias';
@@ -48,8 +47,8 @@ export class Configuration {
     delete: DeleteCommands = new DeleteCommands(this.define, this.options);
 
     // current session objects initialized from from definitions
-    dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms, Der20Dialog, 'dm');
-    module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules, Der20Dialog, 'module');
+    dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms, 'dm');
+    module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules, 'module');
 
     // commands
     start: TimerCommand = new TimerCommand(this.module, 'start');

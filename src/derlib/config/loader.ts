@@ -1,5 +1,6 @@
 import { ConfigurationStep } from './atoms';
 import { LoaderContext } from './context';
+import { ConfigurationEventHandler } from './parser';
 
 export class ConfigurationLoader {
     static restore(from: any, to: any, context: LoaderContext): void {
@@ -24,6 +25,10 @@ export class ConfigurationLoader {
             } else {
                 console.log(`ignoring JSON property '${key}' that does not appear in configuration tree`);
             }
+        }
+        // trigger all change listeners
+        if (to instanceof ConfigurationEventHandler) {
+            to.handleLoaded();
         }
     }
 }

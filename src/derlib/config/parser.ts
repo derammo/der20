@@ -11,12 +11,6 @@ export function keyword(keywordToken: string): PropertyDecoratorFunction {
 }
 
 export class ConfigurationParser {
-    // this string will be substituted for the command currently executed by the caller
-    static readonly MAGIC_COMMAND_STRING: string = 'DER20_MAGIC_COMMAND_STRING';
-
-    // this string will be substituted for the currently running plugin's name
-    static readonly MAGIC_PLUGIN_STRING: string = 'DER20_MAGIC_PLUGIN_STRING';
-
     // returns first word and rest of line as array
     static tokenizeFirst(line: string) {
         let clean = line.trim();
@@ -46,6 +40,9 @@ export class ConfigurationParser {
             if (keywordToken.length > 0) {
                 return new Result.Failure(new Error(`token '${keywordToken}' did not match any configuration command`));
             }
+
+            // XXX check if 'configuration' has handler to create UI or otherwise handle
+            // the end of a configuration command that does not hit a ConfigurationStep
 
             // empty token was claimed by no item, that is ok
             return result;
@@ -130,11 +127,15 @@ export class ConfigurationParser {
 export class ConfigurationEventHandler {
     private handlers: ConfigurationEventHandler.SourceMap = new ConfigurationEventHandler.SourceMap();
 
+    // register handler for specified event occurring anywhere under keyword 'source' relative
+    // to configuration node 'this'
     addTrigger(source: string, event: Result.Event, update: ConfigurationUpdate.Base): void {
         let eventMap = this.handlers.get(source);
         eventMap.events[event].push(update);
     }
 
+    // handle events that occurred during execution of a command with token 'source' 
+    // under configuration node 'this'
     handleEvents(source: string, context: ParserContext, result: Result.Any): Result.Any {
         let listeners: ConfigurationEventHandler.EventMap = this.handlers.fetch(source);
         if (listeners === undefined) {
@@ -145,13 +146,22 @@ export class ConfigurationEventHandler {
             // process all handlers[event] until one changes the result to a failure
             for (let handler of listeners.events[event]) {
                 debug.log(`handling configuration event of type '${event}'`);
-                let handlerResult = handler.execute(this, context, result);
+                let handlerResult = handler.execute(this, result);
                 if (handlerResult.kind === Result.Kind.Failure) {
                     return handlerResult;
                 }
             }
         }
         return result;
+    }
+
+    // fire all change events after restoring from JSON
+    handleLoaded(): void {
+        for (let listeners of this.handlers.all()) {
+            for (let handler of listeners.events[Result.Event.Change]) {
+                handler.execute(this, new Result.Success('configuration restored'));
+            }
+        }
     }
 }
 
@@ -177,8 +187,12 @@ export namespace ConfigurationEventHandler {
             return item;
         }
 
-        fetch(source: string) {
+        fetch(source: string): ConfigurationEventHandler.EventMap | undefined {
             return this.sources[source];
+        }
+
+        all(): ConfigurationEventHandler.EventMap[] {
+            return Object.keys(this.sources).map((key) => { return this.sources[key]; });
         }
     }
 
@@ -191,7 +205,7 @@ export namespace ConfigurationUpdate {
     // WARNING: descendants of this class must not maintain direct references to config objects because
     // these items are shared by all clones of the config subtree
     export abstract class Base {
-        abstract execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any;
+        abstract execute(configuration: any, result: Result.Any): Result.Any;
     }
 
     export class Default<SOURCE, TARGET> extends Base {
@@ -199,7 +213,7 @@ export namespace ConfigurationUpdate {
             super();
         }
 
-        execute(configuration: SOURCE, context: ParserContext, result: Result.Any): Result.Any {
+        execute(configuration: SOURCE, result: Result.Any): Result.Any {
             let value = this.calculator.apply(configuration);
             // XXX can this be made type safe?
             let walk: any = configuration;

@@ -1,8 +1,6 @@
 import { ConfigurationCommand, ConfigurationStep } from './atoms';
 import { ParserContext } from './context';
 import { Result } from './result';
-import { Der20Dialog } from 'derlib/roll20/dialog';
-import { ConfigurationParser } from './parser';
 import { Der20Meta, PropertyDecoratorFunction, Validator } from './meta';
 import { DefaultConstructed } from '../utility';
 
@@ -25,7 +23,7 @@ export class HelpCommand extends ConfigurationCommand {
 
     private helpItems: { plugin: string; command: string; format?: string; description?: string; validation?: string; common?: string }[] = [];
 
-    constructor(configurationRoot: any) {
+    constructor(private pluginName: string, configurationRoot: any) {
         super();
         this.enumerate('', configurationRoot);
         this.helpItems.sort((left, right) => {
@@ -99,7 +97,7 @@ export class HelpCommand extends ConfigurationCommand {
                     validationText = validation.humanReadable;
                 }
                 this.helpItems.push({
-                    plugin: ConfigurationParser.MAGIC_PLUGIN_STRING,
+                    plugin: this.pluginName,
                     command: command,
                     format: dataFormat,
                     description: humanReadable,
@@ -118,7 +116,7 @@ export class HelpCommand extends ConfigurationCommand {
     }
 
     parse(line: string, context: ParserContext): Result.Any {
-        let dialog = new Der20Dialog(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
+        let dialog = new context.dialog(`${context.command} `);
         for (let item of this.helpItems) {
             dialog.beginControlGroup();
             if (item.format) {

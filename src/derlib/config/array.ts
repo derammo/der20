@@ -12,7 +12,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
     classType: DefaultConstructed<T>;
     keyword: string;
 
-    constructor(singularName: string, itemClass: DefaultConstructed<T>) {
+    constructor(singularName: string, itemClass: DefaultConstructed<T>, private dialogFactory?: DialogFactory) {
         super([], 'ID');
         this.classType = itemClass;
         this.keyword = singularName;
@@ -80,6 +80,9 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let id: string = tokens[0];
         if (id.length < 1) {
+            if (this.dialogFactory !== undefined) {
+                return this.createItemChoiceDialog(context);
+            }
             return new Result.Failure(new Error('interactive selection from array is unimplemented'));
         }
         let index = this.findItem(id);
@@ -104,6 +107,16 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         }
         return copied;
     }
+
+    private createItemChoiceDialog(context: ParserContext): Result.Dialog {
+        // we don't know what command word was used to call us, so we let the caller fix it up
+        let dialog = new this.dialogFactory(`${context.command} `);
+        dialog.addTitle(`Selection for '${this.keyword}'`);
+        dialog.addSeparator();
+        dialog.addSubTitle('Please choose an item:');
+        dialog.addChoiceControlGroup(this.keyword, context.rest, this.current, '');
+        return new Result.Dialog(Result.Dialog.Destination.Caller, dialog.render());
+    }
 }
 
 export class ConfigurationChooser<T extends CollectionItem> extends ConfigurationStep<T> {
@@ -114,12 +127,10 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     array: ConfigurationArray<T>;
     selectedId: string;
     path: string;
-    dialogFactory: DialogFactory;
 
-    constructor(array: ConfigurationArray<T>, dialogFactory: DialogFactory, path: string) {
+    constructor(array: ConfigurationArray<T>, path: string) {
         super(ConfigurationStep.NO_VALUE, 'ID/current');
         this.array = array;
-        this.dialogFactory = dialogFactory;
         this.path = path;
     }
 
@@ -148,9 +159,9 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         return this.array.classType;
     }
 
-    private createChooserDialog(rest: string): Result.Dialog {
+    private createChooserDialog(rest: string, context: ParserContext): Result.Dialog {
         // we don't know what command word was used to call us, so we let the caller fix it up
-        let dialog = new this.dialogFactory(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
+        let dialog = new context.dialog(`${context.command} `);
         dialog.addTitle(`Selection for '${this.path}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:');
@@ -168,7 +179,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         }
         if (this.array.current.length > 1) {
             // present interactive chooser
-            return this.createChooserDialog(rest);
+            return this.createChooserDialog(rest, context);
         }
         if (this.array.current.length === 1) {
             // auto select only defined item, if any

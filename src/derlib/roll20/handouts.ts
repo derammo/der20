@@ -1,6 +1,6 @@
 import { ConfigurationBoolean } from "derlib/config/atoms";
 import { ConfigurationEventHandler, ConfigurationParser, ConfigurationUpdate } from "derlib/config/parser";
-import { ConfigurationSource, LoaderContext, ParserContext } from "derlib/config/context";
+import { ConfigurationSource, LoaderContext } from "derlib/config/context";
 import { Options } from "./options";
 import { Result } from "derlib/config/result";
 import { addExtension, PluginLoaderContext } from "./plugin";
@@ -82,7 +82,7 @@ class HandoutsOptionChange extends ConfigurationUpdate.Base {
         // generated code
     }
 
-    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+    execute(configuration: any, result: Result.Any): Result.Any {
         if (configuration instanceof HandoutsOptions) {
             this.target.handouts.configure(configuration);
 

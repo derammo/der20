@@ -1,4 +1,5 @@
 import { Result } from "./result";
+import { DialogFactory } from "derlib/ui";
 
 export interface ConfigurationContext {
 
@@ -32,6 +33,9 @@ export namespace ConfigurationSource {
 export interface ParserContext {
     asyncVariables: Record<string, any>;
     source: ConfigurationSource.Any;
+    command: string;
+    rest: string;
+    dialog: DialogFactory;
 }
 
 export interface ConfigurationParsing {

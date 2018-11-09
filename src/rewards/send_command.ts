@@ -1,5 +1,4 @@
 import { RenderCommand } from './show_command';
-import { Der20Dialog } from 'derlib/roll20/dialog';
 import { Result } from 'derlib/config/result';
 import { ConfigurationChooser } from 'derlib/config/array';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
@@ -22,7 +21,7 @@ export class SendCommand extends RenderCommand {
     parse(line: string, context: ParserContext): Result.Any {
         this.tryLoad(context);
 
-        let dialog = new Der20Dialog('!rewards ');
+        let dialog = new context.dialog(`${context.command} `);
         let destination = Result.Dialog.Destination.Caller;
 
         let module = this.module.current;

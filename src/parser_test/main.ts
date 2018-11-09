@@ -7,7 +7,6 @@ import { Configuration } from "../rewards/configuration";
 import { exec, ExecException } from 'child_process';
 
 // libs
-import { Der20Dialog } from "derlib/roll20/dialog";
 import { startPersistence } from "derlib/persistence";
 import { Result } from "derlib/config/result";
 import { Options } from "derlib/roll20/options";
@@ -15,10 +14,15 @@ import { ConfigurationParser } from "derlib/config/parser";
 import { ConfigurationLoader } from "derlib/config/loader";
 import { LoaderContext, ConfigurationSource, ParserContext } from "derlib/config/context";
 import { HelpCommand } from "derlib/config/help";
+import { Der20ChatDialog } from "derlib/roll20/dialog";
+import { DialogFactory } from "derlib/ui";
 
 class MockContext implements LoaderContext, ParserContext {
+	command: string;
+	rest: string;
 	asyncVariables: Record<string, any> = {};
 	source: ConfigurationSource.Any = new ConfigurationSource.Journal('test', 'main');
+	dialog: DialogFactory = Der20ChatDialog;
 
 	addCommand(source: ConfigurationSource.Any, command: string): void {
 		throw new Error("Method not implemented.");
@@ -32,7 +36,7 @@ class MockContext implements LoaderContext, ParserContext {
 }
 
 let configurationRoot: any = new Configuration();
-configurationRoot.help = new HelpCommand(configurationRoot);
+configurationRoot.help = new HelpCommand('parser_test', configurationRoot);
 let persistence = startPersistence('parser_test');
 let json = persistence.load();
 ConfigurationLoader.restore(json, configurationRoot, new MockContext());
@@ -126,7 +130,7 @@ dm ammo
 module ddal08-74`;
 
 export function testRun(): string {
-	let dialog = new Der20Dialog('!rewards ');
+	let dialog = new Der20ChatDialog('!rewards ');
 	dialog.addButton("First", "command param param|?{Value}");
 	return dialog.render();
 }

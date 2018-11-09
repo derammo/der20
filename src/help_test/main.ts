@@ -5,9 +5,9 @@ import { Result } from 'derlib/config/result';
 
 export function testDialog() {
     let configuration = new Configuration();
-    let help = new HelpCommand(configuration);
+    let help = new HelpCommand('rewards', configuration);
     let result = help.parse('', new PluginParserContext('help', ''));
-    return (<Result.Dialog>result).dialog.replace(/DER20_MAGIC_PLUGIN_STRING/g, 'rewards');
+    return (<Result.Dialog>result).dialog;
 }
 
 console.log(testDialog());

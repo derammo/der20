@@ -11,14 +11,14 @@ import { Dialog } from 'derlib/ui';
 import { ConfigurationEnumerated } from 'derlib/config/enum';
 
 // styling and layout based on https://github.com/RobinKuiper/Roll20APIScripts, with thanks
-export class Der20Dialog implements Dialog {
+export class Der20ChatDialog implements Dialog {
     text: string[] = [];
     commandPrefix: string;
     static readonly dialogStyle: string = 'margin-top: 0.5em; overflow: hidden; border: 1px solid Black; padding: 5px; border-radius: 5px;';
     static readonly buttonBaseStyle: string =
         'min-width: 6em; text-decoration: none; background-color: White; border: 1px solid #eeeeee; border-radius: 3px; padding-left: 5px; padding-right: 5px; padding-top: 0px; padding-bottom: 0px; text-align: center; float: right;';
-    static readonly buttonStyle: string = Der20Dialog.buttonBaseStyle + 'color: Black;';
-    static readonly defaultedButtonStyle: string = Der20Dialog.buttonBaseStyle + 'color: #aaaaaa;';
+    static readonly buttonStyle: string = Der20ChatDialog.buttonBaseStyle + 'color: Black;';
+    static readonly defaultedButtonStyle: string = Der20ChatDialog.buttonBaseStyle + 'color: #aaaaaa;';
     static readonly commandStyle: string =
         'text-decoration: none; background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;';
     static readonly externalLinkButtonStyle: string =
@@ -31,11 +31,11 @@ export class Der20Dialog implements Dialog {
 
     constructor(commandPrefix: string) {
         this.commandPrefix = commandPrefix;
-        this.text.push(`<div style="${Der20Dialog.dialogStyle}">`);
+        this.text.push(`<div style="${Der20ChatDialog.dialogStyle}">`);
     }
 
     beginControlGroup() {
-        this.text.push(`<ul style="${Der20Dialog.groupStyle}">`);
+        this.text.push(`<ul style="${Der20ChatDialog.groupStyle}">`);
     }
 
     endControlGroup() {
@@ -43,16 +43,16 @@ export class Der20Dialog implements Dialog {
     }
 
     addButton(label: string, target: string) {
-        this.text.push(`<a style="${Der20Dialog.buttonStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
+        this.text.push(`<a style="${Der20ChatDialog.buttonStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
     }
 
     private addDefaultedButton(label: string, target: string) {
-        this.text.push(`<a style="${Der20Dialog.defaultedButtonStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
+        this.text.push(`<a style="${Der20ChatDialog.defaultedButtonStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
     }
 
     addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>) {
-        this.text.push(`<li style="${Der20Dialog.itemStyle}">`);
-        this.text.push(`<span style="${Der20Dialog.labelStyle}">${label}</span>`);
+        this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+        this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${label}</span>`);
         let text: string = '';
         let link: string = '';
         if (config instanceof ConfigurationString) {
@@ -77,7 +77,7 @@ export class Der20Dialog implements Dialog {
             text = this.getStringText((<ConfigurationEnumerated>config).value());
             let choices = (<ConfigurationEnumerated>config).choices().map((value) => {
                 if (value.length < 1) {
-                    return `${Der20Dialog.undefinedLabel},`;
+                    return `${Der20ChatDialog.undefinedLabel},`;
                 }
                 return `${value},${value}`;
             }).join('|');
@@ -92,34 +92,34 @@ export class Der20Dialog implements Dialog {
     }
 
     addTextLine(label: string) {
-        this.text.push(`<li style="${Der20Dialog.itemStyle}">`);
+        this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
         this.text.push(label);
         this.text.push('</li>');
     }
 
     addIndentedTextLine(label: string) {
-        this.text.push(`<li style="${Der20Dialog.itemStyle} margin-left: 3em;">`);
+        this.text.push(`<li style="${Der20ChatDialog.itemStyle} margin-left: 3em;">`);
         this.text.push(label);
         this.text.push('</li>');
     }
 
     getStringText(value: string) {
         if (value === ConfigurationStep.NO_VALUE) {
-            return Der20Dialog.undefinedLabel;
+            return Der20ChatDialog.undefinedLabel;
         }
         return value;
     }
 
     getNumberText<T>(value: T) {
         if (value === ConfigurationStep.NO_VALUE) {
-            return Der20Dialog.undefinedLabel;
+            return Der20ChatDialog.undefinedLabel;
         }
         return `${value}`;
     }
 
     getDateText(value: number) {
         if (value === ConfigurationStep.NO_VALUE) {
-            return Der20Dialog.undefinedLabel;
+            return Der20ChatDialog.undefinedLabel;
         }
         return new Date(value).toUTCString();
     }
@@ -127,8 +127,8 @@ export class Der20Dialog implements Dialog {
     addChoiceControlGroup(label: string, prefix: string, choices: CollectionItem[], suffix: string): void {
         this.beginControlGroup();
         for (let choice of choices) {
-            this.text.push(`<li style="${Der20Dialog.itemStyle}">`);
-            this.text.push(`<span style="${Der20Dialog.labelStyle}">${choice.name.value()}</span>`);
+            this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+            this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${choice.name.value()}</span>`);
             let link: string = `${prefix} ${choice.id} ${suffix}`;
             this.addButton(choice.id.substr(0, 10), link);
             this.text.push('</li>');
@@ -137,11 +137,11 @@ export class Der20Dialog implements Dialog {
     }
 
     addCommand(label: string, target: string) {
-        this.text.push(`<a style="${Der20Dialog.commandStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
+        this.text.push(`<a style="${Der20ChatDialog.commandStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
     }
 
     addExternalLinkButton(label: string, target: string) {
-        this.text.push(`<a style="${Der20Dialog.externalLinkButtonStyle}", href="${target}">${label}</a>`);
+        this.text.push(`<a style="${Der20ChatDialog.externalLinkButtonStyle}", href="${target}">${label}</a>`);
     }
 
     addTitle(label: string) {
@@ -153,7 +153,7 @@ export class Der20Dialog implements Dialog {
     }
 
     addSeparator() {
-        this.text.push(`<hr style='${Der20Dialog.separatorStyle}'>`);
+        this.text.push(`<hr style='${Der20ChatDialog.separatorStyle}'>`);
     }
 
     render() {

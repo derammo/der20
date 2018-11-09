@@ -1,7 +1,6 @@
 import { ConfigurationCommand } from 'derlib/config/atoms';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
-import { Der20Dialog } from 'derlib/roll20/dialog';
 import { Result } from 'derlib/config/result';
 import { ConfigurationChooser } from 'derlib/config/array';
 import { ParserContext } from 'derlib/config/context';
@@ -48,7 +47,7 @@ export class ShowCommand extends RenderCommand {
             default:
                 return result;
         }
-        let dialog = new Der20Dialog('!rewards-show ');
+        let dialog = new context.dialog('!rewards-show ');
         dialog.addTitle('Log Entry for Current Session');
         dialog.addSeparator();
         dialog.addSubTitle('DM');

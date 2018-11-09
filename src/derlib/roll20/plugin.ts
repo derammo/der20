@@ -2,14 +2,15 @@ import { Result } from 'derlib/config/result';
 import { startPersistence } from 'derlib/persistence';
 import { ConfigurationPersistence } from 'derlib/config/persistence';
 import { ConfigurationParser, ConfigurationUpdate } from 'derlib/config/parser';
-import { ConfigurationCommand } from 'derlib/config/atoms';
-import { Der20Dialog } from './dialog';
+import { ConfigurationCommand, ConfigurationStep } from 'derlib/config/atoms';
 import { DefaultConstructed } from 'derlib/utility';
 import { ConfigurationLoader } from 'derlib/config/loader';
 import { ConfigurationSource,  ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
 import { PromiseQueue } from 'derlib/promise';
 import { HelpCommand, common } from 'derlib/config/help';
 import { Options } from './options';
+import { DialogFactory } from 'derlib/ui';
+import { Der20ChatDialog } from './dialog';
 
 // from Roll20, missing in types file 
 declare function playerIsGM(playerid: string): boolean;
@@ -97,7 +98,7 @@ class Plugin<T> {
 
         // add help command
         if (this.configurationRoot.help === undefined) {
-            this.configurationRoot.help = new HelpCommand(this.configurationRoot);
+            this.configurationRoot.help = new HelpCommand(this.name, this.configurationRoot);
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'help');
         }
     }
@@ -105,8 +106,8 @@ class Plugin<T> {
     start() {
         if (der20Mode === 'help generator') {
             // help generator mode is called from build system to emit command list as JSON
-            let help = new HelpCommand(this.configurationRoot);
-            process.stdout.write(JSON.stringify(help.generated()).replace(new RegExp(ConfigurationParser.MAGIC_PLUGIN_STRING, 'g'), `${this.name}`));
+            let help = new HelpCommand(this.name, this.configurationRoot);
+            process.stdout.write(JSON.stringify(help.generated()));
             return;
         }
 
@@ -195,33 +196,31 @@ class Plugin<T> {
                 break;
             case Result.Kind.Dialog:
                 if (context.source.kind !== ConfigurationSource.Kind.Api) {
-                    debug.log(`error: dialog generated for non-interactive configuration command '${context.rest}; ignored`);
+                    debug.log(`error: dialog generated for non-interactive configuration command '${context.command} ${context.rest}; ignored`);
                     break;
                 }
                 let source = <ConfigurationSource.Api>context.source;
                 let dialogResult = <Result.Dialog>result;
-                let dialog = dialogResult.dialog
-                    .replace(new RegExp(ConfigurationParser.MAGIC_COMMAND_STRING, 'g'), context.command)
-                    .replace(new RegExp(ConfigurationParser.MAGIC_PLUGIN_STRING, 'g'), this.name);
-                debug.log(`dialog from parse: ${dialog.substr(0, 16)}...`);
+                debug.log(`dialog from parse: ${dialogResult.dialog.substr(0, 16)}...`);
                 switch (dialogResult.destination) {
                     case Result.Dialog.Destination.All:
                     case Result.Dialog.Destination.AllPlayers:
-                        sendChat(this.name, `${dialog}`, null);
+                        sendChat(this.name, `${dialogResult.dialog}`, null);
                         break;
                     case Result.Dialog.Destination.Caller:
-                        sendChat(this.name, `/w "${source.player.get('_displayname')}" ${dialog}`, null, { noarchive: true });
+                        sendChat(this.name, `/w "${source.player.get('_displayname')}" ${dialogResult.dialog}`, null, { noarchive: true });
                         break;
                     default:
-                        sendChat(this.name, `/w GM ${dialog}`, null, { noarchive: true });
+                        sendChat(this.name, `/w GM ${dialogResult.dialog}`, null, { noarchive: true });
                 }
                 break;
             case Result.Kind.Success:
                 // REVISIT: make this a generic feature to allow additional commands to trigger follow ups
-                if (context.command.endsWith('-show')) {
+                if (context.command.endsWith('-show') && (context.source.kind === ConfigurationSource.Kind.Api)) {
                     // execute show action after executing command, used in interactive dialogs to
                     // render the new state of the dialog
-                    let showResult = this.configurationRoot.show.parse('');
+                    const show: ConfigurationStep<any> = <ConfigurationStep<any>>(this.configurationRoot.show);
+                    let showResult = show.parse('', context);
                     return this.handleParserResult(context, showResult);
                 }
                 break;
@@ -324,7 +323,7 @@ class Plugin<T> {
                 bodyText.push(remapped);
             }
         }
-        let dialog = new Der20Dialog('');
+        let dialog = new Der20ChatDialog('');
         let titleText = `[${this.name}] error: ${error.message}`;
         dialog.addTitle(`Error from: ${this.name}`);
         dialog.addSubTitle('Stack Trace:');
@@ -470,8 +469,8 @@ export function addExtension<B, E>(extension: DefaultConstructed<E>, base?: Defa
 }
 
 export class DumpCommand extends ConfigurationCommand {
-    parse(line: string): Result.Any {
-        let dialog = new Der20Dialog(`${ConfigurationParser.MAGIC_COMMAND_STRING} `);
+    parse(line: string, context: ParserContext): Result.Any {
+        let dialog = new context.dialog(`${context.command} `);
         dialog.beginControlGroup();
         dialog.addTextLine(JSON.stringify(plugin.configurationRoot));
         dialog.addTextLine(JSON.stringify(plugin.work));
@@ -520,6 +519,7 @@ export class PluginLoaderContext extends ContextBase implements LoaderContext {
 export class PluginParserContext extends ContextBase implements ParserContext {
     source: ConfigurationSource.Any;
     asyncVariables: Record<string, any> = {};
+    dialog: DialogFactory = Der20ChatDialog;
 
     constructor(public command: string, public rest: string) {
         super();
@@ -537,7 +537,7 @@ export class PluginCommandExecution extends PluginParserContext {
 }
 
 abstract class OptionsUpdate extends ConfigurationUpdate.Base {
-    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+    execute(configuration: any, result: Result.Any): Result.Any {
         this.readOptions(<Options>configuration);
         return result;
     }

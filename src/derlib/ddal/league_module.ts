@@ -6,7 +6,6 @@ import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
 import { ConfigurationArray } from 'derlib/config/array';
 import { ConfigurationEnumerated } from 'derlib/config/enum';
 import { PlayerCharacters } from './player_characters';
-import { ParserContext } from 'derlib/config/context';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it
@@ -236,7 +235,7 @@ class PlayerScan extends ConfigurationUpdate.Base {
         // generated
     }
 
-    execute(configuration: any, context: ParserContext, result: Result.Any): Result.Any {
+    execute(configuration: any, result: Result.Any): Result.Any {
         configuration.pcs.scan();
         return result;
     }
