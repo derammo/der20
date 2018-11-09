@@ -76,11 +76,6 @@ export class ConfigurationParser {
         return result;
     }
 
-    // determine result, without handling it
-    static parseProperty(tokens: string[], target: any, context: ParserContext): Result.Any {
-        return ConfigurationParser.parse(tokens[1], target, context);
-    }
-
     // route command to configuration object
     static route(keywordToken: string, configuration: any): { target: any; propertyName: string } | undefined {
         // route property that matches the keyword
