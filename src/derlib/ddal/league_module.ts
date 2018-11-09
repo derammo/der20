@@ -112,7 +112,7 @@ export class LeagueModule extends ConfigurationEventHandler {
 
     hourlyTreasure(): number {
         let multiplier = 1;
-        if ((this.tier.value() > 2) && (!this.hardcover.value())) {
+        if ((this.tier.value() > 2) && (!this.hasTierRewardsDifference())) {
             multiplier = 2;
         }
         return multiplier * this.hourlyAdvancement();
@@ -142,11 +142,6 @@ export class LeagueModule extends ConfigurationEventHandler {
         if (hours <= 0.0) {
             // start and stop may not be configured
             return treasure;
-        }
-
-        // hourly rewards count double for tier 3 and 4
-        if ((this.tier.value() > 2) && (!this.hasTierRewardsDifference())) {
-            hours *= 2.0;
         }
 
         // add any hourly treasure, which should be mutually exclusive with checkpoints
@@ -209,6 +204,8 @@ export class LeagueModule extends ConfigurationEventHandler {
         this.addTrigger('season', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
         this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'advancement'], this.hourlyAdvancement));
         this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
+        this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
+        this.addTrigger('level', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
         this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['duration'], this.defaultDuration));
         this.addTrigger('start', Result.Event.Change, new PlayerScan());
     }
