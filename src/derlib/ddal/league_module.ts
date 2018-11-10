@@ -215,9 +215,32 @@ export class LeagueModule implements ConfigurationChangeHandling {
                 break;
             case 'start':
                 this.pcs.scan();
+                this.updateTierFromAPL();
+                break;
+            case 'pc':
+                this.updateTierFromAPL();
                 break;
             default:
                 // ignore
+        }
+    }
+
+    updateTierFromAPL() {
+        if (!this.hardcover.value()) {
+            return;
+        }
+        const apl = this.pcs.averagePartyLevel();
+        let tier = 1;
+        if (apl >= 16.5) {
+            tier = 4;
+        } else if (apl >= 10.5) {
+            tier = 3;
+        } else if (apl >= 4.5) {
+            tier = 2;
+        }
+        this.tier.default = tier;
+        if (!this.tier.hasConfiguredValue()) {
+            this.handleChange('tier');
         }
     }
 }
