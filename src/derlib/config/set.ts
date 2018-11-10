@@ -10,6 +10,10 @@ export class ConfigurationSet extends ConfigurationStep<Set<string>> implements 
     }
 
     toJSON(): any {
+        if (this.current.size === 0) {
+            // don't persist empty set
+            return undefined;
+        }
         return Array.from(this.current.values());
     }
 

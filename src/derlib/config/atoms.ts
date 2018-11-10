@@ -54,6 +54,10 @@ export abstract class ConfigurationCommand extends ConfigurationStep<boolean> {
     constructor() {
         super(ConfigurationStep.NO_VALUE);
     }
+
+    toJSON(): any {
+        return undefined;
+    }
 }
 
 export class ConfigurationString extends ConfigurationStep<string> {

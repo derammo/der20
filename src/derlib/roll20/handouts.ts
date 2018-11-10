@@ -1,10 +1,10 @@
 import { ConfigurationBoolean } from "derlib/config/atoms";
-import { ConfigurationEventHandler, ConfigurationParser, ConfigurationUpdate } from "derlib/config/parser";
+import { ConfigurationParser } from "derlib/config/parser";
 import { ConfigurationSource, LoaderContext } from "derlib/config/context";
 import { Options } from "./options";
-import { Result } from "derlib/config/result";
 import { addExtension, PluginLoaderContext } from "./plugin";
 import { common } from "../config/help";
+import { ConfigurationChangeDelegator } from "derlib/config/events";
 
 declare function on(event: 'change:handout', callback: (current: Handout, previous: Handout) => void): void;
 
@@ -37,9 +37,26 @@ class HandoutsPluginExtension {
 
         // sign up for handouts options reconfigurations
         // REVISIT use keyof somehow to always get the right token here
-        handoutsOptions.addTrigger('journal', Result.Event.Change, new HandoutsOptionChange(this));
-        handoutsOptions.addTrigger('archived', Result.Event.Change, new HandoutsOptionChange(this));    
+        handoutsOptions.onChangeEvent((keyword) => {
+            switch (keyword) {
+                case 'archived':
+                case 'journal':
+                    this.handouts.configure(handoutsOptions);
 
+                    //  we need to get a configuration loader context, so we need to be closely related to the plugin module
+                    let loaderContext = new PluginLoaderContext();
+
+                    // REVISIT: we currently reread all of them even if some were already enabled
+                    this.handouts.readHandouts(loaderContext);
+
+                    // fire any resulting commands at configuration level
+                    this.handleLoaderResults(loaderContext);
+                    break;
+                default:
+                    // ignore
+            }
+        });
+ 
         // read all handouts
         let context = new PluginLoaderContext();
         this.handouts.readHandouts(context);
@@ -75,31 +92,7 @@ class HandoutsPluginExtension {
     }    
 }
 
-
-class HandoutsOptionChange extends ConfigurationUpdate.Base {
-    constructor(private target: HandoutsPluginExtension) {
-        super();
-        // generated code
-    }
-
-    execute(configuration: any, result: Result.Any): Result.Any {
-        if (configuration instanceof HandoutsOptions) {
-            this.target.handouts.configure(configuration);
-
-            //  we need to get a configuration loader context, so we need to be in the plugin module
-            let loaderContext = new PluginLoaderContext();
-
-            // REVISIT: we currently reread all of them even if some were already enabled
-            this.target.handouts.readHandouts(loaderContext);
-
-            // fire any resulting commands at configuration level
-            this.target.handleLoaderResults(loaderContext);
-        }
-        return new Result.Success('handouts options updated');
-    }
-}
-
-export class HandoutsOptions extends ConfigurationEventHandler {
+export class HandoutsOptions extends ConfigurationChangeDelegator {
     @common('PLUGIN')
     journal: ConfigurationBoolean = new ConfigurationBoolean(true);
     @common('PLUGIN')
@@ -109,14 +102,13 @@ export class HandoutsOptions extends ConfigurationEventHandler {
     // to be set in code
     subtrees: string[] = [];
 
-    constructor(public reservedKey: string) {
-        super();
-        // generated code
-    }
-
     toJSON(): any {
-        // do not persist subtrees, which are to be set in code
-        return { journal: this.journal.toJSON(), archived: this.archived.toJSON() };
+        if (this.journal.hasConfiguredValue() || this.archived.hasConfiguredValue()) {
+            // do not persist subtrees, which are to be set in code
+            return { journal: this.journal.toJSON(), archived: this.archived.toJSON() };
+        } 
+        // do not persist if entirely defaulted
+        return undefined;
     }
 }
 
@@ -124,7 +116,6 @@ class Handouts {
     pluginName: string;
     
     // stable config from last update
-    reservedKey: string;
     journal: boolean;
     archived: boolean;
     subtrees: Record<string, any> = {};
@@ -141,7 +132,7 @@ class Handouts {
 
     // permit a subtree to be reconfigured from handouts
     private addSubtree(key: string, configuration: any) {
-        if (key === this.reservedKey) {
+        if (key === Options.pluginOptionsKey) {
             // this would allow for infinite loops on handout configuration and other nonsense
             throw new Error('the static plugin options subtree cannot be configured from handouts');
         }
@@ -154,7 +145,6 @@ class Handouts {
 
     configure(options: HandoutsOptions) {
         // REVISIT: could do smart things based on changes to config
-        this.reservedKey = options.reservedKey;
         this.archived = options.archived.value();
         this.journal = options.journal.value();
     }

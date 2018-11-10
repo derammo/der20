@@ -1,11 +1,18 @@
-// grouping of configuration elements that collapses if all its values are unpopulated
+/**
+ * grouping of configuration elements that collapses if all its values are unpopulated
+ */
 export class ConfigurationIntermediateNode {
-    toJSON(): any {
+    static collapse(target: any): any {
         let result: {[index: string]: any} = {};
         let empty = true;
-        for (let key of Object.keys(this)) {
-            // intentional crash if child element does not define toJSON
-            let child: any = (<any>this)[key];
+        for (let key of Object.keys(target)) {
+            let child: any = target[key];
+            if (typeof child !== 'object') {
+                continue;
+            }
+            if (typeof child.toJSON !== 'function') {
+                throw new Error(`intermediate node contains child '${key}' that does not define toJSON function`);
+            }
             let value: any = child.toJSON();
             if (value !== undefined) {
                 result[key] = value;
@@ -16,5 +23,8 @@ export class ConfigurationIntermediateNode {
             return undefined;
         }
         return result;
+    }
+    toJSON(): any {
+        return ConfigurationIntermediateNode.collapse(this);
     }
 }

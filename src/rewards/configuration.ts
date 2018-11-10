@@ -14,12 +14,13 @@ import { Options } from 'derlib/roll20/options';
 import { HandoutsOptions } from 'derlib/roll20/handouts';
 import { keyword } from 'derlib/config/parser';
 import { format } from 'derlib/config/help';
+import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
 
 class RewardsOptions extends Options {
-    handouts: HandoutsOptions = new HandoutsOptions(Options.pluginOptionsKey);
+    handouts: HandoutsOptions = new HandoutsOptions();
 }
 
-class Definitions {
+class Definitions extends ConfigurationIntermediateNode {
     rules: Rules = new Rules();
     modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>('module', LeagueModule);
     dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>('dm', DungeonMaster);

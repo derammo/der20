@@ -1,11 +1,10 @@
 import { ConfigurationString, ConfigurationInteger, ConfigurationBoolean, ConfigurationDate, ConfigurationFloat, ConfigurationStep } from 'derlib/config/atoms';
 import { clone } from 'derlib/utility';
-import { ConfigurationEventHandler, ConfigurationUpdate } from 'derlib/config/parser';
-import { Result } from 'derlib/config/result';
 import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
 import { ConfigurationArray } from 'derlib/config/array';
 import { ConfigurationEnumerated } from 'derlib/config/enum';
 import { PlayerCharacters } from './player_characters';
+import { ConfigurationChangeHandling } from '../config/context';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can configurat it
@@ -51,7 +50,7 @@ export class Unlock {
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 }
 
-export class LeagueModule extends ConfigurationEventHandler {
+export class LeagueModule implements ConfigurationChangeHandling {
     // can't be undefined, because we need to detect that we can configurat it
     id: string = null;
 
@@ -195,18 +194,31 @@ export class LeagueModule extends ConfigurationEventHandler {
         return (this.hardcover.value() && (this.level.maximum.value() > 10) && (this.level.minimum.value() < 11));
     }
 
-    constructor() {
-        super();
-        this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['level', 'minimum'], this.minimumLevelForTier));
-        this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['level', 'maximum'], this.maximumLevelForTier));
-        this.addTrigger('season', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'advancement'], this.hourlyAdvancement));
-        this.addTrigger('season', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
-        this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'advancement'], this.hourlyAdvancement));
-        this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
-        this.addTrigger('tier', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
-        this.addTrigger('level', Result.Event.Change, new ConfigurationUpdate.Default(['hourly', 'treasure'], this.hourlyTreasure));
-        this.addTrigger('hardcover', Result.Event.Change, new ConfigurationUpdate.Default(['duration'], this.defaultDuration));
-        this.addTrigger('start', Result.Event.Change, new PlayerScan());
+    handleChange(keyword: string) {
+        switch (keyword) {
+            case 'tier':
+                this.level.minimum.default = this.minimumLevelForTier();
+                this.level.maximum.default = this.maximumLevelForTier();
+                this.hourly.treasure.default = this.hourlyTreasure();
+                break;
+            case 'season':
+                this.hourly.advancement.default = this.hourlyAdvancement();
+                this.hourly.treasure.default = this.hourlyTreasure();
+                break;
+            case 'hardcover':
+                this.hourly.advancement.default = this.hourlyAdvancement();
+                this.hourly.treasure.default = this.hourlyTreasure();
+                this.duration.default = this.defaultDuration();
+                break;
+            case 'level':
+                this.hourly.treasure.default =  this.hourlyTreasure();
+                break;
+            case 'start':
+                this.pcs.scan();
+                break;
+            default:
+                // ignore
+        }
     }
 }
 
@@ -226,17 +238,5 @@ export namespace LeagueModule {
         clone(): Hourly {
             return clone(LeagueModule.Hourly, this);
         }
-    }
-}
-
-class PlayerScan extends ConfigurationUpdate.Base {
-    constructor() {
-        super();
-        // generated
-    }
-
-    execute(configuration: any, result: Result.Any): Result.Any {
-        configuration.pcs.scan();
-        return result;
     }
 }

@@ -1,6 +1,6 @@
 import { ConfigurationStep } from './atoms';
 import { Result } from './result';
-import { ParserContext } from './context';
+import { ParserContext, ConfigurationChangeHandling } from './context';
 import { PropertyDecoratorFunction, Der20Meta } from './meta';
 
 // keyword to use for this property instead of its name, e.g. singular name for collections
@@ -66,11 +66,11 @@ export class ConfigurationParser {
         }
 
         // handle events from child properties
-        if (!result.hasEvents) {
-            return result;
-        }
-        if (configuration instanceof ConfigurationEventHandler) {
-            return configuration.handleEvents(keywordToken, context, result);
+        if (result.events.has(Result.Event.Change)) {
+            if (typeof configuration.handleChange === 'function') {
+                let target = <ConfigurationChangeHandling>configuration;
+                target.handleChange(keywordToken);
+            }
         }
 
         return result;
@@ -116,108 +116,5 @@ export class ConfigurationParser {
         }
 
         return undefined;
-    }
-}
-
-export class ConfigurationEventHandler {
-    private handlers: ConfigurationEventHandler.SourceMap = new ConfigurationEventHandler.SourceMap();
-
-    // register handler for specified event occurring anywhere under keyword 'source' relative
-    // to configuration node 'this'
-    addTrigger(source: string, event: Result.Event, update: ConfigurationUpdate.Base): void {
-        let eventMap = this.handlers.get(source);
-        eventMap.events[event].push(update);
-    }
-
-    // handle events that occurred during execution of a command with token 'source' 
-    // under configuration node 'this'
-    handleEvents(source: string, context: ParserContext, result: Result.Any): Result.Any {
-        let listeners: ConfigurationEventHandler.EventMap = this.handlers.fetch(source);
-        if (listeners === undefined) {
-            return result;
-        }
-        // iterate event types posted on configuration result
-        for (let event of result.events) {
-            // process all handlers[event] until one changes the result to a failure
-            for (let handler of listeners.events[event]) {
-                debug.log(`handling configuration event of type '${event}'`);
-                let handlerResult = handler.execute(this, result);
-                if (handlerResult.kind === Result.Kind.Failure) {
-                    return handlerResult;
-                }
-            }
-        }
-        return result;
-    }
-
-    // fire all change events after restoring from JSON
-    handleLoaded(): void {
-        for (let listeners of this.handlers.all()) {
-            for (let handler of listeners.events[Result.Event.Change]) {
-                handler.execute(this, new Result.Success('configuration restored'));
-            }
-        }
-    }
-}
-
-export namespace ConfigurationEventHandler {
-    export class SourceMap {
-        private sources: Record<string, ConfigurationEventHandler.EventMap> = {};
-
-        clone() {
-            // share across all clones
-            return this;
-        }
-
-        toJSON(): any {
-            return undefined;
-        }
-
-        get(source: string): ConfigurationEventHandler.EventMap {
-            let item = this.sources[source];
-            if (item === undefined) {
-                item = new ConfigurationEventHandler.EventMap();
-                this.sources[source] = item;
-            }
-            return item;
-        }
-
-        fetch(source: string): ConfigurationEventHandler.EventMap | undefined {
-            return this.sources[source];
-        }
-
-        all(): ConfigurationEventHandler.EventMap[] {
-            return Object.keys(this.sources).map((key) => { return this.sources[key]; });
-        }
-    }
-
-    export class EventMap {
-        events: Record<Result.Event, ConfigurationUpdate.Base[]> = { change: [] };
-    }
-}
-
-export namespace ConfigurationUpdate {
-    // WARNING: descendants of this class must not maintain direct references to config objects because
-    // these items are shared by all clones of the config subtree
-    export abstract class Base {
-        abstract execute(configuration: any, result: Result.Any): Result.Any;
-    }
-
-    export class Default<SOURCE, TARGET> extends Base {
-        constructor(private path: string[], private calculator: () => TARGET) {
-            super();
-        }
-
-        execute(configuration: SOURCE, result: Result.Any): Result.Any {
-            let value = this.calculator.apply(configuration);
-            // XXX can this be made type safe?
-            let walk: any = configuration;
-            for (let segment of this.path) {
-                walk = walk[segment];
-            }
-            // tslint:disable-next-line:no-string-literal
-            walk['default'] = value;
-            return result;
-        }
     }
 }

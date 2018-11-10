@@ -1,18 +1,18 @@
 import { Result } from 'derlib/config/result';
 import { startPersistence } from 'derlib/persistence';
 import { ConfigurationPersistence } from 'derlib/config/persistence';
-import { ConfigurationParser, ConfigurationUpdate } from 'derlib/config/parser';
+import { ConfigurationParser } from 'derlib/config/parser';
 import { ConfigurationCommand, ConfigurationStep } from 'derlib/config/atoms';
 import { DefaultConstructed } from 'derlib/utility';
 import { ConfigurationLoader } from 'derlib/config/loader';
-import { ConfigurationSource,  ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
+import { ConfigurationSource, ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
 import { PromiseQueue } from 'derlib/promise';
 import { HelpCommand, common } from 'derlib/config/help';
 import { Options } from './options';
 import { DialogFactory } from 'derlib/ui';
 import { Der20ChatDialog } from './dialog';
 
-// from Roll20, missing in types file 
+// from Roll20, missing in types file
 declare function playerIsGM(playerid: string): boolean;
 
 // from our wrapper
@@ -30,10 +30,10 @@ class Plugin<T> {
     work: PromiseQueue = new PromiseQueue();
     verbose: boolean = false;
 
-    // REVISIT: the reason there are so many levels is because we don't have explicit dependencies 
+    // REVISIT: the reason there are so many levels is because we don't have explicit dependencies
     // between work items.  Because config work is concurrent, there could be several currently running
     // configuration work items (or existing Promises being tracked,) and waiting for them to complete
-    // requires scheduling at a lower (NOTE: lower priority is numerically larger) level.  Scheduling at 
+    // requires scheduling at a lower (NOTE: lower priority is numerically larger) level.  Scheduling at
     // the same level does not enforce ordering, because concurrency is set > 1.
     levels: {
         // async value reads required to retry things
@@ -58,16 +58,16 @@ class Plugin<T> {
 
     // all '!' commands supported by this plugin
     private commands: Set<string> = new Set();
-    
+
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
 
         // report errors to GM
         this.work.errorHandler = (error: Error) => {
             this.handleErrorThrown(error);
-        }
+        };
 
-        // Configure work priorities, from most urgent to least urgent.  WARNING: do not set concurrency on the commands level to 
+        // Configure work priorities, from most urgent to least urgent.  WARNING: do not set concurrency on the commands level to
         // anything greater than 1,because ordering matters at that level.
         this.levels.fetches = this.work.createPriorityLevel({ concurrency: 16, name: 'asynchronous reads' });
         this.levels.retries = this.work.createPriorityLevel({ concurrency: 1, name: 'command retries' });
@@ -126,9 +126,9 @@ class Plugin<T> {
 
         // add support for optional command strings
         this.registerCommonOptions();
-     
+
         // potentially schedule some commands
-        this.handleLoaderResults(context);   
+        this.handleLoaderResults(context);
     }
 
     private registerCommonOptions() {
@@ -136,8 +136,8 @@ class Plugin<T> {
         let builtinCommands = [`!${this.name}`];
         if (this.configurationRoot.show !== undefined) {
             builtinCommands.push(`!${this.name}-show`);
-        } 
-        
+        }
+
         if (this.configurationRoot[Options.pluginOptionsKey] === undefined) {
             // options not supported, so we use fixed configuration
             this.commands = new Set(builtinCommands);
@@ -150,26 +150,45 @@ class Plugin<T> {
         // additional commands
         let commandsHandler = new UpdateValidCommands(this.commands, builtinCommands);
         commandsHandler.readOptions(options);
-        options.addTrigger('command', Result.Event.Change, commandsHandler);
-
-        // NOTE: we have to listen at this level because we need the options object in the handler, but
-        // really we would not want to listen for all deletes, just command ones
-        options.addTrigger('delete', Result.Event.Change, commandsHandler);
 
         // debugging
         let debugHandler = new UpdateDebug();
         debugHandler.readOptions(options);
-        options.addTrigger('debug', Result.Event.Change, debugHandler);
 
         // verbose responses
         let verboseHandler = new UpdateVerbose();
         verboseHandler.readOptions(options);
-        options.addTrigger('verbose', Result.Event.Change, verboseHandler);
+
+        // register for changes
+        options.onChangeEvent(keyword => {
+            switch (keyword) {
+                case 'command':
+                    commandsHandler.readOptions(options);
+                    break;
+                case 'debug':
+                    debugHandler.readOptions(options);
+                    break;
+                case 'verbose':
+                    verboseHandler.readOptions(options);
+                    break;
+                default:
+                // ignore
+            }
+        });
+        options.delete.onChangeEvent(keyword => {
+            switch (keyword) {
+                case 'command':
+                    commandsHandler.readOptions(options);
+                    break;
+                default:
+                // ignore
+            }
+        });
     }
 
     handleParserResult(context: PluginParserContext, result: Result.Any): void {
         // REVISIT make this a debuggable thing, maybe include last few ones in dump?
-        debug.log(`parser result: ${JSON.stringify(result)}`)
+        debug.log(`parser result: ${JSON.stringify(result)}`);
         if (result.events.has(Result.Event.Change)) {
             this.saveConfiguration();
         }
@@ -216,10 +235,10 @@ class Plugin<T> {
                 break;
             case Result.Kind.Success:
                 // REVISIT: make this a generic feature to allow additional commands to trigger follow ups
-                if (context.command.endsWith('-show') && (context.source.kind === ConfigurationSource.Kind.Api)) {
+                if (context.command.endsWith('-show') && context.source.kind === ConfigurationSource.Kind.Api) {
                     // execute show action after executing command, used in interactive dialogs to
                     // render the new state of the dialog
-                    const show: ConfigurationStep<any> = <ConfigurationStep<any>>(this.configurationRoot.show);
+                    const show: ConfigurationStep<any> = <ConfigurationStep<any>>this.configurationRoot.show;
                     let showResult = show.parse('', context);
                     return this.handleParserResult(context, showResult);
                 }
@@ -327,7 +346,7 @@ class Plugin<T> {
         let titleText = `[${this.name}] error: ${error.message}`;
         dialog.addTitle(`Error from: ${this.name}`);
         dialog.addSubTitle('Stack Trace:');
-        dialog.beginControlGroup()
+        dialog.beginControlGroup();
         for (let frame of bodyText) {
             dialog.addTextLine(frame);
         }
@@ -335,7 +354,7 @@ class Plugin<T> {
         dialog.addSeparator();
         if (context !== undefined) {
             dialog.addSubTitle('Command Executed:');
-            dialog.beginControlGroup()
+            dialog.beginControlGroup();
             let line = `${context.command} ${context.rest}`;
             titleText = `[${this.name}] error: ${error.message} on: ${line}`;
             bodyText.push(`command executed: ${line}`);
@@ -345,7 +364,7 @@ class Plugin<T> {
                 bodyText.push(line);
                 dialog.addTextLine(line);
             }
-            dialog.endControlGroup();           
+            dialog.endControlGroup();
             dialog.addSeparator();
         }
         let title = encodeURIComponent(titleText);
@@ -393,7 +412,7 @@ class Plugin<T> {
                     if (context.rest === 'dump') {
                         this.dispatchCommand(context);
                         return;
-                    }   
+                    }
 
                     // run on command queue, which does not execute unless everything else is done
                     this.work.scheduleWork(this.levels.commands, () => {
@@ -422,7 +441,7 @@ class Plugin<T> {
             });
         });
     }
-    
+
     // initialize mixin, if installed
     configureHandoutsSupport() {
         // not installed
@@ -436,7 +455,9 @@ var plugin: Plugin<any>;
 
 export function start<T>(pluginName: string, factory: DefaultConstructed<T>) {
     if (typeof log !== 'function') {
-        throw new Error('this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script or run in Roll20');
+        throw new Error(
+            'this script includes a module that can only be run in the actual Roll20 environment; please create a separate test script or run in Roll20'
+        );
     }
 
     // configure our host script to log under our name
@@ -460,7 +481,7 @@ export function addExtension<B, E>(extension: DefaultConstructed<E>, base?: Defa
             // we aren't changing what class this is, so any constructor code in extension is lost
             continue;
         }
-        if ((original !== null) && (extended === undefined)) {
+        if (original !== null && extended === undefined) {
             // don't overwrite features of original with declared but undefined functions
             continue;
         }
@@ -495,8 +516,7 @@ export class ResetCommand extends ConfigurationCommand {
     }
 }
 
-class ContextBase implements ConfigurationContext {
-}
+class ContextBase implements ConfigurationContext {}
 
 export class PluginLoaderContext extends ContextBase implements LoaderContext {
     messages: string[] = [];
@@ -536,12 +556,7 @@ export class PluginCommandExecution extends PluginParserContext {
     }
 }
 
-abstract class OptionsUpdate extends ConfigurationUpdate.Base {
-    execute(configuration: any, result: Result.Any): Result.Any {
-        this.readOptions(<Options>configuration);
-        return result;
-    }
-
+abstract class OptionsUpdate {
     abstract readOptions(options: Options): void;
 }
 
@@ -558,7 +573,7 @@ class UpdateValidCommands extends OptionsUpdate {
         }
         for (let command of options.commands.value()) {
             let bangCommand = `!${command}`;
-            debug.log(`enabling additional command string '${bangCommand}'`)
+            debug.log(`enabling additional command string '${bangCommand}'`);
             this.commands.add(bangCommand);
         }
     }
@@ -569,7 +584,9 @@ class UpdateDebug extends OptionsUpdate {
         if (options.debug.value()) {
             debug.log = console.log;
         } else {
-            debug.log = (message: string) => { /* ignore */ };
+            debug.log = (message: string) => {
+                /* ignore */
+            };
         }
     }
 }

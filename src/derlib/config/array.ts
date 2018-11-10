@@ -19,6 +19,10 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
     }
 
     toJSON(): any {
+        // don't persist if empty
+        if (this.current.length === 0) {
+            return undefined;
+        }
         return this.current;
     }
 
@@ -135,6 +139,11 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
     }
 
     toJSON(): any {
+        // don't persist if unset
+        if (this.selectedId === undefined) {
+            return undefined;
+        }
+
         // shallow copy so we can overwrite id (must not be changed)
         let result: any = {};
         if (this.hasConfiguredValue()) {

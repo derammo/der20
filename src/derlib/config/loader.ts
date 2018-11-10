@@ -1,6 +1,5 @@
 import { ConfigurationStep } from './atoms';
-import { LoaderContext } from './context';
-import { ConfigurationEventHandler } from './parser';
+import { LoaderContext, ConfigurationChangeHandling } from './context';
 
 export class ConfigurationLoader {
     static restore(from: any, to: any, context: LoaderContext): void {
@@ -12,10 +11,12 @@ export class ConfigurationLoader {
             return;
         }
         // iterate objects, recurse
+        let changedKeys: string[] = [];
         // tslint:disable-next-line:forin
         for (let key in from) {
             if (to.hasOwnProperty(key)) {
                 let target = to[key];
+                changedKeys.push(key);
                 if (target !== null && typeof target === 'object') {
                     ConfigurationLoader.restore(from[key], target, context);
                 } else {
@@ -27,8 +28,11 @@ export class ConfigurationLoader {
             }
         }
         // trigger all change listeners
-        if (to instanceof ConfigurationEventHandler) {
-            to.handleLoaded();
+        for (let key of changedKeys) {
+            if (typeof to.handleChange === 'function') {
+                let target = <ConfigurationChangeHandling>to;
+                target.handleChange(key);
+            }
         }
     }
 }
