@@ -5,6 +5,7 @@ export interface Dialog {
     endControlGroup(): void;
     addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>): void;
     addChoiceControlGroup(label: string, prefix: string, choices: CollectionItem[], suffix: string): void;
+    addSelectionGroup(label: string, prefix: string, choices: { label: string, result: string }[]): void;
     addCommand(label: string, target: string): void;
     addExternalLinkButton(label: string, target: string): void;
     addTitle(text: string): void;

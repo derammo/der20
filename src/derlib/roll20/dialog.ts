@@ -136,6 +136,18 @@ export class Der20ChatDialog implements Dialog {
         this.endControlGroup();
     }
 
+    addSelectionGroup(label: string, prefix: string, choices: { label: string, result: string }[]): void {
+        this.beginControlGroup();
+        for (let choice of choices) {
+            this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+            this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${choice.label}</span>`);
+            let link: string = `${prefix} ${choice.result}`;
+            this.addButton(choice.result.substr(0, 10), link);
+            this.text.push('</li>');
+        }
+        this.endControlGroup();
+    }
+
     addCommand(label: string, target: string) {
         this.text.push(`<a style="${Der20ChatDialog.commandStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
     }
