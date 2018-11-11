@@ -27,6 +27,12 @@ export class Der20Character {
         return new Der20Character(<Character>objects[0]);
     }
 
+    // returns all characters
+    static all(): Der20Character[] {
+        let objects = findObjs({ _type: 'character' }).filter((object) => { return object !== undefined; });
+        return objects.map((raw) => { return new Der20Character(<Character>raw); });
+    }
+
     // returns all characters owned by at least one player but not all players
     static owned(): (Der20Character & { controlledby?: string[] }) [] {
         let objects = findObjs({ _type: 'character' });
