@@ -511,8 +511,9 @@ export class ResetCommand extends ConfigurationCommand {
         // now rebuild the config from defaults
         plugin.reset();
         plugin.saveConfiguration();
+        plugin.restoreConfiguration();
         plugin.configureHandoutsSupport();
-        return new Result.Success('all stored state and configuration reset');
+        return new Result.Change('all stored state and configuration reset');
     }
 }
 
