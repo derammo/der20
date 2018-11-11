@@ -2,7 +2,6 @@ import { ConfigurationStep, CollectionItem, Collection } from './atoms';
 import { ConfigurationParser } from './parser';
 import { DefaultConstructed, cloneExcept } from 'derlib/utility';
 import { Result } from './result';
-import { DialogFactory } from 'derlib/ui';
 import { ConfigurationLoader } from './loader';
 import { ParserContext, LoaderContext } from './context';
 
@@ -12,7 +11,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
     classType: DefaultConstructed<T>;
     keyword: string;
 
-    constructor(singularName: string, itemClass: DefaultConstructed<T>, private dialogFactory?: DialogFactory) {
+    constructor(singularName: string, itemClass: DefaultConstructed<T>) {
         super([], 'ID');
         this.classType = itemClass;
         this.keyword = singularName;
@@ -84,10 +83,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let id: string = tokens[0];
         if (id.length < 1) {
-            if (this.dialogFactory !== undefined) {
-                return this.createItemChoiceDialog(context);
-            }
-            return new Result.Failure(new Error('interactive selection from array is unimplemented'));
+            return this.createItemChoiceDialog(context);
         }
         let index = this.findItem(id);
         if (index !== undefined) {
@@ -114,7 +110,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
 
     private createItemChoiceDialog(context: ParserContext): Result.Dialog {
         // we don't know what command word was used to call us, so we let the caller fix it up
-        let dialog = new this.dialogFactory(`${context.command} `);
+        let dialog = new context.dialog(`${context.command} `);
         dialog.addTitle(`Selection for '${this.keyword}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:');
