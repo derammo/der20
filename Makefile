@@ -8,7 +8,7 @@ DIST := $(patsubst %,dist/der20_%.js,$(PLUGINS))
 HELP_JSON := $(patsubst %,build/%_help.json,$(PLUGINS))
 LICENSE_LENGTH := $(word 1, $(shell wc -l LICENSE))
 
-.PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts documentation
+.PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts documentation relnotes
 .PRECIOUS: build/%.js src/%/tsconfig.json
 
 all: node_modules plugins scripts documentation
@@ -45,7 +45,9 @@ cloc: /usr/local/bin/cloc
 /usr/local/bin/cloc:
 	brew install cloc
 release: label_release build_release checkout_master
-build_release: checkout_release clean $(subst dist,releases/${RELEASE},$(DIST)) docs/index.html checkout_master
+build_release: checkout_release clean $(subst dist,releases/${RELEASE},$(DIST)) docs/index.html checkout_master relnotes
+relnotes:
+	scripts/release_notes.sh $(PLUGINS)
 checkout_release:
 	git checkout v${RELEASE}
 label_release:
@@ -63,7 +65,7 @@ releases/${RELEASE}/%.js: dist/%.js LICENSE
 publish: checkout_release create_draft checkout_master
 create_draft:
 	git push origin v${RELEASE}
-	node scripts/publish_release.js ${RELEASE} 'src/derlib src/sys include LICENSE' $(patsubst %,src/%,$(PLUGINS)) 
+	node scripts/publish_release.js ${RELEASE} 'src/derlib src/sys include LICENSE Makefile' $(patsubst %,src/%,$(PLUGINS)) 
 list:
 	@echo $(SRC)
 documentation: docs/index.html
@@ -81,3 +83,4 @@ help: $(HELP_JSON) scripts/update_helpfiles.js
 		node ../scripts/update_helpfiles.js < ../$${file} ; \
 	done
 	touch help
+notes:
