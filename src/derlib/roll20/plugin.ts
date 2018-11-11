@@ -29,6 +29,7 @@ class Plugin<T> {
     persistence: ConfigurationPersistence;
     work: PromiseQueue = new PromiseQueue();
     verbose: boolean = false;
+    echo: boolean = true;
 
     // REVISIT: the reason there are so many levels is because we don't have explicit dependencies
     // between work items.  Because config work is concurrent, there could be several currently running
@@ -155,6 +156,10 @@ class Plugin<T> {
         let debugHandler = new UpdateDebug();
         debugHandler.readOptions(options);
 
+        // echo commands
+        let echoHandler = new UpdateEcho();
+        echoHandler.readOptions(options);
+
         // verbose responses
         let verboseHandler = new UpdateVerbose();
         verboseHandler.readOptions(options);
@@ -171,6 +176,9 @@ class Plugin<T> {
                 case 'verbose':
                     verboseHandler.readOptions(options);
                     break;
+                case 'echo':
+                    echoHandler.readOptions(options);
+                break;
                 default:
                 // ignore
             }
@@ -193,6 +201,18 @@ class Plugin<T> {
             this.saveConfiguration();
         }
 
+        // echo on last round of execution
+        if  (this.echo && 
+            (result.kind !== Result.Kind.Asynchronous) && 
+            (result.kind !== Result.Kind.Dialog) && 
+            (context.source.kind === ConfigurationSource.Kind.Api)) {
+            // NOTE: we don't actually use the contents of this dialog; it just provides the direct rendering of the command echo,
+            // which is not shown in dialog style
+            let echo = new context.dialog('');
+            let rendered = echo.renderCommandEcho(`${context.command} ${context.rest}`, result.kind);    
+            let source = <ConfigurationSource.Api>context.source;
+            sendChat(this.name, `/w "${source.player.get('_displayname')}" ${rendered}`, null, { noarchive: true });            
+        }
         // send any messages to caller, regardless of result
         if (this.verbose) {
             for (let message of result.messages) {
@@ -595,5 +615,11 @@ class UpdateDebug extends OptionsUpdate {
 class UpdateVerbose extends OptionsUpdate {
     readOptions(options: Options): void {
         plugin.verbose = options.verbose.value();
+    }
+}
+
+class UpdateEcho extends OptionsUpdate {
+    readOptions(options: Options): void {
+        plugin.echo = options.echo.value();
     }
 }

@@ -25,6 +25,10 @@ export class Options extends ConfigurationChangeDelegator {
     @common('PLUGIN')
     debug: ConfigurationBoolean = new ConfigurationBoolean(false);
 
+    // enable or disable printing of executed commands
+    @common('PLUGIN')
+    echo: ConfigurationBoolean = new ConfigurationBoolean(true);
+   
     // enable or disable response messages from commands
     @common('PLUGIN')
     verbose: ConfigurationBoolean = new ConfigurationBoolean(false);

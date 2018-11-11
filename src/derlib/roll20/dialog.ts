@@ -9,6 +9,7 @@ import {
 } from 'derlib/config/atoms';
 import { Dialog } from 'derlib/ui';
 import { ConfigurationEnumerated } from 'derlib/config/enum';
+import { Result } from 'derlib/config/result';
 
 // styling and layout based on https://github.com/RobinKuiper/Roll20APIScripts, with thanks
 export class Der20ChatDialog implements Dialog {
@@ -27,6 +28,8 @@ export class Der20ChatDialog implements Dialog {
     static readonly groupStyle: string = 'overflow: hidden; list-style: none; padding: 0; margin: 0;';
     static readonly itemStyle: string = 'overflow: hidden; margin-top: 5px;';
     static readonly separatorStyle: string = 'margin-top: 1.0em; margin-bottom: 0.5em;';
+    static readonly commandEchoStyle: string = `width: 98%%; border: 3px inset #ffffff; margin-top: 0.2em; padding: 0.2em; color: #3a3a3a; background-color: #eeeeee; font-family: Menlo, Monaco, 'Ubuntu Mono', monospace;`; 
+    static readonly commandEchoFailedStyle: string = `${Der20ChatDialog.commandEchoStyle} color: #ee0000;`; 
     static readonly undefinedLabel = '[ NONE ]';
 
     constructor(commandPrefix: string) {
@@ -166,6 +169,14 @@ export class Der20ChatDialog implements Dialog {
 
     addSeparator() {
         this.text.push(`<hr style='${Der20ChatDialog.separatorStyle}'>`);
+    }
+
+    renderCommandEcho(line: string, resultType: Result.Kind): string {
+        let style = Der20ChatDialog.commandEchoStyle;
+        if (resultType === Result.Kind.Failure) {
+            style = Der20ChatDialog.commandEchoFailedStyle;
+        }
+        return `<div style="${style}">${line}</div>`;
     }
 
     render() {

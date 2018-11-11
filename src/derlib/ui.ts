@@ -1,4 +1,5 @@
 import { ConfigurationStep, CollectionItem } from "derlib/config/atoms";
+import { Result } from "derlib/config/result";
 
 export interface Dialog {
     beginControlGroup(): void;
@@ -14,6 +15,7 @@ export interface Dialog {
     addTextLine(text: string): void;
     addIndentedTextLine(text: string): void;
     getDateText(value: number): string;
+    renderCommandEcho(line: string, resultType: Result.Kind): string;
     render(): string;
 }
 
