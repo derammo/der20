@@ -30,9 +30,12 @@ export class SetCommand extends SelectedTokensCommand {
         midnight.setHours(0, 0, 0, 0);
         let cacheDefeat = `${midnight.valueOf() / 1000}`;
         let anonymousIcon = `${defaultToken}?${cacheDefeat}`;
-
+        debug.log(`setting token to: ${anonymousIcon}`);
         token.raw.set({ imgsrc: anonymousIcon, name: anonymousName, showname: true, showplayers_name: true });
-        debug.log(`setting token to ${anonymousIcon}, result: ${token.image.url}`);
+        debug.log(`result after set: ${token.image.url}`);
+        if (anonymousIcon !== token.image.url) {
+            return new Result.Failure(new Error(`token for '${character.name}' could not change image; the anonymous character has a marketplace image or otherwise restricted image`));
+        }
         return new Result.Success(`token for '${character.name}' changed to show only creature type and anonymous icon`);
     }
 }

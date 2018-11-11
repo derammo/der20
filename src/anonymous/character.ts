@@ -20,6 +20,7 @@ export class CharacterConfiguration extends ConfigurationString implements Confi
         let imageSource = context.asyncVariables[imageKey];
         if (imageSource !== undefined) {
             setDefaultToken(imageSource.url);
+            // XXX we need some way to display this message even if verbose is not set, without introducing a new result type
             return new Result.Change(`loaded anonymous icon from character '${this.value()}'`);
         }
         let result: Result.Any = super.parse(line, context);
