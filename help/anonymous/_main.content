@@ -6,8 +6,8 @@
     <p>Usage: select all tokens you want to anonymize, then execute</p>
     <pre><a href="#anonymous/set">!anonymous set</a></pre>
     <p>
-        <img src="https://derammo.github.io/der20/assets/anonymous/hidden.png" style="width: 516.9852905273438px">&nbsp; &nbsp;
-        <img style="width: 516.9852905273438px">
+        <img src="./assets/anonymous/hidden.png">
+        <img>
     </p>
     <p>The icon will be taken from a character called 'Anonymous' or another character in your journal that you can configure
         via&nbsp;</p>
@@ -21,7 +21,7 @@
         familiar, and reveal their true identity by selecting multiple tokens and executing</p>
     <pre><a href="#anonymous/reveal">!anonymous reveal</a></pre>
     <p>
-        <img src="https://derammo.github.io/der20/assets/anonymous/revealed.png" style="width: 516.9852905273438px">
+        <img src="./assets/anonymous/revealed.png">
     </p>
     <p>Oh god, DM... Why???
     </p>

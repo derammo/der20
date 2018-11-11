@@ -6,3 +6,6 @@
 <div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
 <div class='description'>If set to false, commands executed no longer display in chat.  By default, plugins echo back the command that was executed in response to inpput or dialog interaction.  Failed commands are shown in red.
 </div>
+<p>
+    <img src="./assets/PLUGIN/echo.png">
+</p>

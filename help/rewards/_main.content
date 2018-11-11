@@ -7,19 +7,19 @@
     <p>Configuration is via a command language, which you can store in handouts so you can move them from room to room, or you
         can just type in commands at the prompt and have the built-in state system store it.</p>
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/1.png" style="width: 516.9852905273438px">
+        <img src="./assets/rewards/1.png">
     </p>
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/2.png" style="width: 463.98895263671875px">
+        <img src="./assets/rewards/2.png">
     </p>
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/3.png" style="width: 680px">
+        <img src="./assets/rewards/3.png">
     </p>
 
     <p>During the session, you select which DM you are (in case of shared rooms) and what module or hard cover you are running.</p>
 
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/4.png" style="width: 557.996337890625px">
+        <img src="./assets/rewards/4.png">
     </p>
     <p>The </p>
     <pre><a href="#rewards/show">!rewards show</a></pre>
@@ -27,7 +27,7 @@
         &nbsp;Depending on whether you are running a module or hardcover and depending on the tier and season, rewards are
         calculated. &nbsp;You can override any of the defaults calculated for you.</p>
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/5.png" style="width: 557.996337890625px">
+        <img src="./assets/rewards/5.png">
     </p>
 
     <p>Then you interactively check off checkpoints as they are achieved and hit a start and stop timer for the session. &nbsp;Time
@@ -40,20 +40,20 @@
         at three characters to the session, only one of which counts.</p>
    
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/6.png" style="width: 557.996337890625px">
+        <img src="./assets/rewards/6.png">
     </p>
 
     <p>For a Season 8+ module, you might have several explicit checkpoints and no rewards per hour:</p>
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/9.png" style="width: 535px">
+        <img src="./assets/rewards/9.png">
     </p>
     <p>Finally, you can compile the rewards page in private and check everything before you share it with all the players.</p>
 
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/7.png" style="width: 557.996337890625px">
+        <img src="./assets/rewards/7.png">
     </p>
     <p>
-        <img src="https://derammo.github.io/der20/assets/rewards/8.png" style="width: 557.996337890625px">
+        <img src="./assets/rewards/8.png">
     </p>
 
     <p>Development on this tool continues. &nbsp;There is a feature to directly import this reward information into the website
