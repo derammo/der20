@@ -121,7 +121,8 @@ configuration, configuration stored in handouts is then read.</div>
 </div>
 <div class='description'>This setting specifies the complete case-sensitive name of a Character that must be present in the Roll20 
 Journal.  If found, the default token for this character is used for anonymous tokens.  If not set, this features defaults to using
-the a character named &#039;Anonymous&#039;, which the user must create.</div><div class='title'>
+the a character named &#039;Anonymous&#039;, which the user must create.</div>
+<div class='description'>If the [STRING] is not specified, a dialog is presented to select from all the characters in the current game.</div><div class='title'>
 <span class='plugin'>!anonymous</span>
 <span class='command' id='anonymous/reveal'>reveal</span>
 </div>
@@ -130,7 +131,7 @@ the a character named &#039;Anonymous&#039;, which the user must create.</div><d
 <span class='command' id='anonymous/set'>set</span>
 </div>
 <div class='description'>This command sets the selected tokens to be anonymous, showing only the creature type instead of a name
-and showing the icon from the configured anonymous character.</div><div class="title" id="rewards">!rewards</div>
+and showing the icon from the configured anonymous character.  If <pre><a href="#anonymous/character">!anonymous character</a></pre> is not configured and no character named &#039;Anonymous&#039; is present, only the name of the creature will be changed.</div><div class="title" id="rewards">!rewards</div>
 <div class="postcontent">
     <p>This API Script is a rewards tracker for D&amp;D Adventurers League (DDAL) rewards tracking. &nbsp;Before the session,
         you can enter all of the check point and treasure unlock information about the modules or hardcover you are running
