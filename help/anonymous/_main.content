@@ -3,23 +3,21 @@
     <p>This plugin is used to hide the name and icon of an NPC or monster until it is time to spring them on your players.
         For best results, create macro bar entries for all commands, so you can multi select tokens and hit one button.</p>
     </p>
-    <p>Usage: select all tokens you want to anonymize, then execute</p>
-    <pre><a href="#anonymous/set">!anonymous set</a></pre>
+    <p>Usage: select all tokens you want to anonymize, then execute <a href="#anonymous/set">!anonymous set</a></p>
     <p>
         <img src="./assets/anonymous/hidden.png">
         <img>
     </p>
     <p>The icon will be taken from a character called 'Anonymous' or another character in your journal that you can configure
         via&nbsp;</p>
-    <pre><a href="#anonymous/character">!anonymous character</a> <b><i>My Other Character</i></b></pre>
+    <a href="#anonymous/character">!anonymous character</a> <b><i>My Other Character</i></b>
     <p>Technical note: The 'cache defeat' query string at the end of the image URL is set to midnight of the current day, so
         images are cached for around 24 hours.</p>
     <p>The name of the token will be changed to the creature type from the Journal. &nbsp;The intent is that you can narrate
         what sort of creature the player characters are seeing (like a 'small, rotten corpse') instead of knowing the exact
         creature stats just from the picture or name.</p>
     <p>Either during the first round of combat or when your players get a turn, you can decide with which creatures they are
-        familiar, and reveal their true identity by selecting multiple tokens and executing</p>
-    <pre><a href="#anonymous/reveal">!anonymous reveal</a></pre>
+        familiar, and reveal their true identity by selecting multiple tokens and executing <a href="#anonymous/reveal">!anonymous reveal</a></p>
     <p>
         <img src="./assets/anonymous/revealed.png">
     </p>

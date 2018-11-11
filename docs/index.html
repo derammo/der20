@@ -30,7 +30,7 @@ Please include this output when filing <a href='https://github.com/derammo/der20
 <div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
 <div class='description'>This setting adds a command word that can be used instead of the name of the plugin.  
 Please note that plugins must all have distinct names, so don't choose the name of another plugin.  To remove 
-a name from the recognized list, use <a href='#PLUGIN/option_delete_command'>delete</a>.</div>
+a name from the recognized list, use <a href='#PLUGIN/option_delete_command'>option delete command</a>.</div>
 <div class='validation'>Command words must consist entirely of a-z, 0-9, and the underscore character.</div><div class='title'>
 <span class='plugin'>!PLUGIN</span>
 <span class='command' id='PLUGIN/option_debug'>option debug</span>
@@ -87,28 +87,26 @@ default, GM Notes from both archived and journal handouts are read.</div>
 <div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
 <div class='description'>This command discards all stored state and configuration and restarts the plugin.  If the plugin supports handout
 configuration, configuration stored in handouts is then read.</div>
-<div class='description'>For safety, the command must be entered as <pre>!PLUGIN reset all configuration</pre> including spaces.</div><div class="title" id = "anonymous">!anonymous</div>
+<div class='description'>For safety, the command must be entered as !PLUGIN reset all configuration including spaces.</div><div class="title" id = "anonymous">!anonymous</div>
 <div class="postcontent">
     <p>This plugin is used to hide the name and icon of an NPC or monster until it is time to spring them on your players.
         For best results, create macro bar entries for all commands, so you can multi select tokens and hit one button.</p>
     </p>
-    <p>Usage: select all tokens you want to anonymize, then execute</p>
-    <pre><a href="#anonymous/set">!anonymous set</a></pre>
+    <p>Usage: select all tokens you want to anonymize, then execute <a href="#anonymous/set">!anonymous set</a></p>
     <p>
         <img src="./assets/anonymous/hidden.png">
         <img>
     </p>
     <p>The icon will be taken from a character called 'Anonymous' or another character in your journal that you can configure
         via&nbsp;</p>
-    <pre><a href="#anonymous/character">!anonymous character</a> <b><i>My Other Character</i></b></pre>
+    <a href="#anonymous/character">!anonymous character</a> <b><i>My Other Character</i></b>
     <p>Technical note: The 'cache defeat' query string at the end of the image URL is set to midnight of the current day, so
         images are cached for around 24 hours.</p>
     <p>The name of the token will be changed to the creature type from the Journal. &nbsp;The intent is that you can narrate
         what sort of creature the player characters are seeing (like a 'small, rotten corpse') instead of knowing the exact
         creature stats just from the picture or name.</p>
     <p>Either during the first round of combat or when your players get a turn, you can decide with which creatures they are
-        familiar, and reveal their true identity by selecting multiple tokens and executing</p>
-    <pre><a href="#anonymous/reveal">!anonymous reveal</a></pre>
+        familiar, and reveal their true identity by selecting multiple tokens and executing <a href="#anonymous/reveal">!anonymous reveal</a></p>
     <p>
         <img src="./assets/anonymous/revealed.png">
     </p>
@@ -131,7 +129,7 @@ the a character named &#039;Anonymous&#039;, which the user must create.</div>
 <span class='command' id='anonymous/set'>set</span>
 </div>
 <div class='description'>This command sets the selected tokens to be anonymous, showing only the creature type instead of a name
-and showing the icon from the configured anonymous character.  If <pre><a href="#anonymous/character">!anonymous character</a></pre> is not configured and no character named &#039;Anonymous&#039; is present, only the name of the creature will be changed.</div><div class="title" id="rewards">!rewards</div>
+and showing the icon from the configured anonymous character.  If <a href="#anonymous/character">!anonymous character</a> is not configured and no character named &#039;Anonymous&#039; is present, only the name of the creature will be changed.</div><div class="title" id="rewards">!rewards</div>
 <div class="postcontent">
     <p>This API Script is a rewards tracker for D&amp;D Adventurers League (DDAL) rewards tracking. &nbsp;Before the session,
         you can enter all of the check point and treasure unlock information about the modules or hardcover you are running
@@ -154,8 +152,7 @@ and showing the icon from the configured anonymous character.  If <pre><a href="
     <p>
         <img src="./assets/rewards/4.png">
     </p>
-    <p>The </p>
-    <pre><a href="#rewards/show">!rewards show</a></pre>
+    <p>The <a href="#rewards/show">!rewards show</a></p>
     <p>command then starts interactive use. &nbsp;It will show the rewards for the current module initialized to their defaults.
         &nbsp;Depending on whether you are running a module or hardcover and depending on the tier and season, rewards are
         calculated. &nbsp;You can override any of the defaults calculated for you.</p>
@@ -188,14 +185,15 @@ and showing the icon from the configured anonymous character.  If <pre><a href="
     <p>
         <img src="./assets/rewards/8.png">
     </p>
-
+</div>
+<div class="notes">
     <p>Development on this tool continues. &nbsp;There is a feature to directly import this reward information into the website
         <a href="https://adventurersleaguelog.com">https://adventurersleaguelog.com</a>. &nbsp;However, this functionality won't be enabled until the server side code
         can be implemented under this issue&nbsp;
         <a href="https://github.com/Ariel-Thomas/adventurers-league-log/issues/157">https://github.com/Ariel-Thomas/adventurers-league-log/issues/157</a>
     </p>
-
-</div><div class='title'>
+</div>
+<div class='title'>
 <span class='plugin'>!rewards</span>
 <span class='command' id='rewards/checkpoint'>checkpoint</span>
 <span class='format'>[-&gt; module current checkpoint]</span>

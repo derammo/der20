@@ -21,8 +21,7 @@
     <p>
         <img src="./assets/rewards/4.png">
     </p>
-    <p>The </p>
-    <pre><a href="#rewards/show">!rewards show</a></pre>
+    <p>The <a href="#rewards/show">!rewards show</a></p>
     <p>command then starts interactive use. &nbsp;It will show the rewards for the current module initialized to their defaults.
         &nbsp;Depending on whether you are running a module or hardcover and depending on the tier and season, rewards are
         calculated. &nbsp;You can override any of the defaults calculated for you.</p>
@@ -55,11 +54,11 @@
     <p>
         <img src="./assets/rewards/8.png">
     </p>
-
+</div>
+<div class="notes">
     <p>Development on this tool continues. &nbsp;There is a feature to directly import this reward information into the website
         <a href="https://adventurersleaguelog.com">https://adventurersleaguelog.com</a>. &nbsp;However, this functionality won't be enabled until the server side code
         can be implemented under this issue&nbsp;
         <a href="https://github.com/Ariel-Thomas/adventurers-league-log/issues/157">https://github.com/Ariel-Thomas/adventurers-league-log/issues/157</a>
     </p>
-
 </div>

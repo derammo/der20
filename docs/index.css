@@ -55,9 +55,9 @@ ul.toplevel > li > a {
     display: inline;
 }
 
-.description, .validation, .postcontent {
+.description, .validation, .postcontent, .notes, .column.right > p > img {
     margin-top: 0.5em;
-    padding-left: 2em;
+    margin-left: 2em;
 }
 
 h1, .repolink, .copyright {
@@ -68,7 +68,7 @@ pre {
     font-size: 150%;
 }
 
-.postcontent img {
+.column.right img {
     border: 1px solid LightGray;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
@@ -77,4 +77,8 @@ pre {
 /* allow to scroll up to align index jump */
 .column.right div:last-child {
     padding-bottom: 2000px; /* 1vh gets collapsed (Safari 12.0) */
+}
+
+.description a, .postcontent a {
+    font-family: Menlo, Monaco, 'Ubuntu Mono', monospace;
 }

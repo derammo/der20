@@ -3,4 +3,4 @@
 <span class='command' id='anonymous/set'>set</span>
 </div>
 <div class='description'>This command sets the selected tokens to be anonymous, showing only the creature type instead of a name
-and showing the icon from the configured anonymous character.  If <pre><a href="#anonymous/character">!anonymous character</a></pre> is not configured and no character named &#039;Anonymous&#039; is present, only the name of the creature will be changed.</div>
+and showing the icon from the configured anonymous character.  If <a href="#anonymous/character">!anonymous character</a> is not configured and no character named &#039;Anonymous&#039; is present, only the name of the creature will be changed.</div>
