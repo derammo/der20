@@ -1,6 +1,6 @@
 import { ConfigurationStep } from './atoms';
 import { Result } from './result';
-import { ParserContext, ConfigurationChangeHandling } from './context';
+import { ParserContext, ConfigurationChangeHandling, ConfigurationTermination } from './context';
 import { PropertyDecoratorFunction, Der20Meta } from './meta';
 
 // keyword to use for this property instead of its name, e.g. singular name for collections
@@ -24,9 +24,18 @@ export class ConfigurationParser {
     static parse(line: string, configuration: any, context: ParserContext): Result.Any {
         debug.log(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
 
+        if (line.length === 0) {
+            // check if 'configuration' has handler to create UI or otherwise handle
+            // the end of a configuration command that does not hit a ConfigurationStep
+            if (typeof configuration.handleEndOfCommand === 'function') {
+                let termination = <ConfigurationTermination>configuration;
+                return termination.handleEndOfCommand(context);
+            }
+        }
+
         if (configuration instanceof ConfigurationStep) {
-            // configuration object implements its own parsing; validation and events
-            // were done one frame higher
+            // configuration object implements its own parsing
+            // validation and events were done one frame higher
             return configuration.parse(line, context);
         }
 
@@ -40,9 +49,6 @@ export class ConfigurationParser {
             if (keywordToken.length > 0) {
                 return new Result.Failure(new Error(`token '${keywordToken}' did not match any configuration command`));
             }
-
-            // XXX check if 'configuration' has handler to create UI or otherwise handle
-            // the end of a configuration command that does not hit a ConfigurationStep
 
             // empty token was claimed by no item, that is ok
             return result;

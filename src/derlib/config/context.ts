@@ -59,6 +59,17 @@ export interface ConfigurationParsing {
 }
 
 /**
+ * Classes that want to create content if the command line ends 
+ * after their keyword implement this.
+ * 
+ * For example, creating an interactive dialog when no item was selected
+ * is done by implementing this.
+ */
+export interface ConfigurationTermination {
+    handleEndOfCommand(context: ParserContext): Result.Any;
+}
+
+/**
  * Context passed to functions during a specific load from JSON, which usually is the entire configuration being restored.
  */
 export interface LoaderContext extends ConfigurationContext {
