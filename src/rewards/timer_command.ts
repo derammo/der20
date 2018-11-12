@@ -16,10 +16,6 @@ export class TimerCommand extends ConfigurationCommand {
         this.property = property;
     }
 
-    toJSON(): any {
-        return undefined;
-    }
-
     parse(line: string, context: ParserContext): Result.Any {
         let time = Date.now();
         if (line.length > 0) {

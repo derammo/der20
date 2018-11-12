@@ -2,7 +2,7 @@ import { Result } from 'derlib/config/result';
 import { startPersistence } from 'derlib/persistence';
 import { ConfigurationPersistence } from 'derlib/config/persistence';
 import { ConfigurationParser } from 'derlib/config/parser';
-import { ConfigurationCommand, ConfigurationStep } from 'derlib/config/atoms';
+import { ConfigurationCommand, ConfigurationStep, ConfigurationSimpleCommand } from 'derlib/config/atoms';
 import { DefaultConstructed } from 'derlib/utility';
 import { ConfigurationLoader } from 'derlib/config/loader';
 import { ConfigurationSource, ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
@@ -509,8 +509,8 @@ export function addExtension<B, E>(extension: DefaultConstructed<E>, base?: Defa
     }
 }
 
-export class DumpCommand extends ConfigurationCommand {
-    parse(line: string, context: ParserContext): Result.Any {
+export class DumpCommand extends ConfigurationSimpleCommand {
+    handleEndOfCommand(context: ParserContext): Result.Any {
         let dialog = new context.dialog(`${context.command} `);
         dialog.beginControlGroup();
         dialog.addTextLine(JSON.stringify(plugin.configurationRoot));
@@ -521,7 +521,7 @@ export class DumpCommand extends ConfigurationCommand {
 }
 
 export class ResetCommand extends ConfigurationCommand {
-    parse(line: string): Result.Any {
+    parse(line: string, context: ParserContext): Result.Any {
         if (line !== 'all configuration') {
             return new Result.Failure(new Error(`reset command must match 'reset all configuration' exactly`));
         }

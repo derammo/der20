@@ -6,7 +6,7 @@ import { Result } from 'derlib/config/result';
 export function testDialog() {
     let configuration = new Configuration();
     let help = new HelpCommand('rewards', configuration);
-    let result = help.parse('', new PluginParserContext('help', ''));
+    let result = help.handleEndOfCommand(new PluginParserContext('help', ''));
     return (<Result.Dialog>result).dialog;
 }
 

@@ -1,5 +1,5 @@
 import { Result } from './result';
-import { ParserContext, ConfigurationParsing, ConfigurationLoading, LoaderContext } from './context';
+import { ParserContext, ConfigurationParsing, ConfigurationLoading, LoaderContext, ConfigurationTermination } from './context';
 
 export abstract class ConfigurationStep<T> implements ConfigurationParsing, ConfigurationLoading {
     protected current: T = ConfigurationStep.NO_VALUE;
@@ -49,11 +49,20 @@ export namespace ConfigurationStep {
     export const NO_VALUE: any = undefined;
 }
 
-// no actual data, subclassed by steps that just take an action in code
+// no actual data, subclassed by steps that just take an action in code but do parse additional tokens
 export abstract class ConfigurationCommand extends ConfigurationStep<boolean> {
     constructor() {
         super(ConfigurationStep.NO_VALUE);
     }
+
+    toJSON(): any {
+        return undefined;
+    }
+}
+
+// no actual data, subclassed by steps that just take an action without additional tokens
+export abstract class ConfigurationSimpleCommand implements ConfigurationTermination {
+    abstract handleEndOfCommand(context: ParserContext): Result.Any;
 
     toJSON(): any {
         return undefined;

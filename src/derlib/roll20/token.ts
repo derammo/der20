@@ -1,6 +1,6 @@
 import { Der20Character } from './character';
 import { Result } from 'derlib/config/result';
-import { ConfigurationCommand } from 'derlib/config/atoms';
+import { ConfigurationSimpleCommand } from 'derlib/config/atoms';
 import { ParserContext, ConfigurationSource } from 'derlib/config/context';
 
 class TokenImage {
@@ -65,8 +65,8 @@ export class Der20Token {
     }
 }
 
-export abstract class SelectedTokensCommand extends ConfigurationCommand {
-    parse(line: string, context: ParserContext): Result.Any {
+export abstract class SelectedTokensCommand extends ConfigurationSimpleCommand {
+    handleEndOfCommand(context: ParserContext): Result.Any {
         if (context.source.kind !== ConfigurationSource.Kind.Api) {
             throw new Error('selected tokens command requires api source');
         }

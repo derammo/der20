@@ -1,4 +1,4 @@
-import { ConfigurationCommand, ConfigurationStep } from './atoms';
+import { ConfigurationStep, ConfigurationSimpleCommand } from './atoms';
 import { ParserContext } from './context';
 import { Result } from './result';
 import { Der20Meta, PropertyDecoratorFunction, Validator } from './meta';
@@ -18,7 +18,7 @@ export function common(pluginName: string): PropertyDecoratorFunction {
     };
 }
 
-export class HelpCommand extends ConfigurationCommand {
+export class HelpCommand extends ConfigurationSimpleCommand {
     static readonly command: string = 'help';
 
     private helpItems: { plugin: string; command: string; format?: string; description?: string; validation?: string; common?: string }[] = [];
@@ -29,11 +29,6 @@ export class HelpCommand extends ConfigurationCommand {
         this.helpItems.sort((left, right) => {
             return left.command.localeCompare(right.command);
         });
-    }
-
-    // output for persistence and dump
-    toJSON(): any {
-        return undefined;
     }
 
     // output for help generator
@@ -115,7 +110,7 @@ export class HelpCommand extends ConfigurationCommand {
         }
     }
 
-    parse(line: string, context: ParserContext): Result.Any {
+    handleEndOfCommand(context: ParserContext): Result.Any {
         let dialog = new context.dialog(`${context.command} `);
         for (let item of this.helpItems) {
             dialog.beginControlGroup();

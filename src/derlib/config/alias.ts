@@ -13,10 +13,6 @@ export class ConfigurationAlias extends ConfigurationCommand {
         this.format = `-> ${path}`;
     }
 
-    toJSON(): any {
-        return undefined;
-    }
-
     parse(line: string, context: ParserContext) {
         return ConfigurationParser.parse(`${this.path} ${line}`, this.root, context);
     }
