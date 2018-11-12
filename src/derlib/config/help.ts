@@ -104,6 +104,15 @@ export class HelpCommand extends ConfigurationSimpleCommand {
                     // collection that has editable paths
                     this.enumerate(`${command} [${dataFormat}] `, new sampleConstructor());
                 }
+            } else if (typeof child.handleEndOfCommand === 'function') {
+                // ConfigurationTermination handler
+                this.helpItems.push({
+                    plugin: this.pluginName,
+                    command: command,
+                    format: dataFormat,
+                    description: humanReadable,
+                    common: commonPlugin
+                });
             } else {
                 this.enumerate(`${command} `, child);
             }
