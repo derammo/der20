@@ -60,6 +60,7 @@ export namespace Der20Meta {
         format: string;
         keyword: string;
         common: string;
+        data: boolean;
     }
 }
 

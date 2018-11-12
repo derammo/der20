@@ -1,22 +1,24 @@
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { TimerCommand } from './timer_command';
-import { ClearCommand } from './clear_command';
 import { SendCommand } from './send_command';
 import { ShowCommand } from './show_command';
 import { ConfigurationArray, ConfigurationChooser } from 'derlib/config/array';
 import { ConfigurationDeleteItemCommand } from 'derlib/config/deleteitem';
+import { ClearCommand } from 'derlib/config/clear';
 import { ConfigurationAlias } from 'derlib/config/alias';
 import { Rules } from './rules';
-import { Options } from 'derlib/roll20/options';
+import { Options } from 'derlib/options';
 
 // add handouts support to plugin by loading optional module
-import { HandoutsOptions } from 'derlib/roll20/handouts';
+import { HandoutsOptions, HandoutsSupport } from 'derlib/roll20/handouts';
 import { keyword } from 'derlib/config/parser';
 import { format } from 'derlib/config/help';
 import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
 
-class RewardsOptions extends Options {
+// add handouts support to basic options
+// REVISIT: replace this with civilized plugin extension, instead of mixin and this
+class RewardsOptions extends Options implements HandoutsSupport {
     handouts: HandoutsOptions = new HandoutsOptions();
 }
 
@@ -54,7 +56,7 @@ export class Configuration {
     // commands
     start: TimerCommand = new TimerCommand(this.module, 'start');
     stop: TimerCommand = new TimerCommand(this.module, 'stop');
-    clear: ClearCommand = new ClearCommand([this.dm, this.module]);
+    clear: ClearCommand = new ClearCommand([this.dm, this.module], 'cleared current session data and item selection');
     show: ShowCommand = new ShowCommand(this.dm, this.module);
     preview: SendCommand = new SendCommand(this.dm, this.module, this.define.rules, true); 
     send: SendCommand = new SendCommand(this.dm, this.module, this.define.rules, false);

@@ -3,11 +3,20 @@ import { Result } from './result';
 import { ParserContext, ConfigurationChangeHandling, ConfigurationTermination } from './context';
 import { PropertyDecoratorFunction, Der20Meta } from './meta';
 
-// keyword to use for this property instead of its name, e.g. singular name for collections
+/**
+ * keyword to use for this property instead of its name, e.g. singular name for collections
+ */
 export function keyword(keywordToken: string): PropertyDecoratorFunction {
     return function(prototype: any, propertyName: string): void {
         Der20Meta.getOrCreateProperty(prototype, propertyName).keyword = keywordToken;
     };
+}
+
+/**
+ *  if set, the target property is considered data for save/restore but cannot be edited via parser commands
+ */
+export function data(prototype: any, propertyName: string): void {
+    Der20Meta.getOrCreateProperty(prototype, propertyName).data = true;
 }
 
 export class ConfigurationParser {

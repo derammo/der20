@@ -18,7 +18,7 @@ export class SendCommand extends RenderCommand {
         return undefined;
     }
 
-    parse(line: string, context: ParserContext): Result.Any {
+    handleEndOfCommand(context: ParserContext): Result.Any {
         this.tryLoad(context);
 
         let dialog = new context.dialog(`${context.command} `);

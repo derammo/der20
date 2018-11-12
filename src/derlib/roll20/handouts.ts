@@ -1,7 +1,7 @@
 import { ConfigurationBoolean } from "derlib/config/atoms";
 import { ConfigurationParser } from "derlib/config/parser";
 import { ConfigurationSource, LoaderContext } from "derlib/config/context";
-import { Options } from "./options";
+import { Options } from "derlib/options";
 import { addExtension, PluginLoaderContext } from "./plugin";
 import { common } from "../config/help";
 import { ConfigurationChangeDelegator } from "derlib/config/events";
@@ -11,24 +11,27 @@ declare function on(event: 'change:handout', callback: (current: Handout, previo
 // mixin to support handouts in Plugin class
 class HandoutsPluginExtension {
     handouts: Handouts;
+
+    // mixin access to host
     configurationRoot: any;
     name: string;
+    options: Options;
 
     // mixin access to host
     handleLoaderResults: (context: PluginLoaderContext) => void;
 
+    // mixin access to host
+    freezeOptions: () => Options;
+    // freezeOptions: <OPTIONS extends Options>(factory: DefaultConstructed<OPTIONS>) => OPTIONS;
+
     // detect journal reading config in well known location 'options handouts ...'
     configureHandoutsSupport() {
-        if (!this.configurationRoot.hasOwnProperty(Options.pluginOptionsKey)) {
-            debug.log(`this plugin does not have plugin configuration under '${Options.pluginOptionsKey}'; no handouts support`);
-            return;
-        }
-        const pluginOptions = this.configurationRoot[Options.pluginOptionsKey];
-        if (!pluginOptions.hasOwnProperty('handouts')) {
+        const options = this.options;
+        if (!options.hasOwnProperty('handouts')) {
             debug.log(`this plugin does not support handout options under '${Options.pluginOptionsKey} handouts'`);
             return;
         }
-        const handoutsOptions: any = pluginOptions.handouts;
+        const handoutsOptions: any = (<any>options).handouts;
         if (!(handoutsOptions instanceof HandoutsOptions)) {
             debug.log(`this plugin uses non-standard options under '${Options.pluginOptionsKey} handouts' that are unsupported`);
             return;
@@ -44,7 +47,7 @@ class HandoutsPluginExtension {
                     this.handouts.configure(handoutsOptions);
 
                     //  we need to get a configuration loader context, so we need to be closely related to the plugin module
-                    let loaderContext = new PluginLoaderContext();
+                    let loaderContext = new PluginLoaderContext(options);
 
                     // REVISIT: we currently reread all of them even if some were already enabled
                     this.handouts.readHandouts(loaderContext);
@@ -58,7 +61,7 @@ class HandoutsPluginExtension {
         });
  
         // read all handouts
-        let context = new PluginLoaderContext();
+        let context = new PluginLoaderContext(options);
         this.handouts.readHandouts(context);
         this.handleLoaderResults(context);
 
@@ -67,7 +70,7 @@ class HandoutsPluginExtension {
     }
 
     handoutChanged(current: Handout, previous: Handout): void {
-        let context = new PluginLoaderContext();
+        let context = new PluginLoaderContext(this.freezeOptions());
         let archived = current.get('archived');
         if (archived === undefined) {
             debug.log('object received in handout change handler was not a handout');
@@ -92,6 +95,13 @@ class HandoutsPluginExtension {
     }    
 }
 
+/**
+ * interface to be supported by the plugin options object if plugin wants handouts support
+ */
+export interface HandoutsSupport {
+    handouts: HandoutsOptions;
+}
+
 export class HandoutsOptions extends ConfigurationChangeDelegator {
     @common('PLUGIN')
     journal: ConfigurationBoolean = new ConfigurationBoolean(true);
@@ -101,6 +111,18 @@ export class HandoutsOptions extends ConfigurationChangeDelegator {
     // list of top-level configuration subtree keys that are allowed to be used in handouts
     // to be set in code
     subtrees: string[] = [];
+
+    clone(): HandoutsOptions {
+        let clone = new HandoutsOptions();
+        
+        clone.journal = this.journal.clone();
+        clone.archived = this.archived.clone();
+
+        // these do not change during run time
+        clone.subtrees = this.subtrees;
+        
+        return clone;
+    }
 
     toJSON(): any {
         if (this.journal.hasConfiguredValue() || this.archived.hasConfiguredValue()) {

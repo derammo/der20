@@ -20,16 +20,7 @@ export function serializeWithoutNulls(content: any): string {
 }
 
 export function clone<T>(factory: DefaultConstructed<T>, from: T) {
-    let copied = new factory();
-    /* tslint:disable-next-line forin */
-    for (let key in from) {
-        let item: any = from[key];
-        if (item.clone === undefined) {
-            throw new Error(`clone function is not implemented on key '${key}' of class ${factory.name}`);
-        }
-        copied[key] = item.clone();
-    }
-    return copied;
+    return cloneExcept(factory, from, []);
 }
 
 export function cloneExcept<T>(
@@ -37,14 +28,17 @@ export function cloneExcept<T>(
     from: T,
     except: string[]
 ) {
-    let copied = new factory();
-    /* tslint:disable-next-line forin */
-    for (let key in from) {
+    if (from === undefined) {
+        throw new Error(`attempted to clone 'undefined' to class ${factory.name}`);
+    }
+    let copied = <any>new factory();
+    let source = <any>from;
+    for (let key of Object.getOwnPropertyNames(from)) {
         if (except.indexOf(key) >= 0) {
             copied[key] = undefined;
             continue;
         }
-        let item: any = from[key];
+        let item: any = source[key];
         if (item.clone === undefined) {
             throw new Error(`clone function is not implemented on key '${key}' of class ${factory.name}`);
         }

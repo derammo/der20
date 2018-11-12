@@ -9,13 +9,14 @@ import { exec, ExecException } from 'child_process';
 // libs
 import { startPersistence } from "derlib/persistence";
 import { Result } from "derlib/config/result";
-import { Options } from "derlib/roll20/options";
+import { Options } from "derlib/options";
 import { ConfigurationParser } from "derlib/config/parser";
 import { ConfigurationLoader } from "derlib/config/loader";
 import { LoaderContext, ConfigurationSource, ParserContext } from "derlib/config/context";
 import { HelpCommand } from "derlib/config/help";
 import { Der20ChatDialog } from "derlib/roll20/dialog";
 import { DialogFactory } from "derlib/ui";
+import { clone } from "derlib/utility";
 
 class MockContext implements LoaderContext, ParserContext {
 	command: string;
@@ -23,6 +24,7 @@ class MockContext implements LoaderContext, ParserContext {
 	asyncVariables: Record<string, any> = {};
 	source: ConfigurationSource.Any = new ConfigurationSource.Journal('test', 'main');
 	dialog: DialogFactory = Der20ChatDialog;
+	options: Options = new Options();
 
 	addCommand(source: ConfigurationSource.Any, command: string): void {
 		throw new Error("Method not implemented.");
@@ -211,6 +213,9 @@ function tidy(text: string): string {
 	child.stdin.end();	
 	return output;
 }
+
+let options = new Options();
+let cloned = clone(Options, options);
 
 testParse();
 debug.log(JSON.stringify(configurationRoot));

@@ -1,4 +1,4 @@
-import { Options } from 'derlib/roll20/options';
+import { Options } from 'derlib/options';
 import { keyword } from 'derlib/config/parser';
 import { SetCommand, setDefaultToken } from './set';
 import { RevealCommand } from './reveal';

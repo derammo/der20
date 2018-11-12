@@ -111,5 +111,5 @@ export abstract class SelectedTokensCommand extends ConfigurationSimpleCommand {
     }
 
     // tokenIndex is the index of the token in the selected tokens array, which remains the same during async retries
-    abstract handleToken(token: Der20Token, parserContext: any, tokenIndex: number): Result.Any;
+    abstract handleToken(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result.Any;
 }

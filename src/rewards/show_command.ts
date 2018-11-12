@@ -1,11 +1,11 @@
-import { ConfigurationCommand } from 'derlib/config/atoms';
+import { ConfigurationSimpleCommand } from 'derlib/config/atoms';
 import { LeagueModule } from 'derlib/ddal/league_module';
 import { DungeonMaster } from 'derlib/ddal/dungeon_master';
 import { Result } from 'derlib/config/result';
 import { ConfigurationChooser } from 'derlib/config/array';
 import { ParserContext } from 'derlib/config/context';
 
-export abstract class RenderCommand extends ConfigurationCommand {
+export abstract class RenderCommand extends ConfigurationSimpleCommand {
     protected dm: ConfigurationChooser<DungeonMaster>;
     protected module: ConfigurationChooser<LeagueModule>;
 
@@ -38,7 +38,7 @@ export class ShowCommand extends RenderCommand {
         return undefined;
     }
 
-    parse(line: string, context: ParserContext): Result.Any {
+    handleEndOfCommand(context: ParserContext): Result.Any {
         // load if possible
         let result = this.tryLoad(context);
         switch (result.kind) {

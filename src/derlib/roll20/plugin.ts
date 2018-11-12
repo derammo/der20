@@ -2,13 +2,13 @@ import { Result } from 'derlib/config/result';
 import { startPersistence } from 'derlib/persistence';
 import { ConfigurationPersistence } from 'derlib/config/persistence';
 import { ConfigurationParser } from 'derlib/config/parser';
-import { ConfigurationCommand, ConfigurationStep, ConfigurationSimpleCommand } from 'derlib/config/atoms';
-import { DefaultConstructed } from 'derlib/utility';
+import { ConfigurationCommand, ConfigurationSimpleCommand } from 'derlib/config/atoms';
+import { DefaultConstructed, cloneExcept } from 'derlib/utility';
 import { ConfigurationLoader } from 'derlib/config/loader';
 import { ConfigurationSource, ConfigurationContext, LoaderContext, ParserContext } from 'derlib/config/context';
 import { PromiseQueue } from 'derlib/promise';
 import { HelpCommand, common } from 'derlib/config/help';
-import { Options } from './options';
+import { Options } from 'derlib/options';
 import { DialogFactory } from 'derlib/ui';
 import { Der20ChatDialog } from './dialog';
 
@@ -20,16 +20,36 @@ declare var der20Mode: string | undefined;
 declare var der20ScriptBeginningOffset: number;
 declare var der20ScriptFileName: string;
 
+// commands we add to the configuration or recognize if provided
+interface BuiltinConfiguration {
+    dump: ConfigurationSimpleCommand;
+    reset: ConfigurationCommand;
+    help: ConfigurationSimpleCommand;
+
+    // optional, used if specific plugin supplies it
+    show?: ConfigurationSimpleCommand;
+    options?: Options;
+}
+
 // if we add more events, we need to repeat declaration overrides here:
 // declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
 // declare function on(event: "ready", callback: () => void): void;
 
 class Plugin<T> {
-    configurationRoot: any;
+    // current configuration
+    configurationRoot: T & BuiltinConfiguration;
+
+    // current options, either static or from configurationRoot
+    options: Options;
+
+    // builtin '!' commands supported by this plugin, additional
+    private builtinCommands: Set<string> = new Set();
+
+    // configuration storage
     persistence: ConfigurationPersistence;
+
+    // execution queues for all work done by plugin
     work: PromiseQueue = new PromiseQueue();
-    verbose: boolean = false;
-    echo: boolean = true;
 
     // REVISIT: the reason there are so many levels is because we don't have explicit dependencies
     // between work items.  Because config work is concurrent, there could be several currently running
@@ -57,9 +77,6 @@ class Plugin<T> {
         commands: PromiseQueue.Level;
     } = { fetches: undefined, retries: undefined, config: undefined, configparse: undefined, followups: undefined, commands: undefined };
 
-    // all '!' commands supported by this plugin
-    private commands: Set<string> = new Set();
-
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
 
@@ -83,13 +100,48 @@ class Plugin<T> {
 
     reset() {
         // create the world
-        this.configurationRoot = new this.factory();
+        this.configurationRoot = <T & BuiltinConfiguration>new this.factory();
+
+        // built in top-level commands for this plugin
+        this.builtinCommands = new Set([this.name]);
+        if (this.configurationRoot.show !== undefined) {
+            // this is magic support for the 'show' top-level command, which is initially specific to the 'rewards' plugin
+            this.builtinCommands.add(`${this.name}-show`);
+        }
+
+        // sanity check to make sure code in Options class matches this
+        if (Options.pluginOptionsKey !== 'options') {
+            throw new Error(`broken implementation: common options must be stored under key 'options'`);
+        }
+
+        // check for common options
+        if (this.configurationRoot.options === undefined) {
+            // options not supported, so we use fixed configuration
+            this.options = new Options();
+        } else {
+            // options will be configurable
+            this.options = this.configurationRoot.options;
+            debug.log(`plugin has common options: ${JSON.stringify(this.options)}`);
+        }
 
         // add debug commmand
         if (this.configurationRoot.dump === undefined) {
             this.configurationRoot.dump = new DumpCommand();
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'dump');
         }
+
+        // add change handling for debug flag, since we have to write it to global
+        let debugHandler = new UpdateDebug();
+        debugHandler.readOptions(this.options);
+        this.options.onChangeEvent(keyword => {
+            switch (keyword) {
+                case 'debug':
+                    debugHandler.readOptions(this.options);
+                    break;
+                default:
+                // ignore
+            }
+        });
 
         // add reset command
         if (this.configurationRoot.reset === undefined) {
@@ -118,80 +170,15 @@ class Plugin<T> {
 
     restoreConfiguration() {
         let json = this.persistence.load();
-        let context = new PluginLoaderContext();
+        let context = new PluginLoaderContext(this.freezeOptions());
 
         // we don't use the indirect result based approach we use for parsing,
         // because named promises do not work for loading.  parsing is only considering one path to root at
         // a time, so it is different than loading the entire tree
         ConfigurationLoader.restore(json, this.configurationRoot, context);
 
-        // add support for optional command strings
-        this.registerCommonOptions();
-
         // potentially schedule some commands
         this.handleLoaderResults(context);
-    }
-
-    private registerCommonOptions() {
-        // built in top-level commands for this plugin
-        let builtinCommands = [`!${this.name}`];
-        if (this.configurationRoot.show !== undefined) {
-            builtinCommands.push(`!${this.name}-show`);
-        }
-
-        if (this.configurationRoot[Options.pluginOptionsKey] === undefined) {
-            // options not supported, so we use fixed configuration
-            this.commands = new Set(builtinCommands);
-            return;
-        }
-
-        let options = <Options>this.configurationRoot[Options.pluginOptionsKey];
-        debug.log(`plugin has common options: ${JSON.stringify(options)}`);
-
-        // additional commands
-        let commandsHandler = new UpdateValidCommands(this.commands, builtinCommands);
-        commandsHandler.readOptions(options);
-
-        // debugging
-        let debugHandler = new UpdateDebug();
-        debugHandler.readOptions(options);
-
-        // echo commands
-        let echoHandler = new UpdateEcho();
-        echoHandler.readOptions(options);
-
-        // verbose responses
-        let verboseHandler = new UpdateVerbose();
-        verboseHandler.readOptions(options);
-
-        // register for changes
-        options.onChangeEvent(keyword => {
-            switch (keyword) {
-                case 'command':
-                    commandsHandler.readOptions(options);
-                    break;
-                case 'debug':
-                    debugHandler.readOptions(options);
-                    break;
-                case 'verbose':
-                    verboseHandler.readOptions(options);
-                    break;
-                case 'echo':
-                    echoHandler.readOptions(options);
-                break;
-                default:
-                // ignore
-            }
-        });
-        options.delete.onChangeEvent(keyword => {
-            switch (keyword) {
-                case 'command':
-                    commandsHandler.readOptions(options);
-                    break;
-                default:
-                // ignore
-            }
-        });
     }
 
     handleParserResult(context: PluginParserContext, result: Result.Any): void {
@@ -202,19 +189,21 @@ class Plugin<T> {
         }
 
         // echo on last round of execution
-        if  (this.echo && 
-            (result.kind !== Result.Kind.Asynchronous) && 
-            (result.kind !== Result.Kind.Dialog) && 
-            (context.source.kind === ConfigurationSource.Kind.Api)) {
+        if (
+            context.options.echo.value() &&
+            result.kind !== Result.Kind.Asynchronous &&
+            result.kind !== Result.Kind.Dialog &&
+            context.source.kind === ConfigurationSource.Kind.Api
+        ) {
             // NOTE: we don't actually use the contents of this dialog; it just provides the direct rendering of the command echo,
             // which is not shown in dialog style
             let echo = new context.dialog('');
-            let rendered = echo.renderCommandEcho(`${context.command} ${context.rest}`, result.kind);    
+            let rendered = echo.renderCommandEcho(`${context.command} ${context.rest}`, result.kind);
             let source = <ConfigurationSource.Api>context.source;
-            sendChat(this.name, `/w "${source.player.get('_displayname')}" ${rendered}`, null, { noarchive: true });            
+            sendChat(this.name, `/w "${source.player.get('_displayname')}" ${rendered}`, null, { noarchive: true });
         }
         // send any messages to caller, regardless of result
-        if (this.verbose) {
+        if (context.options.verbose.value()) {
             for (let message of result.messages) {
                 if (context.source.kind === ConfigurationSource.Kind.Api) {
                     let source = <ConfigurationSource.Api>context.source;
@@ -258,8 +247,7 @@ class Plugin<T> {
                 if (context.command.endsWith('-show') && context.source.kind === ConfigurationSource.Kind.Api) {
                     // execute show action after executing command, used in interactive dialogs to
                     // render the new state of the dialog
-                    const show: ConfigurationStep<any> = <ConfigurationStep<any>>this.configurationRoot.show;
-                    let showResult = show.parse('', context);
+                    let showResult = this.configurationRoot.show.handleEndOfCommand(context);
                     return this.handleParserResult(context, showResult);
                 }
                 break;
@@ -317,7 +305,7 @@ class Plugin<T> {
         for (let command of context.commands) {
             followUpWork = true;
             this.work.scheduleWork(this.levels.configparse, () => {
-                let parsing = new PluginParserContext(`!${this.name}`, command.line);
+                let parsing = new PluginParserContext(context.options, `!${this.name}`, command.line);
                 parsing.source = command.source;
                 this.dispatchCommand(parsing);
                 return Promise.resolve();
@@ -404,6 +392,26 @@ class Plugin<T> {
         }
     }
 
+    /**
+     * returns frozen copy of current options
+     */
+    private freezeOptions(): Options {
+        if (this.configurationRoot.options === undefined) {
+            // options are not configurable, so we don't have to copy them
+            return this.options;
+        }
+        return cloneExcept(Options, this.options, ['changeEventHandler']);
+    }
+    /*
+    private freezeOptions(factory: DefaultConstructed<OPTIONS>): OPTIONS {
+        if (this.configurationRoot.options === undefined) {
+            // options are not configurable, so we don't have to copy them
+            return <OPTIONS>(this.options);
+        }
+        return clone(factory, <OPTIONS>this.options);
+    }
+    */
+
     private hookChatMessage() {
         on('chat:message', message => {
             if (message.type !== 'api') {
@@ -414,13 +422,14 @@ class Plugin<T> {
                 let lines = message.content.split('\n');
                 for (let line of lines) {
                     let tokens = ConfigurationParser.tokenizeFirst(line);
-                    if (!this.commands.has(tokens[0])) {
+                    let command = tokens[0].slice(1);
+                    if (!this.builtinCommands.has(command) && !this.options.commands.value().has(command)) {
                         debug.log(`ignoring command for other plugin: ${line.substring(0, 78)}`);
                         continue;
                     }
 
                     // this context object will survive until this command line is completely executed, including retries
-                    let context = new PluginCommandExecution(player, message, tokens[0], tokens[1]);
+                    let context = new PluginCommandExecution(this.freezeOptions(), player, message, tokens[0], tokens[1]);
 
                     // REVISIT consult access control tree
                     if (!playerIsGM(player.id)) {
@@ -441,7 +450,7 @@ class Plugin<T> {
                     });
                 }
             } catch (error) {
-                this.reportParseError(error);
+                this.handleErrorThrown(error);
             }
         });
     }
@@ -454,8 +463,11 @@ class Plugin<T> {
             this.configureHandoutsSupport();
             this.work.scheduleWork(this.levels.commands, () => {
                 // this will run when everything else is done and we are ready for commands
-                for (let command of this.commands) {
-                    log(`plugin command ${command} loaded`);
+                for (let command of this.builtinCommands) {
+                    log(`plugin command !${command} loaded`);
+                }
+                for (let command of this.options.commands.value()) {
+                    log(`plugin command !${command} (alias for !${this.name}) loaded`);
                 }
                 return Promise.resolve();
             });
@@ -537,7 +549,11 @@ export class ResetCommand extends ConfigurationCommand {
     }
 }
 
-class ContextBase implements ConfigurationContext {}
+class ContextBase implements ConfigurationContext {
+    constructor(public options: Options) {
+        // generated code
+    }
+}
 
 export class PluginLoaderContext extends ContextBase implements LoaderContext {
     messages: string[] = [];
@@ -562,45 +578,22 @@ export class PluginParserContext extends ContextBase implements ParserContext {
     asyncVariables: Record<string, any> = {};
     dialog: DialogFactory = Der20ChatDialog;
 
-    constructor(public command: string, public rest: string) {
-        super();
+    constructor(options: Options, public command: string, public rest: string) {
+        super(options);
         // generated
     }
 }
 
 export class PluginCommandExecution extends PluginParserContext {
     source: ConfigurationSource.Api;
-    constructor(player: Player, message: ApiChatEventData, command: string, public rest: string) {
-        super(command, rest);
+    constructor(options: Options, player: Player, message: ApiChatEventData, command: string, public rest: string) {
+        super(options, command, rest);
         // generated code
         this.source = new ConfigurationSource.Api(player, message);
     }
 }
 
-abstract class OptionsUpdate {
-    abstract readOptions(options: Options): void;
-}
-
-class UpdateValidCommands extends OptionsUpdate {
-    constructor(private commands: Set<string>, private builtin: string[]) {
-        super();
-        // generated
-    }
-
-    readOptions(options: Options) {
-        this.commands.clear();
-        for (let builtinCommand of this.builtin) {
-            this.commands.add(builtinCommand);
-        }
-        for (let command of options.commands.value()) {
-            let bangCommand = `!${command}`;
-            debug.log(`enabling additional command string '${bangCommand}'`);
-            this.commands.add(bangCommand);
-        }
-    }
-}
-
-class UpdateDebug extends OptionsUpdate {
+class UpdateDebug {
     readOptions(options: Options) {
         if (options.debug.value()) {
             debug.log = console.log;
@@ -609,17 +602,5 @@ class UpdateDebug extends OptionsUpdate {
                 /* ignore */
             };
         }
-    }
-}
-
-class UpdateVerbose extends OptionsUpdate {
-    readOptions(options: Options): void {
-        plugin.verbose = options.verbose.value();
-    }
-}
-
-class UpdateEcho extends OptionsUpdate {
-    readOptions(options: Options): void {
-        plugin.echo = options.echo.value();
     }
 }

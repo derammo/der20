@@ -4,8 +4,8 @@ import { keyword } from 'derlib/config/parser';
 import { ConfigurationSet } from 'derlib/config/set';
 import { ConfigurationDeleteItemCommand } from 'derlib/config/deleteitem';
 import { ConfigurationBoolean } from 'derlib/config/atoms';
-import { ConfigurationChangeDelegator } from 'derlib/config/events';
 import { ConfigurationIntermediateNode } from 'derlib/config/intermediate';
+import { ConfigurationChangeDelegator } from './config/events';
 
 export class Options extends ConfigurationChangeDelegator {
     // this object contains plugin options and is stored under this key in the configuration root
@@ -38,15 +38,26 @@ export class Options extends ConfigurationChangeDelegator {
     }
 }
 
+/**
+ * Base class for configuration of a plugin that supports options configuration
+ */
+export class PluginWithOptions {
+    @keyword('option')
+    options: Options = new Options();
+}
 
-class DeleteOptionCommands extends ConfigurationChangeDelegator {
+class DeleteOptionCommands {
     @format('ID')
     @common('PLUGIN')
     command: ConfigurationDeleteItemCommand<String>;
 
     constructor(commands: ConfigurationSet) {
-        super();
         this.command = new ConfigurationDeleteItemCommand<String>(commands);
+    }
+
+    clone(): DeleteOptionCommands {
+        // frozen configuration does not implement commands
+        return undefined;
     }
 
     toJSON(): any {

@@ -1,12 +1,16 @@
 import { Result } from "./result";
 import { DialogFactory } from "derlib/ui";
+import { Options } from "derlib/options";
 
 /**
  * Base context passed to all parsing or configuration loading functions, represents the execution of
  * one command or one load from JSON.
  */
 export interface ConfigurationContext {
-    // empty, since there is currently nothing in common between parsing and loading from JSON
+    /**
+     * frozen configuration
+     */
+    options: Options;
 }
     
 export namespace ConfigurationSource {
