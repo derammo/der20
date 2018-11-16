@@ -29,4 +29,4 @@ for PLUGIN in "$@" ; do
 	notes "${VERSIONS}" "${TITLE}" "${PLUGIN}" "src/${PLUGIN}" ;
 done ;
 
-notes "${VERSIONS}" "der20 TypeScript Framework" common "src/derlib src/sys include LICENSE Makefile" ; 
+notes "${VERSIONS}" "der20 TypeScript Framework" common "src/der20 src/sys include LICENSE Makefile" ; 

@@ -1,0 +1,1 @@
+{ "extends": "../tsconfig_executables.json", "compilerOptions": { "outFile": "../../../build/worker_test.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts" ] }

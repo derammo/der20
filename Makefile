@@ -1,43 +1,94 @@
-PLUGINS := rewards anonymous
-SCRIPTS := parser_test help_test
+PLUGINS := rewards anonymous setup init5e
+EXECUTABLES := parser_test help_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 SCRIPT := dist/rewards_api_script.js
-DEFAULT := $(word 1,$(SCRIPTS))
-DIST := $(patsubst %,dist/der20_%.js,$(PLUGINS))
+DEFAULT := $(word 1,$(EXECUTABLES))
+DIST := $(patsubst %,dist/der20_%_complete.js,$(PLUGINS)) dist/der20_library.js $(patsubst %,dist/der20_%_plugin.js,$(PLUGINS))
 HELP_JSON := $(patsubst %,build/%_help.json,$(PLUGINS))
 LICENSE_LENGTH := $(word 1, $(shell wc -l LICENSE))
+LIB_SOURCES := $(shell find src/der20 -name "*.ts" | grep -v 'src/der20/library.ts' | sort)
+TSC := node_modules/typescript/bin/tsc
 
-.PHONY: all clean run release checkout_release build_release publish create_draft plugins scripts documentation relnotes
-.PRECIOUS: build/%.js src/%/tsconfig.json
+.PHONY: all clean run release checkout_release build_release publish create_draft plugins executables documentation relnotes
+.PRECIOUS: build/%.js src/%/tsconfig.json merged/build/der20/%.js merged/build/der20/%_plugin.js
 
-all: node_modules plugins scripts documentation
+all: node_modules plugins executables documentation
 plugins: $(DIST)
-scripts: $(patsubst %,build/%.js,$(SCRIPTS))
+executables: $(patsubst %,build/%.js,$(EXECUTABLES))
 theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
-dist/der20_%.js: build/%.js include/header.js.txt include/trailer.js.txt Makefile LICENSE
+dist/der20_%_complete.js: build/%.js include/header.js.txt include/trailer.js.txt Makefile LICENSE
 	@mkdir -p dist
 	@rm -f $@
-	@sed -e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' -e 's/DER20_MAGIC_FILE_NAME/der20_$*.js/g' < include/header.js.txt > $@
-	@sed -e 's/    Object\.defineProperty(.*);$$/    \/\/ local module initialized by embedded loader below/' < $< >> $@
+	@head -1 LICENSE > $@
+	@echo ' *' $* DER20 DEVELOPMENT BUILD >> $@
+	@echo ' *' >> $@
+	@tail -n +2 LICENSE >> $@
+	@sed \
+		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
+		-e 's/DER20_MAGIC_FILE_NAME/der20_$*.js/g' \
+		< include/header.js.txt >> $@
+	@sed \
+		-e 's/    Object\.defineProperty(.*);$$//' \
+		-e 's_^//. sourceMappingURL.*$$__' < $< \
+		| cat -s >> $@
 	@cat include/trailer.js.txt >> $@
 	@chmod 444 $@
 	@echo packaging $< as $@ for Roll20
+dist/der20_library.js: merged/build/der20/library.js include/library_header.js.txt include/monolith_trailer.js.txt Makefile LICENSE
+	@mkdir -p dist
+	@rm -f $@
+	@head -1 LICENSE > $@
+	@echo ' *' der20 library DER20 DEVELOPMENT BUILD >> $@
+	@echo ' *' >> $@
+	@tail -n +2 LICENSE >> $@
+	@sed \
+		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
+		-e 's/DER20_MAGIC_NAME/library/g' \
+		< include/library_header.js.txt >> $@
+	@sed \
+		-e 's/    Object\.defineProperty(.*);$$//' \
+		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
+	@cat include/monolith_trailer.js.txt >> $@
+	@chmod 444 $@
+	@echo packaging $< as separate library $@ for Roll20
+dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.txt include/monolith_trailer.js.txt Makefile LICENSE
+	@mkdir -p dist
+	@rm -f $@
+	@head -1 LICENSE > $@
+	@echo ' *' der20 $* plugin DER20 DEVELOPMENT BUILD >> $@
+	@echo ' *' >> $@
+	@tail -n +2 LICENSE >> $@
+	@sed \
+		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
+		-e 's/DER20_MAGIC_NAME/$*/g' \
+		< include/plugin_header.js.txt >> $@
+	@sed \
+		-e 's/    Object\.defineProperty(.*);$$//' \
+		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
+	@cat include/monolith_trailer.js.txt >> $@
+	@chmod 444 $@
+	@echo packaging $< as as separate plugin $@ for Roll20
 run: build/$(DEFAULT).js tmp
 	node build/$(DEFAULT).js | egrep --color -e '^\tresult of parse: {"kind":3.*$$' -e $$
 tmp:
 	mkdir tmp
 print:
 	json_pp < tmp/der20_$(DEFAULT)_state.json
-build/%.js: $(SRC) src/%/tsconfig.json node_modules
+build/%.js: $(SRC) src/plugins/%/tsconfig.json src/plugins/% node_modules
 	@mkdir -p build
-	node_modules/typescript/bin/tsc -p src/$*/tsconfig.json
-src/%/tsconfig.json:
-	echo '{ "extends": "../../tsconfig.json", "compilerOptions": { "outFile": "../../build/$*.js" }, "include": [ "**/*.ts", "../sys/loader.js", "../types/*.d.ts" ] }' > $@
+	$(TSC) -p src/plugins/$*/tsconfig.json
+build/%.js: $(SRC) src/executables/%/tsconfig.json src/executables/% node_modules
+	@mkdir -p build
+	$(TSC) -p src/executables/$*/tsconfig.json
+src/plugins/%/tsconfig.json:
+	@echo '{ "extends": "../tsconfig_plugins.json", "compilerOptions": { "outFile": "../../../build/$*.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts" ] }' > $@
+src/executables/%/tsconfig.json:
+	@echo '{ "extends": "../tsconfig_executables.json", "compilerOptions": { "outFile": "../../../build/$*.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts" ] }' > $@
 clean:
-	rm -rf build dist docs/index.html
+	rm -rf build dist docs/index.html merged/src merged/compile merged/build merged/tsconfig_%.json
 squeaky: clean
 	rm -rf node_modules
 cloc: /usr/local/bin/cloc
@@ -55,17 +106,12 @@ label_release:
 checkout_master:
 	git checkout master
 releases/${RELEASE}/%.js: dist/%.js LICENSE
-	mkdir -p releases/${RELEASE}
-	head -1 LICENSE > $@
-	echo ' *' $* version $(RELEASE) >> $@
-	echo ' *' >> $@
-	tail -n +2 LICENSE >> $@
-	echo >> $@
-	cat $< >> $@
+	@mkdir -p releases/${RELEASE}
+	sed -e 's/DER20 DEVELOPMENT BUILD/v${RELEASE}/g' < $< > $@
 publish: checkout_release create_draft checkout_master
 create_draft:
 	git push origin v${RELEASE}
-	node scripts/publish_release.js ${RELEASE} 'src/derlib src/sys include LICENSE Makefile' $(patsubst %,src/%,$(PLUGINS)) 
+	node scripts/publish_release.js ${RELEASE} 'src/der20 src/sys include LICENSE Makefile' $(patsubst %,src/%,$(PLUGINS)) 
 list:
 	@echo $(SRC)
 documentation: docs/index.html
@@ -83,4 +129,42 @@ help: $(HELP_JSON) scripts/update_helpfiles.js
 		node ../scripts/update_helpfiles.js < ../$${file} ; \
 	done
 	touch help
-notes:
+merged/build/der20/%_plugin.js: merged/compile/der20/%_plugin.js Makefile
+	@echo translating $< to $@
+	@mkdir -p merged/build/der20
+	@sed \
+		-e 's/^define(.*$$/    let exports = {};/' \
+		-e 's/\([[:space:]]\)library_[0-9]*\./\1der20_library./g' \
+		-e 's/^});//' \
+		-e 's/^[[:space:]]*exports\.[[:alnum:]]* = [[:alnum:]]*;$$//g' \
+		$< > $@
+	@cat src/sys/plugin_loader.js >> $@
+merged/compile/der20/%_plugin.js: merged/src/der20/%_plugin.ts merged/compile/der20/library.js src/sys/plugin_loader.js merged/tsconfig_%_plugin.json Makefile
+	$(TSC) -p merged/tsconfig_$*_plugin.json
+merged/build/der20/library.js: merged/compile/der20/library.js Makefile
+	@echo translating $< to $@
+	@mkdir -p merged/build/der20
+	@sed \
+		-e 's/^define(.*$$/    let exports = {};/' \
+		-e 's/\([[:space:]]\)library_[0-9]*\./\1der20_library./g' \
+		-e 's/^});//' \
+		$< > $@
+	@cat src/sys/library_loader.js >> $@
+merged/compile/der20/library.js: merged/src/der20/library.ts src/sys/library_loader.js merged/tsconfig_library.json Makefile
+	$(TSC) -p merged/tsconfig_library.json
+merged/tsconfig_%.json: merged/src/der20/%.ts Makefile
+	@echo '{ "extends": "./tsconfig.json", "compilerOptions": { "rootDir": "src", "baseUrl": "src", "outDir": "compile", "outFile": null, "noEmitHelpers": true },' > $@
+	@echo '  "include": ["src/der20/$*.ts", "src/types/*.d.ts"] }' >> $@
+merged/src/der20/library.ts: $(LIB_SOURCES) build/tsmerge.js merged/src/types Makefile
+	@echo merging sources into $@
+	@mkdir -p merged/src/der20
+	@node build/tsmerge.js $(LIB_SOURCES) > $@
+merged/src/der20/%_plugin.ts: $(wildcard src/plugins/%/*.ts src/plugins/%/*/*.ts) build/tsmerge.js merged/src/types Makefile
+	@echo merging sources into $@
+	@mkdir -p merged/src/der20
+	@node build/tsmerge.js $(wildcard src/plugins/$*/*.ts src/plugins/$*/*/*.ts) > $@
+build/tsmerge.js: scripts/tsmerge.ts
+	$(TSC) --target ES6 --outdir build $<
+merged/src/types:
+	@mkdir -p merged/src
+	ln -s ../../src/types merged/src/types

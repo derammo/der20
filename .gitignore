@@ -5,3 +5,7 @@ releases/
 node_modules/
 tmp/
 test/testquery.js
+merged/src
+merged/build
+merged/compile
+merged/tsconfig_*.json

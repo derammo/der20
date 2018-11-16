@@ -1,0 +1,1 @@
+{ "extends": "../tsconfig_plugins.json", "compilerOptions": { "outFile": "../../../build/anonymous.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts" ] }

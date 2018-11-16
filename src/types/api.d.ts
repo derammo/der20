@@ -215,6 +215,7 @@ interface GraphicMutableSynchronousGetProperties {
     light_losangle: string;
     lastmove: string;
     light_multiplier: string;
+    adv_fow_view_distance: string | number;
 }
 
 interface Graphic extends Roll20ObjectBase<GraphicImmutableSynchronousGetProperties, never, GraphicMutableSynchronousGetProperties, never> { }
@@ -479,6 +480,7 @@ declare function log(message: any): void;
 declare function on(event: "ready", callback: () => void): void;
 declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
 declare function on(event: "change:campaign:turnorder", callback: (obj: Campaign, prev: CampaignImmutableSynchronousGetProperties & CampaignMutableSynchronousGetProperties) => void): void;
+declare function on(event: 'change:handout', callback: (current: Handout, previous: Handout) => void): void;
 
 /**
  * Sends a chat message.
@@ -539,3 +541,5 @@ interface HandoutMutableSynchronousGetProperties {
 }
 
 interface Handout extends Roll20ObjectBase<HandoutImmutableSynchronousGetProperties, never, HandoutMutableSynchronousGetProperties, never> { }
+
+declare function playerIsGM(playerid: string): boolean;

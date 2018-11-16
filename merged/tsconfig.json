@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "amd",
+        "moduleResolution": "node",
+        "removeComments": false,
+        "preserveConstEnums": true,
+        "rootDir": "src",
+        "outDir": "testbuild", /* for IDE only, real files are built to build/ and post-processed */
+        "sourceMap": true,
+        "allowJs": true,
+        "baseUrl": "src",
+        "strictFunctionTypes": true,
+        "strictNullChecks" : false,
+        "listFiles": false,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "experimentalDecorators": true,
+        "noEmitHelpers": true
+    },
+    "compileOnSave": true,
+    "include": [ "src/**/*.ts", "src/sys/loader.js", "src/types/*.d.ts" ]
+}

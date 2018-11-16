@@ -1,0 +1,3 @@
+    exports.scriptOffset = der20ScriptOffset;
+    return exports;
+})();

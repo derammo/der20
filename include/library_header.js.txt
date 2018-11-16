@@ -1,0 +1,32 @@
+var der20_DER20_MAGIC_NAME = (function() {
+    let der20ScriptOffset = function() {
+        const match = new Error('beginning of file marker on line 3').stack.match(/apiscript.js:(\d+)/);
+        const markerLine = match ? parseInt(match[1], 10) : 3
+        // adjust for license file and 2 version string lines
+        let preambleLength = DER20_MAGIC_LICENSE_TEXT_LENGTH + 2;
+        if (markerLine < preambleLength) {
+            // license file is not prepended yet and we are running alone for testing
+            return markerLine - 3;
+        }
+        return markerLine - (3 + preambleLength);
+    }();
+
+    // this must always be set to this value
+    var der20ScriptMode = 'roll20';
+
+    // enumerate all installed scripts, accurate only after all scripts are loaded
+    function der20ScriptModules() {
+        return Object.getOwnPropertyNames(this).
+            filter((item) => {return item.startsWith('der20_')}).
+            map((item) => { return { name: item, data: this[item] }; }); 
+    }
+
+    // we only use simple decorations on properties, so we can use this simple implementation
+    function __decorate(decorators, target, key) {
+        for (var i = decorators.length - 1; i >= 0; i--) {
+            let decorator = decorators[i];
+            if (decorator !== undefined) {
+                decorator(target, key);
+            }
+        }
+    };

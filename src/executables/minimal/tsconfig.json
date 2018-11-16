@@ -1,0 +1,1 @@
+{ "extends": "../tsconfig_executables.json", "compilerOptions": { "outFile": "../../../build/minimal.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts" ] }

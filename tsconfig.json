@@ -7,7 +7,7 @@
         "preserveConstEnums": true,
         "rootDir": "src",
         "outDir": "build",
-        "outFile": "build/lib_only.js",
+        "outFile": "build/testcompile.js",
         "sourceMap": true,
         "allowJs": true,
         "baseUrl": "src",
@@ -22,6 +22,6 @@
         "experimentalDecorators": true
     },
     "compileOnSave": true,
-    "include": [ "src/derlib/**/*.ts", "src/sys/loader.js", "src/types/*.d.ts" ],
+    "include": [ "src/**/*.ts", "src/sys/loader.js", "src/types/*.d.ts" ],
     "exclude": [ "node_modules" ]
 }
