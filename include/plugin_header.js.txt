@@ -12,6 +12,14 @@ var der20_DER20_MAGIC_NAME = { version: 'DER20 DEVELOPMENT BUILD' };
 })();
 
 on('ready', function() {
+    if (!this.hasOwnProperty('der20_library')) {
+        let message = `fatal error: the script 'der20_DER20_MAGIC_NAME_plugin' requires the 'der20_library' script to be installed`;
+        sendChat('DER20_MAGIC_NAME', `/w GM ${message} <br><br><a href='https://github.com/derammo/der20/releases'>https://github.com/derammo/der20/releases</a>`, null, { noarchive: true });
+        throw new Error(message);
+    }
+});
+
+on('ready', function() {
     // we only use simple decorations on properties, so we can use this simple implementation
     function __decorate(decorators, target, key) {
         for (var i = decorators.length - 1; i >= 0; i--) {
