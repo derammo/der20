@@ -122,11 +122,11 @@ class PluginImplementation<T> {
         }
 
         // add change handling for debug flag, since we have to write it to execution context
-        this.work.context.setDebug(this.options.debug.value());
         this.options.onChangeEvent(keyword => {
             switch (keyword) {
                 case 'debug':
                     this.work.context.setDebug(this.options.debug.value());
+                    this.work.context.swapIn();
                     break;
                 default:
                 // ignore
@@ -144,20 +144,6 @@ class PluginImplementation<T> {
             this.configurationRoot.help = new HelpCommand(this.name, this.configurationRoot);
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'help');
         }
-    }
-
-    // build default configuration and then start on ready event
-    startWhenReady() {
-        // run help generator mode if run that way
-        if (der20ScriptMode === 'help generator') {
-            // help generator mode is called from build system to emit command list as JSON
-            let help = new HelpCommand(this.name, this.configurationRoot);
-            process.stdout.write(JSON.stringify(help.generated()));
-            return;
-        }
-
-        // otherwise start up on ready event
-        this.hookReady();
     }
 
     restoreConfiguration() {
@@ -471,13 +457,6 @@ class PluginImplementation<T> {
         });
     }
 
-    hookReady() {
-        on('ready', () => {
-            this.work.context.swapIn();
-            this.start();
-        });
-    }
-
     // initialize mixin, if installed
     configureHandoutsSupport() {
         // not installed
@@ -514,9 +493,21 @@ export class Plugin<T> {
         this.plugin = new PluginImplementation(pluginName, factory);
     }
 
+    /**
+     * to be called after 'ready' event from roll20 or otherwise from help generator
+     */
     start() {
         this.plugin.defaultConfiguration(new ResetCommand(this));
-        this.plugin.startWhenReady();
+
+        // run help generator mode if run that way
+        if (der20ScriptMode === 'help generator') {
+            // help generator mode is called from build system to emit command list as JSON
+            let help = new HelpCommand(this.plugin.name, this.plugin.configurationRoot);
+            process.stdout.write(JSON.stringify(help.generated()));
+            return;
+        }
+
+        this.plugin.start();
     }
 
     /**
@@ -527,20 +518,27 @@ export class Plugin<T> {
     }
 
     /**
-     * destroys and recreates the entire plugin, in order to reset all configuration and recover errors
+     * resets all configuration and recover errors
      */
     reset() {
         // we are called from reset command running at lowest priority (command, concurrency 1) so we know there is no work running
+        debug.log('canceling work');
         this.plugin.work.cancel();
 
         // now rebuild the config from defaults and write it to state storage
+        debug.log('resetting configuration');
         this.plugin.defaultConfiguration(new ResetCommand(this));
         this.plugin.saveConfiguration();    
 
-        // now restart plugin, without waiting on ready event   
-        this.plugin = new PluginImplementation(this.plugin.name, this.plugin.factory);
-        this.plugin.defaultConfiguration(new ResetCommand(this))
-        this.plugin.start();
+        // debugging is off by default
+        debug.log('disabling debugging');
+        this.plugin.work.context.setDebug(false);
+        this.plugin.work.context.swapIn();
+
+        // read the configuration to fire any associated change events
+        this.plugin.restoreConfiguration();
+
+        // NOTE: we cannot recreate the plugin from scratch, because it is registered for various Roll20 events
     }
 }
 

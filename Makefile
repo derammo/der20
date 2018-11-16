@@ -37,7 +37,7 @@ dist/der20_%_complete.js: build/%.js include/header.js.txt include/trailer.js.tx
 	@cat include/trailer.js.txt >> $@
 	@chmod 444 $@
 	@echo packaging $< as $@ for Roll20
-dist/der20_library.js: merged/build/der20/library.js include/library_header.js.txt include/monolith_trailer.js.txt Makefile LICENSE
+dist/der20_library.js: merged/build/der20/library.js include/library_header.js.txt include/library_trailer.js.txt Makefile LICENSE
 	@mkdir -p dist
 	@rm -f $@
 	@head -1 LICENSE > $@
@@ -51,10 +51,10 @@ dist/der20_library.js: merged/build/der20/library.js include/library_header.js.t
 	@sed \
 		-e 's/    Object\.defineProperty(.*);$$//' \
 		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
-	@cat include/monolith_trailer.js.txt >> $@
+	@cat include/library_trailer.js.txt >> $@
 	@chmod 444 $@
 	@echo packaging $< as separate library $@ for Roll20
-dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.txt include/monolith_trailer.js.txt Makefile LICENSE
+dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.txt include/plugin_trailer.js.txt Makefile LICENSE
 	@mkdir -p dist
 	@rm -f $@
 	@head -1 LICENSE > $@
@@ -68,7 +68,10 @@ dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.
 	@sed \
 		-e 's/    Object\.defineProperty(.*);$$//' \
 		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
-	@cat include/monolith_trailer.js.txt >> $@
+	@sed \
+		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
+		-e 's/DER20_MAGIC_NAME/$*/g' \
+		< include/plugin_trailer.js.txt >> $@	
 	@chmod 444 $@
 	@echo packaging $< as as separate plugin $@ for Roll20
 run: build/$(DEFAULT).js tmp

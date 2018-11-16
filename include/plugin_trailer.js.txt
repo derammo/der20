@@ -1,0 +1,4 @@
+    
+    // publish any exports we have
+    Object.assign(der20_DER20_MAGIC_NAME, exports);
+});
