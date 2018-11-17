@@ -10,6 +10,10 @@
     Selected player character tokens are set up to display their current hp from their character sheet.
 </div>
 <div class='description'>
+    Tokens that do not represent characters or monsters are ignored, so that this command can be safely run for all
+    tokens on the page.
+</div>
+<div class='description'>
     For both Player and NPC/Monster tokens, The passive perception score is mapped to the second bar, with the full
     bar representing a score of 30, just like stealth for NPC/Monster tokens.
 </div>

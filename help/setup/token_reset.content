@@ -2,6 +2,10 @@
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/token_reset'>token reset</span>
 </div>
-<div class='description'>This command resets any selected NPC tokens to remove previously rolled hp and stealth values.  It also 
+<div class='description'>This command resets any selected NPC/Monster tokens to remove previously rolled hp and stealth values.  It also 
     removes the bars from the tokens to indicate they are no longer set up.
+</div>
+<div class='description'>
+        Tokens that do not represent NPC/Monsters are ignored, so that this command can be safely run for all
+        tokens on the page.
 </div>
