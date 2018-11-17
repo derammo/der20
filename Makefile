@@ -137,10 +137,11 @@ merged/build/der20/%_plugin.js: merged/compile/der20/%_plugin.js Makefile
 	@mkdir -p merged/build/der20
 	@sed \
 		-e 's/^define(.*$$/    let exports = {};/' \
-		-e 's/\([[:space:]]\)library_[0-9]*\./\1der20_library./g' \
+		-e 's/\([[:space:]\[(]\)library_[0-9]*\./\1der20_library./g' \
 		-e 's/^});//' \
-		-e 's/^[[:space:]]*exports\.[[:alnum:]]* = [[:alnum:]]*;$$//g' \
 		$< > $@
+	# WARNING: to replace exports with	-e 's/^[[:space:]]*exports\.[[:alnum:]]* = [[:alnum:]]*;$$//g' 
+	# we first have to deal with the helper code that uses the exports as locals (see code for LeagueModule namespace)
 	@cat src/sys/plugin_loader.js >> $@
 merged/compile/der20/%_plugin.js: merged/src/der20/%_plugin.ts merged/compile/der20/library.js src/sys/plugin_loader.js merged/tsconfig_%_plugin.json Makefile
 	$(TSC) -p merged/tsconfig_$*_plugin.json
@@ -149,7 +150,7 @@ merged/build/der20/library.js: merged/compile/der20/library.js Makefile
 	@mkdir -p merged/build/der20
 	@sed \
 		-e 's/^define(.*$$/    let exports = {};/' \
-		-e 's/\([[:space:]]\)library_[0-9]*\./\1der20_library./g' \
+		-e 's/\([[:space:]\[(]\)library_[0-9]*\./\1der20_library./g' \
 		-e 's/^});//' \
 		$< > $@
 	@cat src/sys/library_loader.js >> $@
