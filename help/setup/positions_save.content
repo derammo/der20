@@ -2,4 +2,7 @@
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/positions_save'>positions save</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command saves the positions and layer placement of all selected tokens to
+    the persistent state in the current game.  Existing saved positions are not deleted, so this command 
+    can be used repeatedly to save various groups of tokens.
+</div>

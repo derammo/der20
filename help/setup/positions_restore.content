@@ -2,4 +2,6 @@
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/positions_restore'>positions restore</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command restores all selected tokens to their positions and layers,
+    if those were previously stored via <a href="#setup/positions_save">!setup positions save</a>.
+</div>

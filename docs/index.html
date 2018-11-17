@@ -591,19 +591,30 @@ not generally available to users, so this command cannot readily be used manuall
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/positions_clear'>positions clear</span>
 </div>
-<div class='description'></div><div class='title'>
+<div class='description'>This command discards all the stored positions for tokens in the current game.  There is no way to
+    undo this action.
+</div><div class='title'>
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/positions_restore'>positions restore</span>
 </div>
-<div class='description'></div><div class='title'>
+<div class='description'>This command restores all selected tokens to their positions and layers,
+    if those were previously stored via <a href="#setup/positions_save">!setup positions save</a>.
+</div><div class='title'>
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/positions_save'>positions save</span>
 </div>
-<div class='description'></div><div class='title'>
+<div class='description'>This command saves the positions and layer placement of all selected tokens to
+    the persistent state in the current game.  Existing saved positions are not deleted, so this command 
+    can be used repeatedly to save various groups of tokens.
+</div><div class='title'>
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/session_restore'>session restore</span>
 </div>
-<div class='description'></div><div class='title'>
+<div class='description'>This command restores a game to a default state, in preparation
+    for a new gaming session in a previously used game.  All tokens are restored to their
+    saved positions and layers as if by <a href="#setup/positions_restore">!setup positions restore</a>, any NPC tokens are reset 
+    as if by <a href="#setup/token_reset">!setup token reset</a>
+</div><div class='title'>
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/token_darkvision'>token darkvision</span>
 </div>
@@ -615,10 +626,26 @@ not generally available to users, so this command cannot readily be used manuall
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/token_reset'>token reset</span>
 </div>
-<div class='description'></div><div class='title'>
+<div class='description'>This command resets any NPC tokens to remove previously rolled hp and stealth values.  It also 
+    removes the bars from the tokens to indicate they are no longer set up.
+</div><div class='title'>
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/token_stat'>token stat</span>
 </div>
-<div class='description'></div>		</div>
+<div class='description'>This command sets up all selected tokens for sane defaults.  Any NPC/Monster 
+    tokens have their max health and stealth checks (out of 30) individually rolled and assigned to bars of their token.
+    The intention of this command is to vary these numbers each time a game is run.
+</div>
+<div class='description'>
+    Player character tokens are set up to display their current hp from their character sheet.
+</div>
+<div class='description'>
+    For both Player and NPC/Monster tokens, The passive perception score is mapped to the second bar, with the full
+    bar representing a score of 30, just like stealth for NPC/Monster tokens.
+</div>
+<div class='description'>
+    NPC/Monster tokens can be reset to an unconfigured state via <a href="#setup/token_reset">!setup token reset</a>, while
+    Player character tokens remain configured.
+</div>		</div>
 	</body>
 </html>

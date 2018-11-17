@@ -2,4 +2,8 @@
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/session_restore'>session restore</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command restores a game to a default state, in preparation
+    for a new gaming session in a previously used game.  All tokens are restored to their
+    saved positions and layers as if by <a href="#setup/positions_restore">!setup positions restore</a>, any NPC tokens are reset 
+    as if by <a href="#setup/token_reset">!setup token reset</a>
+</div>

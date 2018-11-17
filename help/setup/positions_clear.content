@@ -2,4 +2,6 @@
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/positions_clear'>positions clear</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command discards all the stored positions for tokens in the current game.  There is no way to
+    undo this action.
+</div>
