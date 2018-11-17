@@ -60,6 +60,10 @@ export class Der20Token {
         return new TokenImage(this.graphic);
     }
 
+    get name(): string {
+        return this.graphic.get('name');
+    }
+
     /**
      * this is the character represented by the token, or undefined
      * NOTE: this value is cached

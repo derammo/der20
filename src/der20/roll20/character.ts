@@ -10,6 +10,63 @@ class CharacterImage {
     }
 }
 
+export class Der20Attribute {
+    constructor(private data: Attribute) {
+        // generated code
+    }
+
+    get raw(): Attribute {
+        return this.data;
+    }
+
+    get exists(): boolean {
+        return this.data !== undefined;
+    }
+    
+    value(defaultValue: number): number;
+    value(defaultValue: string): string;
+    value(defaultValue: any): any {
+        let value;
+        if (this.data !== undefined) {
+            value = this.data.get('current');
+            if (value === undefined) {
+                value = defaultValue;
+            }
+        } else {
+            value = defaultValue;
+        }
+        if (typeof defaultValue === 'number') {
+            return parseInt(value, 10);
+        }
+        return value;
+    }
+
+    max(defaultValue: number): number;
+    max(defaultValue: string): string;
+    max(defaultValue: any): any {
+        let value;
+        if (this.data !== undefined) {
+            value = this.data.get('max');
+            if (value === undefined) {
+                value = defaultValue;
+            }
+        } else {
+            value = defaultValue;
+        }
+        if (typeof defaultValue === 'number') {
+            return parseInt(value, 10);
+        }
+        return value;
+    }
+
+    get id(): string {
+        if (this.data === undefined) {
+            return '';
+        }
+        return this.data.id;
+    }
+}
+
 export class Der20Character {
     constructor(private journalEntry: Character) {
         // generated code
@@ -63,11 +120,7 @@ export class Der20Character {
     }
 
     checkFlag(attributeName: string): boolean {
-        let flag = this.attribute(attributeName);
-        if (typeof flag === 'undefined') {
-            return false
-        }
-        return (Number(flag.get('current')) > 0)        
+        return (this.attribute(attributeName).value(0) > 0);
     }
 
     get id(): string {
@@ -81,17 +134,9 @@ export class Der20Character {
     get raw(): Character {
         return this.journalEntry;
     }
-    
-    level(): number {
-        let attribute = this.attribute('level');
-        if (attribute === undefined) {
-            return 0;
-        }
-        return parseInt(attribute.get('current'), 10);
-    }
 
     // REVISIT make this safe for unknown attributes (log and create dummy that creates on write?) 
-    attribute(attributeName: string): Attribute {
+    attribute(attributeName: string): Der20Attribute {
         let attributes = findObjs({
             type: 'attribute',
             characterid: this.journalEntry.id,
@@ -103,7 +148,7 @@ export class Der20Character {
         if (attributes.length < 1) {
             return new MissingAttribute(this, attributeName);
         }
-        return <Attribute>attributes[0];
+        return new Der20Attribute(<Attribute>attributes[0]);
     }
 
     imageLoad(): Promise<CharacterImage> {
@@ -116,14 +161,14 @@ export class Der20Character {
     }
 }
 
-class MissingAttribute implements Attribute {
+class MissingAttribute extends Der20Attribute {
     id: string;
 
     set<K extends "name" | "current" | "max">(property: K, value: AttributeMutableSynchronousGetProperties[K]): void;
     set(properties: Partial<AttributeMutableSynchronousGetProperties>): void;
     set(property: any, value?: any) {
         // XXX create on write
-        debug.log(this.parent);
+        debug.log(`${this.parent} attribute ${this.attributeName}`);
         throw new Error("Method not implemented.");
     }
 
@@ -139,19 +184,7 @@ class MissingAttribute implements Attribute {
     }
 
     constructor(private parent: Der20Character, private attributeName: string) {
+        super(undefined);
         // generated code
-    }
-
-    get(valueName: string) {
-        switch (valueName) {
-            case 'name':
-                return this.attributeName;
-            case 'current':
-                return '';
-            case 'max':
-                return '';
-            default:
-                return undefined;
-        }
     }
 }

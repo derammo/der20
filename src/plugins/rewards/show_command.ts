@@ -90,7 +90,7 @@ export class ShowCommand extends RenderCommand {
         dialog.beginControlGroup();
         for (let pc of module.pcs.characters) {
             let levelString = '';
-            let level = pc.character.level();
+            let level = pc.character.attribute('level').value(0);
             if (level > 0) {
                 levelString = ` (level ${level})`;
             }

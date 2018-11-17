@@ -16,11 +16,9 @@ export class SetCommand extends SelectedTokensSimpleCommand {
         if (!character.isNpc()) {
             return new Success(`'${character.name}' is not an NPC/Monster and won't be changed`);
         }
-        let anonymousName = character.attribute('npc_type').get('current');
+        let anonymousName = character.attribute('npc_type').value('');
         if (anonymousName.length > 0) {
             anonymousName = anonymousName.split(/[,(]/)[0];
-        } else {
-            anonymousName = '';
         }
         if (defaultToken === undefined) {
             token.raw.set({ name: anonymousName, showname: true, showplayers_name: true });

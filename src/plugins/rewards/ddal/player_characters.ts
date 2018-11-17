@@ -38,7 +38,7 @@ export class PlayerCharacters extends ConfigurationStep<PlayerCharacter[]> {
             let characters = [];
             for (let i = 0; i < owned.length; i++) {
                 characters.push(new PlayerCharacter(player, owned[i], new ConfigurationBoolean(false)));
-                let level = owned[i].level();
+                let level = owned[i].attribute('level').value(0);
                 if (level > highest) {
                     // scan for the highest level character owned by each player
                     highest = level;
@@ -101,7 +101,7 @@ export class PlayerCharacters extends ConfigurationStep<PlayerCharacter[]> {
         for (let pc of this.characters) {
             if (pc.selected.value()) {
                 count += 1;
-                total += pc.character.level();
+                total += pc.character.attribute('level').value(0);
             }
         }
         if (count === 0) {
