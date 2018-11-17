@@ -88,6 +88,12 @@ class PluginImplementation<T> {
         this.levels.commands = this.work.createPriorityLevel({ concurrency: 1, name: 'commands' });
     }
 
+    // called when plugin crashed on startup, to make sure it doesn't do things
+    disable() {
+        this.builtinCommands = new Set();
+        this.options = new Options();
+    }
+
     // build the default state of the world, either on start up or to return to default configuration
     defaultConfiguration(resetCommand: ResetCommand) {
         // create the world
@@ -313,7 +319,7 @@ class PluginImplementation<T> {
         }
     }
 
-    private handleErrorThrown(error: Error, context?: PluginParserContext) {
+    handleErrorThrown(error: Error, context?: PluginParserContext) {
         let frames = error.stack;
         let bodyText = [];
         if (frames !== undefined) {
@@ -497,17 +503,25 @@ export class Plugin<T> {
      * to be called after 'ready' event from roll20 or otherwise from help generator
      */
     start() {
-        this.plugin.defaultConfiguration(new ResetCommand(this));
+        try {
+            this.plugin.defaultConfiguration(new ResetCommand(this));
 
-        // run help generator mode if run that way
-        if (der20ScriptMode === 'help generator') {
-            // help generator mode is called from build system to emit command list as JSON
-            let help = new HelpCommand(this.plugin.name, this.plugin.configurationRoot);
-            process.stdout.write(JSON.stringify(help.generated()));
-            return;
+            // run help generator mode if run that way
+            if (der20ScriptMode === 'help generator') {
+                // help generator mode is called from build system to emit command list as JSON
+                let help = new HelpCommand(this.plugin.name, this.plugin.configurationRoot);
+                process.stdout.write(JSON.stringify(help.generated()));
+                return;
+            }
+
+            this.plugin.start();
+        } catch (error) {
+            // report remapped error
+            this.plugin.handleErrorThrown(error);
+
+            // disable plugin
+            this.plugin.disable();
         }
-
-        this.plugin.start();
     }
 
     /**
