@@ -626,18 +626,18 @@ not generally available to users, so this command cannot readily be used manuall
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/token_reset'>token reset</span>
 </div>
-<div class='description'>This command resets any NPC tokens to remove previously rolled hp and stealth values.  It also 
+<div class='description'>This command resets any selected NPC tokens to remove previously rolled hp and stealth values.  It also 
     removes the bars from the tokens to indicate they are no longer set up.
 </div><div class='title'>
 <span class='plugin'>!setup</span>
 <span class='command' id='setup/token_stat'>token stat</span>
 </div>
-<div class='description'>This command sets up all selected tokens for sane defaults.  Any NPC/Monster 
+<div class='description'>This command sets up all selected tokens for sane defaults.  Any selected NPC/Monster 
     tokens have their max health and stealth checks (out of 30) individually rolled and assigned to bars of their token.
     The intention of this command is to vary these numbers each time a game is run.
 </div>
 <div class='description'>
-    Player character tokens are set up to display their current hp from their character sheet.
+    Selected player character tokens are set up to display their current hp from their character sheet.
 </div>
 <div class='description'>
     For both Player and NPC/Monster tokens, The passive perception score is mapped to the second bar, with the full
@@ -645,7 +645,7 @@ not generally available to users, so this command cannot readily be used manuall
 </div>
 <div class='description'>
     NPC/Monster tokens can be reset to an unconfigured state via <a href="#setup/token_reset">!setup token reset</a>, while
-    Player character tokens remain configured.
+    Player character tokens remain configured even if <a href="#setup/token_reset">!setup token reset</a> is run on them. 
 </div>		</div>
 	</body>
 </html>
