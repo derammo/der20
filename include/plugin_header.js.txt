@@ -1,14 +1,14 @@
 var der20_DER20_MAGIC_NAME = { version: 'DER20 DEVELOPMENT BUILD' };
 (function() {
-    const match = new Error('beginning of file marker on line 4').stack.match(/apiscript.js:(\d+)/);
-    const markerLine = match ? parseInt(match[1], 10) : 4
+    const match = new Error('beginning of file marker on line 3').stack.match(/apiscript.js:(\d+)/);
+    const markerLine = match ? parseInt(match[1], 10) : 3
     // adjust for license file and 2 version string lines
     let preambleLength = DER20_MAGIC_LICENSE_TEXT_LENGTH + 2;
     if (markerLine < preambleLength) {
         // license file is not prepended yet and we are running alone for testing
-        return markerLine - 4;
+        return markerLine - 3;
     }
-    der20_DER20_MAGIC_NAME.scriptOffset = markerLine - (4 + preambleLength);
+    der20_DER20_MAGIC_NAME.scriptOffset = markerLine - (3 + preambleLength);
 })();
 
 on('ready', function() {

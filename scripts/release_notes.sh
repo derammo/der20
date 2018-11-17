@@ -26,7 +26,7 @@ mkdir -p releases ;
 for PLUGIN in "$@" ; do
 	PREVIOUS='' ;
 	TITLE="!${PLUGIN}" ;
-	notes "${VERSIONS}" "${TITLE}" "${PLUGIN}" "src/${PLUGIN}" ;
+	notes "${VERSIONS}" "${TITLE}" "${PLUGIN}" "src/plugins/${PLUGIN}" ;
 done ;
 
 notes "${VERSIONS}" "der20 TypeScript Framework" common "src/der20 src/sys include LICENSE Makefile" ; 

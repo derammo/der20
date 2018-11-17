@@ -114,7 +114,7 @@ releases/${RELEASE}/%.js: dist/%.js LICENSE
 publish: checkout_release create_draft checkout_master
 create_draft:
 	git push origin v${RELEASE}
-	node scripts/publish_release.js ${RELEASE} 'src/der20 src/sys include LICENSE Makefile' $(patsubst %,src/%,$(PLUGINS)) 
+	node scripts/publish_release.js ${RELEASE} 'src/der20 src/sys include LICENSE Makefile' $(patsubst %,src/plugins/%,$(PLUGINS)) 
 list:
 	@echo $(SRC)
 documentation: docs/index.html
