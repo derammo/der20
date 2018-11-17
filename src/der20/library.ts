@@ -33,3 +33,4 @@ export { ConfigurationEnumerated } from 'der20/config/enum';
 export { Der20Player } from 'der20/roll20/player';
 export { ConfigurationValue } from 'der20/interfaces/config';
 export { Success, Failure, Asynchronous, Change, DialogResult } from 'der20/config/result';
+export { RollQuery } from 'der20/roll20/roll';
