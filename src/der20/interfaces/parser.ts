@@ -25,7 +25,8 @@ export interface ConfigurationParsing {
  * after their keyword implement this.
  * 
  * For example, creating an interactive dialog when no item was selected
- * is done by implementing this.
+ * is done by implementing this.  More commonly, a simple command that
+ * does not parse additional tokens after the command may implement this.
  */
 export interface ConfigurationTermination {
     handleEndOfCommand(context: ParserContext): Result;

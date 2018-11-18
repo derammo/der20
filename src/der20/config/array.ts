@@ -112,12 +112,12 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
     }
 
     private createItemChoiceDialog(context: ParserContext): DialogResult {
-        // we don't know what command word was used to call us, so we let the caller fix it up
-        let dialog = new context.dialog(`${context.command} `);
+        let dialog = new context.dialog();
         dialog.addTitle(`Selection for '${this.keyword}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:');
-        dialog.addChoiceControlGroup(this.keyword, context.rest, this.current, '');
+        const link = { command: context.command }
+        dialog.addChoiceControlGroup(this.keyword, context.rest, this.current, link);
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 }
@@ -169,11 +169,12 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
 
     private createChooserDialog(rest: string, context: ParserContext): DialogResult {
         // we don't know what command word was used to call us, so we let the caller fix it up
-        let dialog = new context.dialog(`${context.command} `);
+        let dialog = new context.dialog();
+        const link = { command: context.command };
         dialog.addTitle(`Selection for '${this.path}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:');
-        dialog.addChoiceControlGroup(this.array.keyword, this.path, this.array.current, rest);
+        dialog.addChoiceControlGroup(this.array.keyword, this.path, this.array.current, link);
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 

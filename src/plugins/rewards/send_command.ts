@@ -21,7 +21,7 @@ export class SendCommand extends RenderCommand {
     handleEndOfCommand(context: ParserContext): Result {
         this.tryLoad(context);
 
-        let dialog = new context.dialog(`${context.command} `);
+        let dialog = new context.dialog();
         let destination = DialogResult.Destination.Caller;
 
         let module = this.module.current;
@@ -104,7 +104,7 @@ export class SendCommand extends RenderCommand {
         }
 
         if (this.preview) {
-            dialog.addCommand('Send to Players', 'send');
+            dialog.addCommand('Send to Players', 'send', { command: context.command });
         } else {
             destination = DialogResult.Destination.All;
             let log = new AdventurersLeagueLog.LogEntry();

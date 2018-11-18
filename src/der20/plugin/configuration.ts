@@ -8,6 +8,5 @@ export interface BuiltinConfiguration {
     help: ConfigurationSimpleCommand;
 
     // optional, used if specific plugin supplies it
-    show?: ConfigurationSimpleCommand;
     options?: Options;
 }

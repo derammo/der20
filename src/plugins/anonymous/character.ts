@@ -6,11 +6,11 @@ import { Result, Asynchronous, Change, DialogResult, Failure } from 'der20/libra
 export class CharacterConfiguration extends ConfigurationString implements ConfigurationTermination {
     handleEndOfCommand(context: ParserContext): Result {
         // no item selected, present a dialog
-        let dialog = new context.dialog(`${context.command} `);
+        let dialog = new context.dialog();
         dialog.addTitle(`Choose a character to provide the anonymous icon:`);
         dialog.addSeparator();
         let names = Der20Character.all().map((character) => { return { label: character.name, result: character.name }; });
-        dialog.addSelectionGroup('character', context.rest, names);
+        dialog.addSelectionGroup('character', context.rest, names, { command: context.command });
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 

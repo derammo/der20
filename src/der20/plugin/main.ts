@@ -19,7 +19,7 @@ import { LoaderContext } from 'der20/interfaces/loader';
 
 // from our wrapper
 declare var der20ScriptMode: string | undefined;
-declare function der20ScriptModules(): any & { name: string, data: any };
+declare function der20ScriptModules(): any & { name: string; data: any };
 
 // if we add more events, we need to repeat declaration overrides here:
 // declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
@@ -101,10 +101,6 @@ class PluginImplementation<T> {
 
         // built in top-level commands for this plugin
         this.builtinCommands = new Set([this.name]);
-        if (this.configurationRoot.show !== undefined) {
-            // this is magic support for the 'show' top-level command, which is initially specific to the 'rewards' plugin
-            this.builtinCommands.add(`${this.name}-show`);
-        }
 
         // sanity check to make sure code in Options class matches this
         if (Options.pluginOptionsKey !== 'options') {
@@ -120,7 +116,7 @@ class PluginImplementation<T> {
             this.options = this.configurationRoot.options;
             debug.log(`plugin has common options: ${JSON.stringify(this.options)}`);
         }
-    
+
         // add debug commmand
         if (this.configurationRoot.dump === undefined) {
             this.configurationRoot.dump = new DumpCommand(this);
@@ -182,8 +178,8 @@ class PluginImplementation<T> {
         ) {
             // NOTE: we don't actually use the contents of this dialog; it just provides the direct rendering of the command echo,
             // which is not shown in dialog style
-            let echo = new context.dialog('');
-            let rendered = echo.renderCommandEcho(`${context.command} ${context.rest}`, result.kind);
+            let echo = new context.dialog();
+            let rendered = echo.renderCommandEcho(`!${context.command} ${context.rest}`, result.kind);
             let source = <ConfigurationSourceImpl.Api>context.source;
             sendChat(this.name, `/w "${source.player.get('_displayname')}" ${rendered}`, null, { noarchive: true });
         }
@@ -209,7 +205,7 @@ class PluginImplementation<T> {
                 break;
             case Result.Kind.Dialog:
                 if (context.source.kind !== ConfigurationSource.Kind.Api) {
-                    debug.log(`error: dialog generated for non-interactive configuration command '${context.command} ${context.rest}; ignored`);
+                    debug.log(`error: dialog generated for non-interactive configuration command '!${context.command} ${context.rest}; ignored`);
                     break;
                 }
                 let source = <ConfigurationSourceImpl.Api>context.source;
@@ -228,13 +224,6 @@ class PluginImplementation<T> {
                 }
                 break;
             case Result.Kind.Success:
-                // REVISIT: make this a generic feature to allow additional commands to trigger follow ups
-                if (context.command.endsWith('-show') && context.source.kind === ConfigurationSource.Kind.Api) {
-                    // execute show action after executing command, used in interactive dialogs to
-                    // render the new state of the dialog
-                    let showResult = this.configurationRoot.show.handleEndOfCommand(context);
-                    return this.handleParserResult(context, showResult);
-                }
                 break;
             case Result.Kind.Asynchronous:
                 // if asynchronous data is needed, retry once available
@@ -324,9 +313,9 @@ class PluginImplementation<T> {
         let bodyText = [];
         if (frames !== undefined) {
             // search for symbols
-            let symbols: { line: number, name: string }[] = [];
+            let symbols: { line: number; name: string }[] = [];
             for (let loaded of der20ScriptModules()) {
-                let symbol = { name: `${loaded.name} ${loaded.data.version || ''}`, line: (loaded.data.scriptOffset || 0) };
+                let symbol = { name: `${loaded.name} ${loaded.data.version || ''}`, line: loaded.data.scriptOffset || 0 };
                 symbols.push(symbol);
             }
             symbols.sort((left, right) => {
@@ -339,7 +328,7 @@ class PluginImplementation<T> {
             for (let line of frames.split('\n')) {
                 let remapped = line;
                 const match = line.match(fileNameAndLine);
-                if (match && (symbols.length > 0)) {
+                if (match && symbols.length > 0) {
                     let name = match[0];
                     let lineNumber = parseInt(match[1], 10);
                     let offset = 0;
@@ -357,7 +346,7 @@ class PluginImplementation<T> {
                 bodyText.push(remapped);
             }
         }
-        let dialog = new Der20ChatDialog('');
+        let dialog = new Der20ChatDialog();
         let titleText = `[${this.name}] error: ${error.message}`;
         dialog.addTitle(`Error from: ${this.name}`);
         dialog.addSubTitle('Stack Trace:');
@@ -370,7 +359,7 @@ class PluginImplementation<T> {
         if (context !== undefined) {
             dialog.addSubTitle('Command Executed:');
             dialog.beginControlGroup();
-            let line = `${context.command} ${context.rest}`;
+            let line = `!${context.command} ${context.rest}`;
             titleText = `[${this.name}] error: ${error.message} on: ${line}`;
             bodyText.push(`command executed: ${line}`);
             dialog.addTextLine(line);
@@ -436,26 +425,39 @@ class PluginImplementation<T> {
                         continue;
                     }
 
-                    // this context object will survive until this command line is completely executed, including retries
-                    let context = new PluginCommandExecution(this.freezeOptions(), player, message, tokens[0], tokens[1]);
-
                     // REVISIT consult access control tree
                     if (!playerIsGM(player.id)) {
                         this.reportParseError(new Error(`player ${player.get('_displayname')} tried to use GM command ${tokens[0]}`));
                         return;
                     }
 
-                    // short circuit dump command for debugging
-                    if (context.rest === 'dump') {
-                        this.dispatchCommand(context);
-                        return;
-                    }
+                    const commandExpression = / *((?:\\;|[^;])+) */g;
+                    // this is an arbitrary limit on the number of semicolon-separated commands
+                    // in case a future bug introduces an infinite loop
+                    let limit = 1000;
+                    for (let i = 0; i < limit; i++) {
+                        let match = commandExpression.exec(tokens[1]);
+                        // NOTE: regex.exec returns null instead of undefined
+                        if (match === null) {
+                            break;
+                        }
 
-                    // run on command queue, which does not execute unless everything else is done
-                    this.work.scheduleWork(this.levels.commands, () => {
-                        this.dispatchCommand(context);
-                        return Promise.resolve();
-                    });
+                        // this context object will survive until this command line is completely executed, including retries
+                        let context = new PluginCommandExecution(this.freezeOptions(), player, message, command, match[1]);
+
+                        // short circuit dump command for debugging
+                        if (context.rest === 'dump') {
+                            this.dispatchCommand(context);
+                            continue;
+                        }
+
+                        // run on command queue, which does not execute unless everything else is done
+                        debug.log(`scheduling !${command} ${match[1]}`);
+                        this.work.scheduleWork(this.levels.commands, () => {
+                            this.dispatchCommand(context);
+                            return Promise.resolve();
+                        });
+                    }
                 }
             } catch (error) {
                 this.handleErrorThrown(error);
@@ -489,7 +491,7 @@ class PluginImplementation<T> {
 
 export class Plugin<T> {
     private plugin: PluginImplementation<T>;
-    
+
     constructor(pluginName: string, factory: DefaultConstructed<T>) {
         if (typeof log !== 'function') {
             throw new Error(
@@ -542,7 +544,7 @@ export class Plugin<T> {
         // now rebuild the config from defaults and write it to state storage
         debug.log('resetting configuration');
         this.plugin.defaultConfiguration(new ResetCommand(this));
-        this.plugin.saveConfiguration();    
+        this.plugin.saveConfiguration();
 
         // debugging is off by default
         debug.log('disabling debugging');
@@ -581,7 +583,7 @@ export class DumpCommand extends ConfigurationSimpleCommand {
     }
 
     handleEndOfCommand(context: ParserContext): Result {
-        let dialog = new context.dialog(`${context.command} `);
+        let dialog = new context.dialog();
         dialog.beginControlGroup();
         dialog.addTextLine(JSON.stringify(this.plugin.configurationRoot));
         dialog.addTextLine(JSON.stringify(this.plugin.work));

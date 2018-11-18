@@ -9,7 +9,6 @@ import { CollectionItem, ConfigurationValue } from 'der20/interfaces/config';
 // styling and layout based on https://github.com/RobinKuiper/Roll20APIScripts, with thanks
 export class Der20ChatDialog implements Dialog {
     text: string[] = [];
-    commandPrefix: string;
     static readonly dialogStyle: string = 'margin-top: 0.5em; overflow: hidden; border: 1px solid Black; padding: 5px; border-radius: 5px;';
     static readonly buttonBaseStyle: string =
         'min-width: 6em; text-decoration: none; background-color: White; border: 1px solid #eeeeee; border-radius: 3px; padding-left: 5px; padding-right: 5px; padding-top: 0px; padding-bottom: 0px; text-align: center; float: right;';
@@ -27,8 +26,7 @@ export class Der20ChatDialog implements Dialog {
     static readonly commandEchoFailedStyle: string = `${Der20ChatDialog.commandEchoStyle} color: #ee0000;`;
     static readonly undefinedLabel = '[ NONE ]';
 
-    constructor(commandPrefix: string) {
-        this.commandPrefix = commandPrefix;
+    constructor() {
         this.text.push(`<div style="${Der20ChatDialog.dialogStyle}">`);
     }
 
@@ -40,41 +38,52 @@ export class Der20ChatDialog implements Dialog {
         this.text.push('</ul>');
     }
 
-    addButton(label: string, target: string) {
-        this.text.push(`<a style="${Der20ChatDialog.buttonStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
+    private addButton(style: string, label: string, path: string, link: Dialog.Link) {
+        let pathComponents = [ `!${link.command}` ];
+        if (link.prefix !== undefined) {
+            pathComponents.push(link.prefix);
+        }
+        pathComponents.push(path);
+        if (link.suffix !== undefined) {
+            pathComponents.push(link.suffix);
+        }
+        let linkText = pathComponents.join(' ');
+        if (link.followUps !== undefined) {
+            linkText = [ linkText ].concat(link.followUps).join('; ');
+        }
+        this.text.push(`<a style="${style}", href="${linkText}">${label}</a>`);
     }
 
-    private addDefaultedButton(label: string, target: string) {
-        this.text.push(`<a style="${Der20ChatDialog.defaultedButtonStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
-    }
-
-    addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>) {
+    addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>, link: Dialog.Link) {
         this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
         this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${label}</span>`);
         let text: string = '';
-        let link: string = '';
+        let extendedPath: string = '';
         if (config instanceof ConfigurationString) {
             // already a string, but need to assert type
             let value = (<ConfigurationString>config).value();
             text = this.getStringText(value);
-            link = `${path} ?{${label}}`;
+            extendedPath = `${path} ?{${label}}`;
         } else if (config instanceof ConfigurationInteger || config instanceof ConfigurationFloat) {
             let value = config.value();
             text = this.getNumberText<T>(value);
             // REVISIT do we have an integer control available somewhere?
-            link = `${path} ?{${label} (Integer)}`;
+            extendedPath = `${path} ?{${label} (Integer)}`;
         } else if (config instanceof ConfigurationDate) {
             let value = (<ConfigurationDate>config).value();
             text = this.getDateText(value);
             // REVISIT do we have an integer or date control available somewhere?
-            link = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`;
+            extendedPath = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`;
         } else if (config instanceof ConfigurationBoolean) {
             text = `${(<ConfigurationBoolean>config).value() === true}`;
-            link = `${path} ${!config.value()}`;
+            extendedPath = `${path} ${!config.value()}`;
         } else if (config instanceof ConfigurationEnumerated) {
             text = this.getStringText((<ConfigurationEnumerated>config).value());
             let choices = (<ConfigurationEnumerated>config)
                 .choices()
+                .map(value => {
+                    return value.replace(';', '\\;');
+                })
                 .map(value => {
                     if (value.length < 1) {
                         return `${Der20ChatDialog.undefinedLabel},`;
@@ -82,12 +91,12 @@ export class Der20ChatDialog implements Dialog {
                     return `${value},${value}`;
                 })
                 .join('|');
-            link = `${path} ?${label}|${choices}`;
+            extendedPath = `${path} ?${label}|${choices}`;
         }
         if (config.hasConfiguredValue()) {
-            this.addButton(text, link);
+            this.addButton(Der20ChatDialog.buttonStyle, text, extendedPath, link);
         } else {
-            this.addDefaultedButton(text, link);
+            this.addButton(Der20ChatDialog.defaultedButtonStyle, text, extendedPath, link);
         }
         this.text.push('</li>');
     }
@@ -125,32 +134,32 @@ export class Der20ChatDialog implements Dialog {
         return new Date(value).toUTCString();
     }
 
-    addChoiceControlGroup(label: string, prefix: string, choices: CollectionItem[], suffix: string): void {
+    addChoiceControlGroup(label: string, path: string, choices: CollectionItem[], link: Dialog.Link): void {
         this.beginControlGroup();
         for (let choice of choices) {
             this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
             this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${choice.name.value()}</span>`);
-            let link: string = `${prefix} ${choice.id} ${suffix}`;
-            this.addButton(choice.id.substr(0, 10), link);
+            let extendedPath: string = `${path} ${choice.id}}`;
+            this.addButton(Der20ChatDialog.buttonStyle, choice.id.substr(0, 10), extendedPath, link);
             this.text.push('</li>');
         }
         this.endControlGroup();
     }
 
-    addSelectionGroup(label: string, prefix: string, choices: { label: string; result: string }[]): void {
+    addSelectionGroup(label: string, path: string, choices: { label: string; result: string }[], link: Dialog.Link): void {
         this.beginControlGroup();
         for (let choice of choices) {
             this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
             this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${choice.label}</span>`);
-            let link: string = `${prefix} ${choice.result}`;
-            this.addButton(choice.result.substr(0, 10), link);
+            let extendedPath: string = `${path} ${choice.result}`;
+            this.addButton(Der20ChatDialog.buttonStyle, choice.result.substr(0, 10), extendedPath, link);
             this.text.push('</li>');
         }
         this.endControlGroup();
     }
 
-    addCommand(label: string, target: string) {
-        this.text.push(`<a style="${Der20ChatDialog.commandStyle}", href="${this.commandPrefix}${target}">${label}</a>`);
+    addCommand(label: string, path: string, link: Dialog.Link) {
+        this.addButton(Der20ChatDialog.commandStyle, label, path, link);
     }
 
     addExternalLinkButton(label: string, target: string) {

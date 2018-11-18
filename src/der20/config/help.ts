@@ -126,7 +126,7 @@ export class HelpCommand extends ConfigurationSimpleCommand {
     }
 
     handleEndOfCommand(context: ParserContext): Result {
-        let dialog = new context.dialog(`${context.command} `);
+        let dialog = new context.dialog();
         for (let item of this.helpItems) {
             dialog.beginControlGroup();
             if (item.format) {

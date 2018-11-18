@@ -135,8 +135,8 @@ dm ammo
 module ddal08-74`;
 
 export function testRun(): string {
-	let dialog = new Der20ChatDialog('!rewards ');
-	dialog.addButton("First", "command param param|?{Value}");
+	let dialog = new Der20ChatDialog();
+	dialog.addCommand("First", "command param param|?{Value}", {command: 'command'});
 	return dialog.render();
 }
 

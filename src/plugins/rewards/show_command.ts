@@ -47,40 +47,44 @@ export class ShowCommand extends RenderCommand {
             default:
                 return result;
         }
-        let dialog = new context.dialog('!rewards-show ');
+        let dialog = new context.dialog();
+        const link = { 
+            command: context.command, 
+            followUps: [ context.rest ]
+        };
         dialog.addTitle('Log Entry for Current Session');
         dialog.addSeparator();
         dialog.addSubTitle('DM');
         dialog.beginControlGroup();
-        dialog.addEditControl('Name', 'dm current name', this.dm.current.name);
-        dialog.addEditControl('DCI', 'dm current dci', this.dm.current.dci);
+        dialog.addEditControl('Name', 'dm current name', this.dm.current.name, link);
+        dialog.addEditControl('DCI', 'dm current dci', this.dm.current.dci, link);
         dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Module');
         dialog.beginControlGroup();
         let module = this.module.current;
-        dialog.addEditControl('Module Name', 'module current name', module.name);
-        dialog.addEditControl('Season', 'module current season', module.season);
-        dialog.addEditControl('Hard Cover', 'module current hardcover', module.hardcover);
-        dialog.addEditControl('Tier', 'module current tier', module.tier);
-        dialog.addEditControl('Minimum Level', 'module current level minimum', module.level.minimum);
-        dialog.addEditControl('Maximum Level', 'module current level maximum', module.level.maximum);
-        dialog.addEditControl('Advancement/hr', 'module current hourly advancement', module.hourly.advancement);
-        dialog.addEditControl('Treasure/hr', 'module current hourly treasure', module.hourly.treasure);
-        dialog.addEditControl('Maximum Duration', 'module current duration', module.duration);
-        dialog.addEditControl('Start Time', 'module current start', module.start);
-        dialog.addEditControl('End Time', 'module current stop', module.stop);
+        dialog.addEditControl('Module Name', 'module current name', module.name, link);
+        dialog.addEditControl('Season', 'module current season', module.season, link);
+        dialog.addEditControl('Hard Cover', 'module current hardcover', module.hardcover, link);
+        dialog.addEditControl('Tier', 'module current tier', module.tier, link);
+        dialog.addEditControl('Minimum Level', 'module current level minimum', module.level.minimum, link);
+        dialog.addEditControl('Maximum Level', 'module current level maximum', module.level.maximum, link);
+        dialog.addEditControl('Advancement/hr', 'module current hourly advancement', module.hourly.advancement, link);
+        dialog.addEditControl('Treasure/hr', 'module current hourly treasure', module.hourly.treasure, link);
+        dialog.addEditControl('Maximum Duration', 'module current duration', module.duration, link);
+        dialog.addEditControl('Start Time', 'module current start', module.start, link);
+        dialog.addEditControl('End Time', 'module current stop', module.stop, link);
         dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Check Points and Unlocks');
         dialog.beginControlGroup();
         for (let check of module.checkpoints.current) {
             const label = `${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`;
-            dialog.addEditControl(label, `module current checkpoint ${check.id} awarded`, check.awarded);
+            dialog.addEditControl(label, `module current checkpoint ${check.id} awarded`, check.awarded, link);
         }
         for (let item of module.unlocks.current) {
             const label = `Unlocked ${item.name.value()}`;
-            dialog.addEditControl(label, `module current unlock ${item.id} awarded`, item.awarded);
+            dialog.addEditControl(label, `module current unlock ${item.id} awarded`, item.awarded, link);
         }
         dialog.endControlGroup();
         dialog.addSeparator();
@@ -97,7 +101,8 @@ export class ShowCommand extends RenderCommand {
             dialog.addEditControl(
                 `${pc.player.name}: ${pc.character.name}${levelString}`,
                 `module current pc ${pc.player.userid} character ${pc.character.id} selected`,
-                pc.selected
+                pc.selected,
+                link
             );
         }
         dialog.endControlGroup();
@@ -128,7 +133,7 @@ export class ShowCommand extends RenderCommand {
         }
         dialog.endControlGroup();
         dialog.addSeparator();
-        dialog.addCommand('Preview & Send to Players', 'preview');
+        dialog.addCommand('Preview & Send to Players', 'preview', { command: context.command });
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 }
