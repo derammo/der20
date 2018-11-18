@@ -167,10 +167,10 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         return this.array.classType;
     }
 
-    private createChooserDialog(rest: string, context: ParserContext): DialogResult {
+    createChooserDialog(rest: string, context: ParserContext, followUps?: string[]): DialogResult {
         // we don't know what command word was used to call us, so we let the caller fix it up
         let dialog = new context.dialog();
-        const link = { command: context.command };
+        const link = { command: context.command, followUps: followUps, suffix: rest };
         dialog.addTitle(`Selection for '${this.path}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:');

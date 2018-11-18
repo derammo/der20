@@ -139,7 +139,7 @@ export class Der20ChatDialog implements Dialog {
         for (let choice of choices) {
             this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
             this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${choice.name.value()}</span>`);
-            let extendedPath: string = `${path} ${choice.id}}`;
+            let extendedPath: string = `${path} ${choice.id}`;
             this.addButton(Der20ChatDialog.buttonStyle, choice.id.substr(0, 10), extendedPath, link);
             this.text.push('</li>');
         }
