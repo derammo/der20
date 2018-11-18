@@ -163,12 +163,13 @@ merged/src/der20/library.ts: $(LIB_SOURCES) build/tsmerge.js merged/src/types Ma
 	@echo merging sources into $@
 	@mkdir -p merged/src/der20
 	@node build/tsmerge.js $(LIB_SOURCES) > $@
-merged/src/der20/%_plugin.ts: $(wildcard src/plugins/%/*.ts src/plugins/%/*/*.ts) build/tsmerge.js merged/src/types Makefile
-	@echo merging sources into $@
-	@mkdir -p merged/src/der20
-	@node build/tsmerge.js $(wildcard src/plugins/$*/*.ts src/plugins/$*/*/*.ts) > $@
 build/tsmerge.js: scripts/tsmerge.ts
 	$(TSC) --target ES6 --outdir build $<
 merged/src/types:
 	@mkdir -p merged/src
 	ln -s ../../src/types merged/src/types
+.SECONDEXPANSION:
+merged/src/der20/%_plugin.ts: $$(wildcard src/plugins/%/*.ts) $$(wildcard src/plugins/%/*/*.ts) build/tsmerge.js merged/src/types
+	@echo merging sources into $@
+	@mkdir -p merged/src/der20
+	@node build/tsmerge.js $(wildcard src/plugins/$*/*.ts) $(wildcard  src/plugins/$*/*/*.ts) > $@
