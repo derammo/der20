@@ -1,4 +1,4 @@
-import { clone } from 'der20/library';
+import { clone, ConfigurationTermination, ParserContext, Result, Success, DialogResult } from 'der20/library';
 import { ConfigurationArray } from 'der20/library';
 import { ConfigurationBoolean, ConfigurationDate, ConfigurationFloat, ConfigurationInteger } from 'der20/library';
 import { ConfigurationChangeHandling } from 'der20/library';
@@ -52,7 +52,7 @@ export class Unlock {
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 }
 
-export class LeagueModule implements ConfigurationChangeHandling {
+export class LeagueModule implements ConfigurationChangeHandling, ConfigurationTermination {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
 
@@ -244,6 +244,31 @@ export class LeagueModule implements ConfigurationChangeHandling {
         if (!this.tier.hasConfiguredValue()) {
             this.handleChange('tier');
         }
+    }
+
+    handleEndOfCommand(context: ParserContext): Result {
+        if (!context.rest.startsWith('define ')) {
+            return new Success('no configuration changed');
+        }
+        let dialog = new context.dialog();
+        const link = { 
+            command: context.command,
+            prefix: context.rest,
+            followUps: [ context.rest ]
+        };
+        dialog.addTitle(`Definition for Module '${this.id}'`);
+        dialog.beginControlGroup();
+        dialog.addEditControl('Module Name', 'name', this.name, link);
+        dialog.addEditControl('Season', 'season', this.season, link);
+        dialog.addEditControl('Hard Cover', 'hardcover', this.hardcover, link);
+        dialog.addEditControl('Tier', 'tier', this.tier, link);
+        dialog.addEditControl('Minimum Level', 'level minimum', this.level.minimum, link);
+        dialog.addEditControl('Maximum Level', 'level maximum', this.level.maximum, link);
+        dialog.addEditControl('Advancement/hr', 'hourly advancement', this.hourly.advancement, link);
+        dialog.addEditControl('Treasure/hr', 'hourly treasure', this.hourly.treasure, link);
+        dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
+        dialog.endControlGroup();
+        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 }
 
