@@ -18,10 +18,10 @@ export abstract class RenderCommand extends ConfigurationSimpleCommand {
     protected tryLoad(context: ParserContext): Result {
         let result: Result = new Success('no configuration changed');
         if (this.dm.current == null) {
-            result = this.dm.parse('', context);
+            result = this.dm.parse(`current ; ${context.rest}`, context);
         }
         if (this.module.current == null) {
-            result = this.module.parse('', context);
+            result = this.module.parse(`current ; ${context.rest}`, context);
         }
         if (result.kind === Result.Kind.Success && this.dm.current == null) {
             return new Failure(new Error('no dm loaded'));
