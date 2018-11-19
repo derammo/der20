@@ -512,7 +512,7 @@ export class Plugin<T> {
             if (der20ScriptMode === 'help generator') {
                 // help generator mode is called from build system to emit command list as JSON
                 let help = new HelpCommand(this.plugin.name, this.plugin.configurationRoot);
-                process.stdout.write(JSON.stringify(help.generated()));
+                process.stdout.write(JSON.stringify(help.generated(), undefined, 2));
                 return;
             }
 
@@ -585,8 +585,12 @@ export class DumpCommand extends ConfigurationSimpleCommand {
     handleEndOfCommand(context: ParserContext): Result {
         let dialog = new context.dialog();
         dialog.beginControlGroup();
-        dialog.addTextLine(JSON.stringify(this.plugin.configurationRoot));
-        dialog.addTextLine(JSON.stringify(this.plugin.work));
+        for (let line of JSON.stringify(this.plugin.configurationRoot, undefined, 1).split('\n')) {
+            dialog.addTextLine(line);
+        }
+        for (let line of JSON.stringify(this.plugin.work, undefined, 1).split('\n')) {
+            dialog.addTextLine(line);
+        }
         dialog.endControlGroup();
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }

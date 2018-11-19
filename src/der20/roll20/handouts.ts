@@ -202,7 +202,6 @@ class Handouts {
                 return [];
             }
         }
-        // debug.log(`searching for objects matching ${JSON.stringify(search)}`);
         let handouts = findObjs(search);
         debug.log(`scanning ${handouts.length} handouts`);
         return handouts.map((object) => {

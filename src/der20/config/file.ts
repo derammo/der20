@@ -32,7 +32,7 @@ export class ConfigurationFile extends ConfigurationPersistence {
     save(configuration: object) {
         let fileName = `tmp/der20_${this.name}_state.json`;
         try {
-            writeFileSync(fileName, JSON.stringify(configuration));
+            writeFileSync(fileName, JSON.stringify(configuration, undefined, 2));
         } catch (err) {
             console.log(err);
             unlinkSync(fileName);

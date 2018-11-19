@@ -219,5 +219,5 @@ function tidy(text: string): string {
 }
 
 testParse();
-debug.log(JSON.stringify(configurationRoot));
-debug.log(tidy(testDialog('show')));
+process.stdout.write(JSON.stringify(configurationRoot, undefined, 2));
+process.stdout.write(tidy(testDialog('show')));

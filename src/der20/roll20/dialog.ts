@@ -102,7 +102,12 @@ export class Der20ChatDialog implements Dialog {
     }
 
     addTextLine(label: string) {
-        this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+        let indent = '';
+        if (label.startsWith(' ')) {
+            const indentChars = label.match(/(?:[^ ]|$)/).index;
+            indent = ` padding-left: ${indentChars}em;`
+        }
+        this.text.push(`<li style="${Der20ChatDialog.itemStyle}${indent}">`);
         this.text.push(label);
         this.text.push('</li>');
     }
