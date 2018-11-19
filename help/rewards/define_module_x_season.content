@@ -3,4 +3,5 @@
 <span class='command' id='rewards/define_module_x_season'>define module [ID] season</span>
 <span class='format'>[INTEGER]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting configures the DDAL season for the module.  
+    This is primarily used to default the rewards to Season 8+ rules or previous seasons' rules.</div>

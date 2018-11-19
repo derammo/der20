@@ -79,6 +79,6 @@ pre {
     padding-bottom: 2000px; /* 1vh gets collapsed (Safari 12.0) */
 }
 
-.description a, .postcontent a {
+.description a, .postcontent a, .code {
     font-family: Menlo, Monaco, 'Ubuntu Mono', monospace;
 }

@@ -2,4 +2,10 @@
 <span class='plugin'>!rewards</span>
 <span class='command' id='rewards/show'>show</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command presents the primary dialog to use during a game session.  Most game sessions will start with <a href="#rewards/clear">!rewards clear</a> 
+and then use <a href="#rewards/show">!rewards show</a> multiple times to update the session.  Any interaction with this dialog will print out the direct
+command that could have been used to the same effect as clicking on the dialog, provided that <a href="#PLUGIN/option_echo">!rewards option echo true</a> is
+set, which it is by default.</div>
+<div class='description'>If this command is executed without selecting a current DM and Module, it will first present additional dialogs to select those items
+    from the definitions.  If there is only one DM or Module defined, it will automatically select it.
+</div>

@@ -3,4 +3,17 @@
 <span class='command' id='rewards/module_x_stop'>module [ID/current] stop</span>
 <span class='format'>[DATE/HOURS/BLANK]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting specifies the stop time when the module session was completed, for 
+        calculation of hourly rewards.
+    </div>
+    <div class='description'>The date and time can be specified in three different ways:
+        <ol>
+            <li>As a simple number, with or without a decimal point.</li>
+            <p>In this case, the stop time is set to the specified number of hours before now.  For example, if you
+        stopped playing 1/2 hour ago, input <span class='code'>!rewards module stop 0.5</span></p>
+        <li>As a full date/time string in a variety of formats.</li>
+        <p>Most standard date/time formats are recognized.</p>
+        <li>As nothing at all.</li>
+        <p>Ending the command after <span class='code'>stop</span> sets the stop time to now.</p>
+    </ol>
+    </div>

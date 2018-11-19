@@ -1,5 +1,6 @@
 <div class='title'>
 <span class='plugin'>!rewards</span>
 <span class='command' id='rewards/start'>start</span>
+<span class='format'>[-&gt; module current start]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command just calls <a href="#rewards/module_x_start">!rewards module current start</a></div>

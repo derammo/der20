@@ -3,4 +3,13 @@
 <span class='command' id='rewards/define_dm'>define dm</span>
 <span class='format'>[ID]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command presents a dialog to interactively configure a Dungeon Master definition.
+    The intent of this feature is to configure the name and DCI of a DM who uses the current game room, even there
+    are multiple DMs sharing the room.  During a session, <a href="#rewards/dm">!rewards dm</a> can then be used
+    to select the DM information to use in the rewards.
+</div>
+<div class='description'>Instead of using the interactive dialog, individual parameters of the DM definition 
+    can be configured directly by simply appending the name
+    of a value to set, as in <a href="#rewards/define_dm_x_name">!rewards define dm [ID] name [STRING]</a> and 
+    <a href="#rewards/define_dm_x_dci">!rewards define dm [ID] dci [STRING]</a>
+</div>
