@@ -1,20 +1,20 @@
 import { TimerCommand } from './timer_command'
 import { SendCommand } from './send_command';
 import { ShowCommand } from './show_command';
-import { ConfigurationArray, ConfigurationChooser } from 'der20/library';
+import { ConfigurationArray, ConfigurationChooser, ConfigurationFromTemplate } from 'der20/library';
 import { ConfigurationDeleteItemCommand } from 'der20/library';
 import { ClearCommand } from 'der20/library';
 import { ConfigurationAlias } from 'der20/library';
+import { ConfigurationIntermediateNode } from 'der20/library';
 import { Rules } from './rules';
 import { Options } from 'der20/library';
+import { keyword } from 'der20/library';
+import { format } from 'der20/library';
+import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
+import { DungeonMaster } from './ddal/dungeon_master';
 
 // add handouts support to plugin by loading optional module
 import { HandoutsOptions, HandoutsSupport } from 'der20/library';
-import { keyword } from 'der20/library';
-import { format } from 'der20/library';
-import { ConfigurationIntermediateNode } from 'der20/library';
-import { LeagueModule } from './ddal/league_module';
-import { DungeonMaster } from './ddal/dungeon_master';
 
 // add handouts support to basic options
 // REVISIT: replace this with civilized plugin extension, instead of mixin and this
@@ -24,7 +24,7 @@ class RewardsOptions extends Options implements HandoutsSupport {
 
 class Definitions extends ConfigurationIntermediateNode {
     rules: Rules = new Rules();
-    modules: ConfigurationArray<LeagueModule> = new ConfigurationArray<LeagueModule>('module', LeagueModule);
+    modules: ConfigurationArray<LeagueModuleDefinition> = new ConfigurationArray<LeagueModuleDefinition>('module', LeagueModuleDefinition);
     dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>('dm', DungeonMaster);
 }
 
@@ -51,7 +51,7 @@ export class Configuration {
 
     // current session objects initialized from from definitions
     dm: ConfigurationChooser<DungeonMaster> = new ConfigurationChooser(this.define.dms, 'dm');
-    module: ConfigurationChooser<LeagueModule> = new ConfigurationChooser(this.define.modules, 'module');
+    module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule> = new ConfigurationFromTemplate(this.define.modules, 'module', LeagueModule);
 
     // commands
     start: TimerCommand = new TimerCommand(this.module, 'start');

@@ -52,7 +52,7 @@ export class Unlock {
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 }
 
-export class LeagueModule implements ConfigurationChangeHandling, ConfigurationTermination {
+export class LeagueModuleDefinition implements ConfigurationChangeHandling, ConfigurationTermination {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
 
@@ -65,13 +65,6 @@ export class LeagueModule implements ConfigurationChangeHandling, ConfigurationT
     level: LeagueModule.Level = new LeagueModule.Level();
     duration: ConfigurationFloat = new ConfigurationFloat(4);
     hourly: LeagueModule.Hourly = new LeagueModule.Hourly();
-    
-    session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-    start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
-    stop: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
-
-    // @keyword('pc')
-    pcs: PlayerCharacters = new PlayerCharacters();
 
     minimumLevelForTier(): number {
         switch (this.tier.value()) {
@@ -125,6 +118,68 @@ export class LeagueModule implements ConfigurationChangeHandling, ConfigurationT
             return 4;
         }
     }
+
+    hasTierRewardsDifference(): boolean {
+        return (this.hardcover.value() && (this.level.maximum.value() > 10) && (this.level.minimum.value() < 11));
+    }
+
+    handleChange(keyword: string) {
+        switch (keyword) {
+            case 'tier':
+                this.level.minimum.default = this.minimumLevelForTier();
+                this.level.maximum.default = this.maximumLevelForTier();
+                this.hourly.treasure.default = this.hourlyTreasure();
+                break;
+            case 'season':
+                this.hourly.advancement.default = this.hourlyAdvancement();
+                this.hourly.treasure.default = this.hourlyTreasure();
+                break;
+            case 'hardcover':
+                this.hourly.advancement.default = this.hourlyAdvancement();
+                this.hourly.treasure.default = this.hourlyTreasure();
+                this.duration.default = this.defaultDuration();
+                break;
+            case 'level':
+                this.hourly.treasure.default =  this.hourlyTreasure();
+                break;
+            default:
+                // ignore
+        }
+    }
+
+    handleEndOfCommand(context: ParserContext): Result {
+        if (!context.rest.startsWith('define ')) {
+            return new Success('no configuration changed');
+        }
+        let dialog = new context.dialog();
+        const link = { 
+            command: context.command,
+            prefix: context.rest,
+            followUps: [ context.rest ]
+        };
+        dialog.addTitle(`Definition for Module '${this.id}'`);
+        dialog.beginControlGroup();
+        dialog.addEditControl('Module Name', 'name', this.name, link);
+        dialog.addEditControl('Season', 'season', this.season, link);
+        dialog.addEditControl('Hard Cover', 'hardcover', this.hardcover, link);
+        dialog.addEditControl('Tier', 'tier', this.tier, link);
+        dialog.addEditControl('Minimum Level', 'level minimum', this.level.minimum, link);
+        dialog.addEditControl('Maximum Level', 'level maximum', this.level.maximum, link);
+        dialog.addEditControl('Advancement/hr', 'hourly advancement', this.hourly.advancement, link);
+        dialog.addEditControl('Treasure/hr', 'hourly treasure', this.hourly.treasure, link);
+        dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
+        dialog.endControlGroup();
+        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+    }
+}
+
+export class LeagueModule extends LeagueModuleDefinition {
+    session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
+    stop: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
+
+    // @keyword('pc')
+    pcs: PlayerCharacters = new PlayerCharacters();
 
     treasureAward(): number {
         // sum all awarded treasure from checkpoints
@@ -191,42 +246,7 @@ export class LeagueModule implements ConfigurationChangeHandling, ConfigurationT
         }
         return Math.floor(hours);
     }
-
-    hasTierRewardsDifference(): boolean {
-        return (this.hardcover.value() && (this.level.maximum.value() > 10) && (this.level.minimum.value() < 11));
-    }
-
-    handleChange(keyword: string) {
-        switch (keyword) {
-            case 'tier':
-                this.level.minimum.default = this.minimumLevelForTier();
-                this.level.maximum.default = this.maximumLevelForTier();
-                this.hourly.treasure.default = this.hourlyTreasure();
-                break;
-            case 'season':
-                this.hourly.advancement.default = this.hourlyAdvancement();
-                this.hourly.treasure.default = this.hourlyTreasure();
-                break;
-            case 'hardcover':
-                this.hourly.advancement.default = this.hourlyAdvancement();
-                this.hourly.treasure.default = this.hourlyTreasure();
-                this.duration.default = this.defaultDuration();
-                break;
-            case 'level':
-                this.hourly.treasure.default =  this.hourlyTreasure();
-                break;
-            case 'start':
-                this.pcs.scan();
-                this.updateTierFromAPL();
-                break;
-            case 'pc':
-                this.updateTierFromAPL();
-                break;
-            default:
-                // ignore
-        }
-    }
-
+    
     updateTierFromAPL() {
         if (!this.hardcover.value()) {
             return;
@@ -246,31 +266,20 @@ export class LeagueModule implements ConfigurationChangeHandling, ConfigurationT
         }
     }
 
-    handleEndOfCommand(context: ParserContext): Result {
-        if (!context.rest.startsWith('define ')) {
-            return new Success('no configuration changed');
+    handleChange(keyword: string) {
+        switch (keyword) {
+            case 'start':
+                this.pcs.scan();
+                this.updateTierFromAPL();
+                break;
+            case 'pc':
+                this.updateTierFromAPL();
+                break;
+            default:
+                super.handleChange(keyword);
         }
-        let dialog = new context.dialog();
-        const link = { 
-            command: context.command,
-            prefix: context.rest,
-            followUps: [ context.rest ]
-        };
-        dialog.addTitle(`Definition for Module '${this.id}'`);
-        dialog.beginControlGroup();
-        dialog.addEditControl('Module Name', 'name', this.name, link);
-        dialog.addEditControl('Season', 'season', this.season, link);
-        dialog.addEditControl('Hard Cover', 'hardcover', this.hardcover, link);
-        dialog.addEditControl('Tier', 'tier', this.tier, link);
-        dialog.addEditControl('Minimum Level', 'level minimum', this.level.minimum, link);
-        dialog.addEditControl('Maximum Level', 'level maximum', this.level.maximum, link);
-        dialog.addEditControl('Advancement/hr', 'hourly advancement', this.hourly.advancement, link);
-        dialog.addEditControl('Treasure/hr', 'hourly treasure', this.hourly.treasure, link);
-        dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
-        dialog.endControlGroup();
-        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
-}
+} 
 
 export namespace LeagueModule {
     export class Level extends ConfigurationIntermediateNode {

@@ -3,6 +3,7 @@ export { ClearCommand } from 'der20/config/clear';
 export { ConfigurationAlias } from 'der20/config/alias';
 export { ConfigurationArray } from 'der20/config/array';
 export { ConfigurationChooser } from 'der20/config/array';
+export { ConfigurationFromTemplate } from 'der20/config/array';
 export { ConfigurationCommand } from 'der20/config/atoms';
 export { ConfigurationChangeHandling } from 'der20/interfaces/config';
 export { ConfigurationDeleteItemCommand } from 'der20/config/deleteitem';

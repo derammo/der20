@@ -1,16 +1,16 @@
 import { ConfigurationCommand } from 'der20/library';
 import { Result } from 'der20/library';
-import { ConfigurationChooser } from 'der20/library';
+import { ConfigurationFromTemplate } from 'der20/library';
 import { ConfigurationParser } from 'der20/library';
 import { ParserContext } from 'der20/library';
-import { LeagueModule } from './ddal/league_module';
+import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 
 // XXX remove?  confirm that an alias to the actual config item would do the same thing and more
 export class TimerCommand extends ConfigurationCommand {
-    private module: ConfigurationChooser<LeagueModule>;
+    private module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>;
     private property: string;
 
-    constructor(module: ConfigurationChooser<LeagueModule>, property: string) {
+    constructor(module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>, property: string) {
         super();
         this.module = module;
         this.property = property;

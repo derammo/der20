@@ -1,18 +1,14 @@
-import { ConfigurationSimpleCommand, } from 'der20/library';
+import { ConfigurationSimpleCommand, ConfigurationFromTemplate, } from 'der20/library';
 import { Result, Success, Failure, DialogResult } from 'der20/library';
 import { ConfigurationChooser } from 'der20/library';
 import { ParserContext } from 'der20/library';
 import { DungeonMaster } from './ddal/dungeon_master';
-import { LeagueModule } from './ddal/league_module';
+import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 
 export abstract class RenderCommand extends ConfigurationSimpleCommand {
-    protected dm: ConfigurationChooser<DungeonMaster>;
-    protected module: ConfigurationChooser<LeagueModule>;
-
-    constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>) {
+    constructor(protected dm: ConfigurationChooser<DungeonMaster>, protected module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>) {
         super();
-        this.dm = dm;
-        this.module = module;
+        // generated code
     }
 
     protected tryLoad(context: ParserContext): Result {

@@ -1,15 +1,15 @@
 import { RenderCommand } from './show_command';
-import { Result, DialogResult, Failure } from 'der20/library';
+import { Result, DialogResult, Failure, ConfigurationFromTemplate } from 'der20/library';
 import { ConfigurationChooser } from 'der20/library';
 import { ConfigurationValue } from 'der20/library';
 import { Rules } from './rules';
 import { ParserContext } from 'der20/library';
 import { AdventurersLeagueLog } from './adventurers_league_log';
 import { DungeonMaster } from './ddal/dungeon_master';
-import { LeagueModule } from './ddal/league_module';
+import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 
 export class SendCommand extends RenderCommand {
-    constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationChooser<LeagueModule>, private rules: Rules, private preview: boolean) {
+    constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>, private rules: Rules, private preview: boolean) {
         super(dm, module);
         // generated code
     }

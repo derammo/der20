@@ -122,19 +122,20 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
     }
 }
 
-export class ConfigurationChooser<T extends CollectionItem> extends ConfigurationStep<T> {
+class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> extends ConfigurationStep<TO> {
     // this id can be used to refer to the most recently selected item
     static readonly MAGIC_CURRENT_ID: string = 'current';
 
-    current: T = ConfigurationValue.UNSET;
-    array: ConfigurationArray<T>;
+    current: TO = ConfigurationValue.UNSET;
     selectedId: string;
-    path: string;
 
-    constructor(array: ConfigurationArray<T>, path: string) {
+    constructor(public array: ConfigurationArray<FROM>, public path: string, public classType: DefaultConstructed<TO>) {
         super(ConfigurationValue.UNSET, 'ID/current');
-        this.array = array;
-        this.path = path;
+        // generated code
+    }
+
+    collectionItem(): DefaultConstructed<TO> {
+        return this.classType;
     }
 
     toJSON(): any {
@@ -156,15 +157,12 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         return result;
     }
 
+
     load(json: any, context: LoaderContext): Result {
         this.selectedId = json.id;
         // now we wait until this object is used, because the array may not have loaded yet
         // NOTE: any per-session overrides are now lost
         return new Change('restored selection from array');
-    }
-
-    collectionItem(): DefaultConstructed<T> {
-        return this.array.classType;
     }
 
     createChooserDialog(rest: string, context: ParserContext, followUps?: string[]): DialogResult {
@@ -224,7 +222,7 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
 
     private loadItem(id: string, rest: string, context: ParserContext): Result {
         let index = this.array.findItem(id);
-        this.current = cloneExcept(this.array.classType, this.array.current[index], ['id']);
+        this.current = cloneExcept(this.classType, this.array.current[index], ['id']);
         this.selectedId = id;
         if (rest.length < 1) {
             return new Change(`selected item ${this.current.name.value() || id}`);
@@ -236,4 +234,15 @@ export class ConfigurationChooser<T extends CollectionItem> extends Configuratio
         this.selectedId = undefined;
         this.current = ConfigurationValue.UNSET;
     }
+}
+
+export class ConfigurationChooser<T extends CollectionItem> extends ConfigurationArrayReference<T, T> {
+    constructor(public array: ConfigurationArray<T>, public path: string) {
+        super(array, path, array.classType);
+    }
+}
+
+
+export class ConfigurationFromTemplate<TEMPLATE extends CollectionItem, INSTANCE extends TEMPLATE> extends ConfigurationArrayReference<TEMPLATE, INSTANCE> {
+    // no additional code
 }
