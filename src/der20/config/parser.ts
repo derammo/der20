@@ -32,7 +32,7 @@ export class ConfigurationParser {
     }
 
     static parse(line: string, configuration: any, context: ParserContext): Result {
-        debug.log(`parsing "${line}" against ${typeof configuration} ${JSON.stringify(configuration)}`);
+        debug.log(`parsing "${line}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`);
 
         if (line.length === 0) {
             // check if 'configuration' has handler to create UI or otherwise handle

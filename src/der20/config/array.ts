@@ -176,7 +176,7 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 
-    private handleCurrent(rest: string, context: ParserContext): Result {
+    handleCurrent(rest: string, context: ParserContext, followUps?: string[]): Result {
         if (this.selectedId !== undefined) {
             if (this.current === ConfigurationValue.UNSET) {
                 // right after restoring from JSON, the item data has not been loaded yet
@@ -186,7 +186,7 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
         }
         if (this.array.current.length > 1) {
             // present interactive chooser
-            return this.createChooserDialog(rest, context);
+            return this.createChooserDialog(rest, context, followUps);
         }
         if (this.array.current.length === 1) {
             // auto select only defined item, if any

@@ -1,5 +1,5 @@
 import { ConfigurationSimpleCommand, ConfigurationFromTemplate, } from 'der20/library';
-import { Result, Success, Failure, DialogResult } from 'der20/library';
+import { Result, Success, DialogResult } from 'der20/library';
 import { ConfigurationChooser } from 'der20/library';
 import { ParserContext } from 'der20/library';
 import { DungeonMaster } from './ddal/dungeon_master';
@@ -14,16 +14,16 @@ export abstract class RenderCommand extends ConfigurationSimpleCommand {
     protected tryLoad(context: ParserContext): Result {
         let result: Result = new Success('no configuration changed');
         if (this.dm.current == null) {
-            result = this.dm.parse(`current ; ${context.rest}`, context);
+            result = this.dm.handleCurrent('', context, [context.rest]);
+            if (!result.isSuccess()) {
+                return result;
+            }
         }
         if (this.module.current == null) {
-            result = this.module.parse(`current ; ${context.rest}`, context);
-        }
-        if (result.kind === Result.Kind.Success && this.dm.current == null) {
-            return new Failure(new Error('no dm loaded'));
-        }
-        if (result.kind === Result.Kind.Success && this.module.current == null) {
-            return new Failure(new Error('no module loaded'));
+            result = this.module.handleCurrent('', context, [context.rest]);
+            if (!result.isSuccess()) {
+                return result;
+            }
         }
         return result;
     }
@@ -37,11 +37,8 @@ export class ShowCommand extends RenderCommand {
     handleEndOfCommand(context: ParserContext): Result {
         // load if possible
         let result = this.tryLoad(context);
-        switch (result.kind) {
-            case Result.Kind.Success:
-                break;
-            default:
-                return result;
+        if (!result.isSuccess()) {
+            return result;
         }
         let dialog = new context.dialog();
         const link = { 
