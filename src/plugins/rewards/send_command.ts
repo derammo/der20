@@ -100,10 +100,10 @@ export class SendCommand extends RenderCommand {
                 dialog.addTextLine(`${pc.character.name}${levelString}`);
             }
             dialog.endControlGroup();
-            dialog.addSeparator();
         }
 
         if (this.preview) {
+            dialog.addSeparator();
             dialog.addCommand('Send to Players', 'send', { command: context.command });
         } else {
             destination = DialogResult.Destination.All;
@@ -141,6 +141,7 @@ export class SendCommand extends RenderCommand {
             // let parameters = AdventurersLeagueLog.createRailsQueryString(log, 'character_log_entry');
             // XXX HACK TEST local server
             // let importQuery = `http://localhost:3000/character_log_imports/new?${parameters}`;
+            // dialog.addSeparator();
             // dialog.addExternalLinkButton('Import to adventurersleaguelog.com', importQuery);
         }
 
