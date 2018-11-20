@@ -1,4 +1,4 @@
-import { data } from 'der20/library';
+import { data, ConfigurationAlias } from 'der20/library';
 import { PluginWithOptions } from 'der20/library';
 import { ConfigurationIntermediateNode } from 'der20/library';
 import { StatCommand } from './stat';
@@ -48,7 +48,8 @@ class SessionConfiguration extends ConfigurationIntermediateNode {
 }
 
 export class Configuration extends PluginWithOptions {
-    token: TokenConfiguration = new TokenConfiguration();
+    tokens: TokenConfiguration = new TokenConfiguration();
+    token: ConfigurationAlias = new ConfigurationAlias(this, 'tokens');
     positions: PositionsConfiguration = new PositionsConfiguration();
     session: SessionConfiguration = new SessionConfiguration(this.positions.data); 
 }

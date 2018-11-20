@@ -1,6 +1,6 @@
 <div class='title'>
 <span class='plugin'>!setup</span>
-<span class='command' id='setup/token_stat'>token stat</span>
+<span class='command' id='setup/tokens_stat'>tokens stat</span>
 </div>
 <div class='description'>This command sets up all selected tokens for sane defaults.  Any selected NPC/Monster 
     tokens have their max health and stealth checks (out of 30) individually rolled and assigned to bars of their token.
@@ -18,6 +18,6 @@
     bar representing a score of 30, just like stealth for NPC/Monster tokens.
 </div>
 <div class='description'>
-    NPC/Monster tokens can be reset to an unconfigured state via <a href="#setup/token_reset">!setup token reset</a>, while
-    Player character tokens remain configured even if <a href="#setup/token_reset">!setup token reset</a> is run on them. 
+    NPC/Monster tokens can be reset to an unconfigured state via <a href="#setup/tokens_reset">!setup tokens reset</a>, while
+    Player character tokens remain configured even if <a href="#setup/tokens_reset">!setup tokens reset</a> is run on them. 
 </div>

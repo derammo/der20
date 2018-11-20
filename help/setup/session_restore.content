@@ -5,5 +5,5 @@
 <div class='description'>This command restores a game to a default state, in preparation
     for a new gaming session in a previously used game.  All tokens are restored to their
     saved positions and layers as if by <a href="#setup/positions_restore">!setup positions restore</a>, any NPC tokens are reset 
-    as if by <a href="#setup/token_reset">!setup token reset</a>
+    as if by <a href="#setup/tokens_reset">!setup tokens reset</a>
 </div>

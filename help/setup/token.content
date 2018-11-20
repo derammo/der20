@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!setup</span>
+<span class='command' id='setup/token'>token</span>
+<span class='format'>[-&gt; tokens]</span>
+</div>
+<div class='description'></div>
