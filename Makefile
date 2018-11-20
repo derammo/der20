@@ -1,4 +1,4 @@
-PLUGINS := rewards anonymous setup init5e
+PLUGINS := rewards anonymous setup
 EXECUTABLES := parser_test help_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
