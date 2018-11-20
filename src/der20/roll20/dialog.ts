@@ -112,6 +112,12 @@ export class Der20ChatDialog implements Dialog {
         this.text.push('</li>');
     }
 
+    addLinkTextLine(text: string, target: string): void {
+        this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+        this.text.push(`<a href="${target}" style="color:blue;">${text}</a>`);
+        this.text.push('</li>');
+    }
+
     addIndentedTextLine(label: string) {
         this.text.push(`<li style="${Der20ChatDialog.itemStyle} margin-left: 3em;">`);
         this.text.push(label);

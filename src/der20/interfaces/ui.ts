@@ -14,6 +14,7 @@ export interface Dialog {
     addSeparator(): void;
     addTextLine(text: string): void;
     addIndentedTextLine(text: string): void;
+    addLinkTextLine(text: string, target: string): void;
     getDateText(value: number): string;
 
     /**

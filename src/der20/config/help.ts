@@ -129,11 +129,13 @@ export class HelpCommand extends ConfigurationSimpleCommand {
         let dialog = new context.dialog();
         for (let item of this.helpItems) {
             dialog.beginControlGroup();
+            let label = `!${item.plugin} ${item.command}`
             if (item.format) {
-                dialog.addTextLine(`!${item.plugin} ${item.command} [${item.format}]`);
-            } else {
-                dialog.addTextLine(`!${item.plugin} ${item.command}`);
+                label = `!${item.plugin} ${item.command} [${item.format}]`;
             }
+            const plugin = item.common || item.plugin;
+            const href = `https://derammo.github.io/der20/#${plugin}/${item.command.replace(/\[.*?\]/g, 'x').replace(/ /g, '_')}`;
+            dialog.addLinkTextLine(label, href);
             dialog.addIndentedTextLine(`${item.description || ''}`);
             dialog.addIndentedTextLine(`${item.validation || ''}`);
             dialog.endControlGroup();
