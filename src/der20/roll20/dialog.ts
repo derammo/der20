@@ -14,6 +14,10 @@ export class Der20ChatDialog implements Dialog {
         'min-width: 6em; text-decoration: none; background-color: White; border: 1px solid #eeeeee; border-radius: 3px; padding-left: 5px; padding-right: 5px; padding-top: 0px; padding-bottom: 0px; text-align: center; float: right;';
     static readonly buttonStyle: string = Der20ChatDialog.buttonBaseStyle + 'color: Black;';
     static readonly defaultedButtonStyle: string = Der20ChatDialog.buttonBaseStyle + 'color: #aaaaaa;';
+    static readonly checkboxBaseStyle: string = 
+        'min-width: 6em; text-decoration: none; text-align: center; vertical-align: middle; float: right; border: none; background-color: transparent;';
+    static readonly checkboxStyle: string = Der20ChatDialog.checkboxBaseStyle + 'color: Black;';
+    static readonly defaultedCheckboxStyle: string = Der20ChatDialog.checkboxBaseStyle + 'color: #aaaaaa;';
     static readonly commandStyle: string =
         'text-decoration: none; background-color: #000; border: 1px solid #292929; border-radius: 3px; padding: 5px; color: #fff; text-align: center; margin: auto; width: 98%; display: block; float: none;';
     static readonly externalLinkButtonStyle: string =
@@ -59,6 +63,9 @@ export class Der20ChatDialog implements Dialog {
         this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${label}</span>`);
         let text: string = '';
         let extendedPath: string = '';
+        let configuredStyle = Der20ChatDialog.buttonStyle;
+        let defaultedStyle = Der20ChatDialog.defaultedButtonStyle;
+
         if (config instanceof ConfigurationString) {
             // already a string, but need to assert type
             let value = (<ConfigurationString>config).value();
@@ -75,8 +82,10 @@ export class Der20ChatDialog implements Dialog {
             // REVISIT do we have an integer or date control available somewhere?
             extendedPath = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`;
         } else if (config instanceof ConfigurationBoolean) {
-            text = `${(<ConfigurationBoolean>config).value() === true}`;
+            text = `<div style="display: inline-block; height: 1em; width: 1em; border: 1px solid">${(<ConfigurationBoolean>config).value()?'X':''}</div>`;
             extendedPath = `${path} ${!config.value()}`;
+            configuredStyle = Der20ChatDialog.checkboxStyle;
+            defaultedStyle = Der20ChatDialog.defaultedCheckboxStyle;
         } else if (config instanceof ConfigurationEnumerated) {
             text = this.getStringText((<ConfigurationEnumerated>config).value());
             let choices = (<ConfigurationEnumerated>config)
@@ -94,9 +103,9 @@ export class Der20ChatDialog implements Dialog {
             extendedPath = `${path} ?${label}|${choices}`;
         }
         if (config.hasConfiguredValue()) {
-            this.addButton(Der20ChatDialog.buttonStyle, text, extendedPath, link);
+            this.addButton(configuredStyle, text, extendedPath, link);
         } else {
-            this.addButton(Der20ChatDialog.defaultedButtonStyle, text, extendedPath, link);
+            this.addButton(defaultedStyle, text, extendedPath, link);
         }
         this.text.push('</li>');
     }
