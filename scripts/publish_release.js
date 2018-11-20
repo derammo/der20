@@ -54,7 +54,7 @@ const releaseSpec = {
     name: `der20 Roll20 API Scripts Release ${tag}`,
     notes: notes.join('\n'),
     draft: true,
-    prerelease: true,
+    prerelease: false,
     reuseRelease: true,
     reuseDraftOnly: true,
     skipAssetsCheck: false,
