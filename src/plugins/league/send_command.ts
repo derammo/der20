@@ -1,16 +1,14 @@
-import { RenderCommand } from './show_command';
-import { Result, DialogResult, Failure, ConfigurationFromTemplate } from 'der20/library';
-import { ConfigurationChooser } from 'der20/library';
-import { ConfigurationValue } from 'der20/library';
-import { Rules } from './rules';
-import { ParserContext } from 'der20/library';
+import { ConfigurationChooser, ConfigurationFromTemplate, ConfigurationValue, DialogResult, Failure, ParserContext, Result } from 'der20/library';
 import { AdventurersLeagueLog } from './adventurers_league_log';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
+import { Rules } from './rules';
+import { RenderCommand } from './show_command';
+import { PartyState } from './ddal/party_state';
 
 export class SendCommand extends RenderCommand {
-    constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>, private rules: Rules, private preview: boolean) {
-        super(dm, module);
+    constructor(dm: ConfigurationChooser<DungeonMaster>, module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>, private rules: Rules, party: PartyState, private preview: boolean) {
+        super(dm, module, party);
         // generated code
     }
 
@@ -87,7 +85,7 @@ export class SendCommand extends RenderCommand {
             dialog.addSeparator();
         }
 
-        let includedPcs = module.pcs.included();
+        let includedPcs = this.party.pcs.included();
         if (includedPcs.length > 0) {
             dialog.addSubTitle('Awarded to:');
             dialog.beginControlGroup();
@@ -104,7 +102,7 @@ export class SendCommand extends RenderCommand {
 
         if (this.preview) {
             dialog.addSeparator();
-            dialog.addCommand('Send to Players', 'send', { command: context.command });
+            dialog.addCommand('Send to Players', 'rewards send', { command: context.command });
         } else {
             destination = DialogResult.Destination.All;
             let log = new AdventurersLeagueLog.LogEntry();

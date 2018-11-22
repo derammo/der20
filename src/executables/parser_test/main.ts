@@ -1,7 +1,7 @@
 debug.log = console.log;
 
 // application under test
-import { Configuration } from "plugins/rewards/configuration";
+import { Configuration } from "plugins/league/configuration";
 
 // OS
 import { exec, ExecException } from 'child_process';
@@ -17,19 +17,19 @@ import { Der20ChatDialog } from "der20/roll20/dialog";
 import { DialogFactory } from "der20/interfaces/ui";
 import { LoaderContext } from "der20/interfaces/loader";
 import { ParserContext } from "der20/interfaces/parser";
-import { ConfigurationSource } from "der20/interfaces/config";
-import { ConfigurationSourceImpl } from "der20/config/source";
+import { CommandSource } from "der20/interfaces/config";
+import { CommandSourceImpl } from "der20/config/source";
 import { DialogResult } from "der20/config/result";
 
 class MockContext implements LoaderContext, ParserContext {
 	command: string;
 	rest: string;
 	asyncVariables: Record<string, any> = {};
-	source: ConfigurationSource = new ConfigurationSourceImpl.Journal('test', 'main');
+	source: CommandSource = new CommandSourceImpl.Base(CommandSource.Kind.Journal);
 	dialog: DialogFactory = Der20ChatDialog;
 	options: Options = new Options();
 
-	addCommand(source: ConfigurationSource, command: string): void {
+	addCommand(source: CommandSource, command: string): void {
 		throw new Error("Method not implemented.");
 	}
 	addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void {

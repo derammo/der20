@@ -1,12 +1,10 @@
-import { ConfigurationSimpleCommand, ConfigurationFromTemplate, } from 'der20/library';
-import { Result, Success, DialogResult } from 'der20/library';
-import { ConfigurationChooser } from 'der20/library';
-import { ParserContext } from 'der20/library';
+import { ConfigurationChooser, ConfigurationFromTemplate, ConfigurationSimpleCommand, DialogResult, ParserContext, Result, Success } from 'der20/library';
+import { PartyState } from './ddal/party_state';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 
 export abstract class RenderCommand extends ConfigurationSimpleCommand {
-    constructor(protected dm: ConfigurationChooser<DungeonMaster>, protected module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>) {
+    constructor(protected dm: ConfigurationChooser<DungeonMaster>, protected module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>, protected party: PartyState) {
         super();
         // generated code
     }
@@ -43,6 +41,7 @@ export class ShowCommand extends RenderCommand {
         let dialog = new context.dialog();
         const link = { 
             command: context.command, 
+            prefix: 'session',
             followUps: [ context.rest ]
         };
         dialog.addTitle('Log Entry for Current Session');
@@ -59,13 +58,16 @@ export class ShowCommand extends RenderCommand {
         dialog.addEditControl('Module Name', 'module current name', module.name, link);
         dialog.addEditControl('Season', 'module current season', module.season, link);
         dialog.addEditControl('Hard Cover', 'module current hardcover', module.hardcover, link);
+        dialog.addSeparator();
         dialog.addEditControl('Tier', 'module current tier', module.tier, link);
         dialog.addEditControl('Minimum Level', 'module current level minimum', module.level.minimum, link);
         dialog.addEditControl('Maximum Level', 'module current level maximum', module.level.maximum, link);
+        dialog.addEditControl('Target APL', 'module current target apl', module.target.apl, link);
+        dialog.addSeparator();
         dialog.addEditControl('Advancement/hr', 'module current hourly advancement', module.hourly.advancement, link);
         dialog.addEditControl('Treasure/hr', 'module current hourly treasure', module.hourly.treasure, link);
         dialog.addEditControl('Maximum Duration', 'module current duration', module.duration, link);
-        dialog.addEditControl('Start Time', 'module current start', module.start, link);
+        dialog.addEditControl('Start Time', 'start', module.start, link);
         dialog.addEditControl('End Time', 'module current stop', module.stop, link);
         dialog.endControlGroup();
         dialog.addSeparator();
@@ -85,7 +87,7 @@ export class ShowCommand extends RenderCommand {
         // select from all player controlled creatures for automatic APL and to include/exclude in rewards
         dialog.addSubTitle('Players');
         dialog.beginControlGroup();
-        for (let pc of module.pcs.characters) {
+        for (let pc of this.party.pcs.characters) {
             let levelString = '';
             let level = pc.character.attribute('level').value(0);
             if (level > 0) {
@@ -93,21 +95,23 @@ export class ShowCommand extends RenderCommand {
             }
             dialog.addEditControl(
                 `${pc.player.name}: ${pc.character.name}${levelString}`,
-                `module current pc ${pc.player.userid} character ${pc.character.id} selected`,
+                `party pc ${pc.player.userid} character ${pc.character.id} selected`,
                 pc.selected,
                 link
             );
         }
+        dialog.addEditControl('Party Strength', 'party strength', this.party.strength, link);
         dialog.endControlGroup();
         dialog.addSeparator();
+
 
         dialog.addSubTitle('Consumables');
         // REVISIT put a section here to provider a player picker for who received what consumable
         dialog.addSeparator();
         dialog.addSubTitle('Current Totals');
         dialog.beginControlGroup();
-        let count = module.pcs.count();
-        dialog.addTextLine(`${count} Character${count!==1?'s':''} at ${module.pcs.averagePartyLevel()} APL`);
+        let count = this.party.pcs.count();
+        dialog.addTextLine(`${count} Character${count!==1?'s':''} at ${this.party.apl.value()} APL`);
         if (module.hasTierRewardsDifference()) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
@@ -126,7 +130,9 @@ export class ShowCommand extends RenderCommand {
         }
         dialog.endControlGroup();
         dialog.addSeparator();
-        dialog.addCommand('Preview & Send to Players', 'preview', { command: context.command });
+        dialog.beginControlGroup();
+        dialog.addCommand('Preview & Send to Players', 'rewards preview', { command: context.command });
+        dialog.endControlGroup();
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 }

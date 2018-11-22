@@ -1,4 +1,4 @@
-import { clone, ConfigurationTermination, ParserContext, Result, Success, DialogResult } from 'der20/library';
+import { clone, ConfigurationTermination, ParserContext, Result, Success, DialogResult, data } from 'der20/library';
 import { ConfigurationArray } from 'der20/library';
 import { ConfigurationBoolean, ConfigurationDate, ConfigurationFloat, ConfigurationInteger } from 'der20/library';
 import { ConfigurationChangeHandling } from 'der20/library';
@@ -6,7 +6,6 @@ import { ConfigurationEnumerated } from 'der20/library';
 import { ConfigurationIntermediateNode } from 'der20/library';
 import { ConfigurationValue } from 'der20/library';
 import { ConfigurationString } from 'der20/library';
-import { PlayerCharacters } from './player_characters';
 
 export class CheckPoint {
     // can't be undefined, because we need to detect that we can load it
@@ -52,6 +51,14 @@ export class Unlock {
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 }
 
+
+class TargetConfiguration extends ConfigurationIntermediateNode {
+    /**
+     * the target APL of the module
+     */
+    apl: ConfigurationInteger = new ConfigurationInteger(1);
+}
+
 export class LeagueModuleDefinition implements ConfigurationChangeHandling, ConfigurationTermination {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
@@ -65,6 +72,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
     level: LeagueModule.Level = new LeagueModule.Level();
     duration: ConfigurationFloat = new ConfigurationFloat(4);
     hourly: LeagueModule.Hourly = new LeagueModule.Hourly();
+    target: TargetConfiguration = new TargetConfiguration();
 
     minimumLevelForTier(): number {
         switch (this.tier.value()) {
@@ -128,7 +136,10 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
             case 'tier':
                 this.level.minimum.default = this.minimumLevelForTier();
                 this.level.maximum.default = this.maximumLevelForTier();
-                this.hourly.treasure.default = this.hourlyTreasure();
+            // tslint:disable-next-line:no-switch-case-fall-through
+            case 'level':
+                this.target.apl.default = Math.round((this.level.minimum.value() + this.level.maximum.value()) / 2);
+                this.hourly.treasure.default =  this.hourlyTreasure();
                 break;
             case 'season':
                 this.hourly.advancement.default = this.hourlyAdvancement();
@@ -138,9 +149,6 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
                 this.hourly.advancement.default = this.hourlyAdvancement();
                 this.hourly.treasure.default = this.hourlyTreasure();
                 this.duration.default = this.defaultDuration();
-                break;
-            case 'level':
-                this.hourly.treasure.default =  this.hourlyTreasure();
                 break;
             default:
                 // ignore
@@ -165,6 +173,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         dialog.addEditControl('Tier', 'tier', this.tier, link);
         dialog.addEditControl('Minimum Level', 'level minimum', this.level.minimum, link);
         dialog.addEditControl('Maximum Level', 'level maximum', this.level.maximum, link);
+        dialog.addEditControl('Target APL', 'target apl', this.target.apl, link);
         dialog.addEditControl('Advancement/hr', 'hourly advancement', this.hourly.advancement, link);
         dialog.addEditControl('Treasure/hr', 'hourly treasure', this.hourly.treasure, link);
         dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
@@ -174,13 +183,15 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
 }
 
 export class LeagueModule extends LeagueModuleDefinition {
+    // this is the actual APL of the party, written here when it is determined elsewhere
+    @data
+    apl: number;
+
     session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
     stop: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
 
-    // @keyword('pc')
-    pcs: PlayerCharacters = new PlayerCharacters();
-
+ 
     treasureAward(): number {
         // sum all awarded treasure from checkpoints
         let treasure = this.checkpoints.current.map((checkpoint) => {
@@ -251,13 +262,12 @@ export class LeagueModule extends LeagueModuleDefinition {
         if (!this.hardcover.value()) {
             return;
         }
-        const apl = this.pcs.averagePartyLevel();
         let tier = 1;
-        if (apl >= 16.5) {
+        if (this.apl >= 16.5) {
             tier = 4;
-        } else if (apl >= 10.5) {
+        } else if (this.apl >= 10.5) {
             tier = 3;
-        } else if (apl >= 4.5) {
+        } else if (this.apl >= 4.5) {
             tier = 2;
         }
         this.tier.default = tier;
@@ -268,11 +278,7 @@ export class LeagueModule extends LeagueModuleDefinition {
 
     handleChange(keyword: string) {
         switch (keyword) {
-            case 'start':
-                this.pcs.scan();
-                this.updateTierFromAPL();
-                break;
-            case 'pc':
+            case 'apl':
                 this.updateTierFromAPL();
                 break;
             default:
