@@ -20,14 +20,16 @@ export class StatCommand extends SelectedTokensSimpleCommand {
         const result = new Success(`set up player character token for ${character.name}`);
         const hp = character.attribute('hp');
         if (hp.exists) {
-            token.raw.set({ bar1_link: hp.id, bar1_value: hp.value(0), bar1_max: hp.max(0) });
+            token.raw.set({ bar1_link: hp.id, bar1_value: hp.value(0), bar1_max: hp.max(0), showplayers_bar1: true });
         } else {
+            token.raw.set({ showplayers_bar1: false });
             result.messages.push(`player character ${character.name} has no 'hp' attribute`);
         }
         const passiveWisdom = character.attribute('passive_wisdom');
         if (passiveWisdom.exists) {
-            token.raw.set({ bar2_link: passiveWisdom.id, bar2_value: passiveWisdom.value(0), bar2_max: 30 });
+            token.raw.set({ bar2_link: passiveWisdom.id, bar2_value: passiveWisdom.value(0), bar2_max: 30, showplayers_bar2: true });
         } else {
+            token.raw.set({ showplayers_bar2: false });
             result.messages.push(`player character ${character.name} has no 'passive_wisdom' attribute`);
         }
 
@@ -93,6 +95,9 @@ export class StatCommand extends SelectedTokensSimpleCommand {
             name: name,
             showname: true,
             showplayers_name: true,
+            showplayers_bar1: false,
+            showplayers_bar2: false,
+            showplayers_bar3: false,
             light_radius: '',
             light_dimradius: '',
             light_hassight: false,
