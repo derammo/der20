@@ -1,8 +1,7 @@
-PLUGINS := rewards anonymous setup
+PLUGINS := league anonymous setup
 EXECUTABLES := parser_test help_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
-SCRIPT := dist/rewards_api_script.js
 DEFAULT := $(word 1,$(EXECUTABLES))
 DIST := $(patsubst %,dist/der20_%_complete.js,$(PLUGINS)) dist/der20_library.js $(patsubst %,dist/der20_%_plugin.js,$(PLUGINS))
 HELP_JSON := $(patsubst %,build/%_help.json,$(PLUGINS))

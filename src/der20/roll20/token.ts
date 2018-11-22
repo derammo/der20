@@ -3,8 +3,8 @@ import { Success, Failure, Asynchronous } from 'der20/config/result';
 import { ConfigurationCommand, ConfigurationSimpleCommand } from 'der20/config/atoms';
 import { ParserContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
-import { ConfigurationSource } from 'der20/interfaces/config';
-import { ConfigurationSourceImpl } from 'der20/config/source';
+import { CommandSource } from 'der20/interfaces/config';
+import { ApiCommandSource } from 'der20/plugin/chat';
 
 class TokenImage {
     constructor(private token: Graphic) {
@@ -23,18 +23,15 @@ export class Der20Token {
         }
         return message.selected
             .map((dict: any) => {
-                return Der20Token.fetch(dict);
+                return Der20Token.fetch(dict._id);
             })
             .filter((token: Der20Token | undefined) => {
                 return typeof token !== 'undefined';
             });
     }
 
-    static fetch(dict: { id: string | undefined; _id?: string }): Der20Token {
-        let token = getObj('graphic', dict.id);
-        if (!token) {
-            token = getObj('graphic', dict._id);
-        }
+    static fetch(id: string): Der20Token {
+        let token = getObj('graphic', id);
         if (token === undefined) {
             return undefined;
         }
@@ -100,10 +97,10 @@ class SelectedTokensMultiplex {
         // generated code
     }
     execute(line: string, handler: (token: Der20Token, line: string, context: ParserContext, tokenIndex: number) => Result): Result {
-        if (this.context.source.kind !== ConfigurationSource.Kind.Api) {
+        if (this.context.source.kind !== CommandSource.Kind.Api) {
             throw new Error('selected tokens command requires api source');
         }
-        let source = <ConfigurationSourceImpl.Api>this.context.source;
+        let source = <ApiCommandSource>this.context.source;
         let message = <ApiChatEventData>source.message;
         let tokens = Der20Token.selected(message).filter((item: Der20Token | undefined) => {
             return item !== undefined;

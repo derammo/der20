@@ -41,6 +41,10 @@ export abstract class ConfigurationStep<T> implements ConfigurationParsing, Conf
         return this.current !== ConfigurationValue.UNSET;
     }
 
+    clear(): void {
+        this.current = ConfigurationValue.UNSET;
+    }
+
     toJSON(): any {
         return this.current;
     }

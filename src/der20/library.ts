@@ -1,3 +1,4 @@
+
 export { Clearable } from 'der20/config/clear';
 export { ClearCommand } from 'der20/config/clear';
 export { ConfigurationAlias } from 'der20/config/alias';
@@ -19,8 +20,7 @@ export { data } from 'der20/config/parser';
 export { Der20Character } from 'der20/roll20/character';
 export { Der20Token } from 'der20/roll20/token';
 export { format } from 'der20/config/help';
-export { HandoutsOptions } from 'der20/roll20/handouts';
-export { HandoutsSupport } from 'der20/roll20/handouts';
+export { HandoutsOptions, HandoutsSupport, CommandsFromHandouts } from 'der20/roll20/handouts_commands';
 export { keyword } from 'der20/config/parser';
 export { LoaderContext, ConfigurationLoading } from 'der20/interfaces/loader';
 export { Options, PluginWithOptions } from 'der20/plugin/options';
@@ -36,3 +36,6 @@ export { ConfigurationValue } from 'der20/interfaces/config';
 export { Success, Failure, Asynchronous, Change, DialogResult } from 'der20/config/result';
 export { RollQuery } from 'der20/roll20/roll';
 export { Dialog } from 'der20/interfaces/ui';
+export { CommandsFromTokens } from 'der20/roll20/token_commands';
+export { CommandSource } from 'der20/interfaces/config';
+export { NotesSource } from 'der20/roll20/notes_commands';

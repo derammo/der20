@@ -16,6 +16,9 @@ export namespace Result {
     }
 
     export enum Event {
+        /**
+         * changed at least one value
+         */
         Change = 1
     }
 }

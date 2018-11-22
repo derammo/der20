@@ -1,3 +1,5 @@
+import { clone } from 'der20/common/utility';
+
 /**
  * grouping of configuration elements that collapses if all its values are unpopulated
  */
@@ -23,6 +25,9 @@ export class ConfigurationIntermediateNode {
             return undefined;
         }
         return result;
+    }
+    clone(): ConfigurationIntermediateNode {
+        return clone(ConfigurationIntermediateNode, this);
     }
     toJSON(): any {
         return ConfigurationIntermediateNode.collapse(this);

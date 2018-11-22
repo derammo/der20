@@ -1,21 +1,23 @@
-import { BuiltinConfiguration } from 'der20/plugin/configuration';
-import { cloneExcept, DefaultConstructed } from 'der20/common/utility';
-import { common, HelpCommand } from 'der20/config/help';
+import { startPersistence } from 'der20/common/persistence';
+import { DefaultConstructed, cloneExcept } from 'der20/common/utility';
 import { ConfigurationCommand, ConfigurationSimpleCommand } from 'der20/config/atoms';
+import { HelpCommand, common } from 'der20/config/help';
 import { ConfigurationLoader } from 'der20/config/loader';
 import { ConfigurationParser } from 'der20/config/parser';
 import { ConfigurationPersistence } from 'der20/config/persistence';
-import { Der20ChatDialog } from 'der20/roll20/dialog';
+import { Asynchronous, Change, DialogResult, Failure } from 'der20/config/result';
+import { CommandSourceImpl } from 'der20/config/source';
+import { CommandSource, ConfigurationContext } from 'der20/interfaces/config';
+import { LoaderContext } from 'der20/interfaces/loader';
+import { ParserContext } from 'der20/interfaces/parser';
+import { Result } from 'der20/interfaces/result';
 import { DialogFactory } from 'der20/interfaces/ui';
+import { BuiltinConfiguration } from 'der20/plugin/configuration';
 import { Options } from 'der20/plugin/options';
 import { PromiseQueue } from 'der20/plugin/promise';
-import { Change, Failure, Asynchronous, DialogResult } from 'der20/config/result';
-import { startPersistence } from 'der20/common/persistence';
-import { ConfigurationSource, ConfigurationContext } from 'der20/interfaces/config';
-import { Result } from 'der20/interfaces/result';
-import { ConfigurationSourceImpl } from 'der20/config/source';
-import { ParserContext } from 'der20/interfaces/parser';
-import { LoaderContext } from 'der20/interfaces/loader';
+import { Der20ChatDialog } from 'der20/roll20/dialog';
+import { CommandSourceFactory, ConfigurationCommandSource, CommandSink } from 'der20/interfaces/source';
+import { ApiCommandSource, ChatCommandSource } from './chat';
 
 // from our wrapper
 declare var der20ScriptMode: string | undefined;
@@ -25,7 +27,7 @@ declare function der20ScriptModules(): any & { name: string; data: any };
 // declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
 // declare function on(event: "ready", callback: () => void): void;
 
-class PluginImplementation<T> {
+class PluginImplementation<T> implements CommandSink {
     // current configuration
     configurationRoot: T & BuiltinConfiguration;
 
@@ -66,6 +68,9 @@ class PluginImplementation<T> {
         // API commands
         commands: PromiseQueue.Level;
     } = { fetches: undefined, retries: undefined, config: undefined, configparse: undefined, followups: undefined, commands: undefined };
+
+    // sources of configuration commands
+    commandSources: ConfigurationCommandSource[] = [];
 
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
@@ -157,7 +162,13 @@ class PluginImplementation<T> {
         // a time, so it is different than loading the entire tree
         ConfigurationLoader.restore(json, this.configurationRoot, context);
 
-        // potentially schedule some commands
+        // load commands from all sources
+        for (let commandSource of this.commandSources) {
+            debug.log(`starting up command source ${commandSource.constructor.name}`);
+            commandSource.restore(context);
+        }
+
+        // potentially schedule some more commands
         this.handleLoaderResults(context);
     }
 
@@ -174,20 +185,20 @@ class PluginImplementation<T> {
             context.options.echo.value() &&
             result.kind !== Result.Kind.Asynchronous &&
             result.kind !== Result.Kind.Dialog &&
-            context.source.kind === ConfigurationSource.Kind.Api
+            context.source.kind === CommandSource.Kind.Api
         ) {
             // NOTE: we don't actually use the contents of this dialog; it just provides the direct rendering of the command echo,
             // which is not shown in dialog style
             let echo = new context.dialog();
             let rendered = echo.renderCommandEcho(`!${context.command} ${context.rest}`, result.kind);
-            let source = <ConfigurationSourceImpl.Api>context.source;
+            let source = <ApiCommandSource>context.source;
             sendChat(this.name, `/w "${source.player.get('_displayname')}" ${rendered}`, null, { noarchive: true });
         }
         // send any messages to caller, regardless of result
         if (context.options.verbose.value()) {
             for (let message of result.messages) {
-                if (context.source.kind === ConfigurationSource.Kind.Api) {
-                    let source = <ConfigurationSourceImpl.Api>context.source;
+                if (context.source.kind === CommandSource.Kind.Api) {
+                    let source = <ApiCommandSource>context.source;
                     sendChat(this.name, `/w "${source.player.get('_displayname')}" ${message}`, null, { noarchive: true });
                 } else {
                     debug.log(`  ${message}`);
@@ -204,11 +215,11 @@ class PluginImplementation<T> {
                 }
                 break;
             case Result.Kind.Dialog:
-                if (context.source.kind !== ConfigurationSource.Kind.Api) {
+                if (context.source.kind !== CommandSource.Kind.Api) {
                     debug.log(`error: dialog generated for non-interactive configuration command '!${context.command} ${context.rest}; ignored`);
                     break;
                 }
-                let source = <ConfigurationSourceImpl.Api>context.source;
+                let source = <ApiCommandSource>context.source;
                 let dialogResult = <DialogResult>result;
                 debug.log(`dialog from parse: ${dialogResult.dialog.substr(0, 16)}...`);
                 switch (dialogResult.destination) {
@@ -279,7 +290,7 @@ class PluginImplementation<T> {
         for (let command of context.commands) {
             followUpWork = true;
             this.work.scheduleWork(this.levels.configparse, () => {
-                let parsing = new PluginParserContext(context.options, `!${this.name}`, command.line);
+                let parsing = new PluginParserContext(context.options, new CommandSourceImpl.Restore(), `!${this.name}`, command.line);
                 parsing.source = command.source;
                 this.dispatchCommand(parsing);
                 return Promise.resolve();
@@ -408,74 +419,10 @@ class PluginImplementation<T> {
     }
     */
 
-    private hookChatMessage() {
-        on('chat:message', message => {
-            if (message.type !== 'api') {
-                return;
-            }
-            try {
-                this.work.context.swapIn();
-                let player = getObj('player', message.playerid);
-                let lines = message.content.split('\n');
-                for (let line of lines) {
-                    let tokens = ConfigurationParser.tokenizeFirst(line);
-                    let command = tokens[0].slice(1);
-                    if (!this.builtinCommands.has(command) && !this.options.commands.value().has(command)) {
-                        debug.log(`ignoring command for other plugin: ${line.substring(0, 78)}`);
-                        continue;
-                    }
-
-                    // REVISIT consult access control tree
-                    if (!playerIsGM(player.id)) {
-                        this.reportParseError(new Error(`player ${player.get('_displayname')} tried to use GM command ${tokens[0]}`));
-                        return;
-                    }
-
-                    const commandExpression = / *((?:\\;|[^;])+) */g;
-                    // this is an arbitrary limit on the number of semicolon-separated commands
-                    // in case a future bug introduces an infinite loop
-                    let limit = 1000;
-                    for (let i = 0; i < limit; i++) {
-                        let match = commandExpression.exec(tokens[1]);
-                        // NOTE: regex.exec returns null instead of undefined
-                        if (match === null) {
-                            break;
-                        }
-
-                        // this context object will survive until this command line is completely executed, including retries
-                        let context = new PluginCommandExecution(this.freezeOptions(), player, message, command, match[1]);
-
-                        // short circuit dump command for debugging
-                        if (context.rest === 'dump') {
-                            this.dispatchCommand(context);
-                            continue;
-                        }
-
-                        // run on command queue, which does not execute unless everything else is done
-                        debug.log(`scheduling !${command} ${match[1]}`);
-                        this.work.scheduleWork(this.levels.commands, () => {
-                            this.dispatchCommand(context);
-                            return Promise.resolve();
-                        });
-                    }
-                }
-            } catch (error) {
-                this.handleErrorThrown(error);
-            }
-        });
-    }
-
-    // initialize mixin, if installed
-    configureHandoutsSupport() {
-        // not installed
-    }
-
     // actually start, must only be used after ready event
     start() {
         this.persistence = startPersistence(this.name);
         this.restoreConfiguration();
-        this.hookChatMessage();
-        this.configureHandoutsSupport();
         this.work.scheduleWork(this.levels.commands, () => {
             // this will run when everything else is done and we are ready for commands
             for (let command of this.builtinCommands) {
@@ -487,10 +434,76 @@ class PluginImplementation<T> {
             return Promise.resolve();
         });
     }
+
+    dispatchCommands(source: CommandSource, line: string): void {
+        let tokens = ConfigurationParser.tokenizeFirst(line);
+        let command = tokens[0].slice(1);
+        if (!this.builtinCommands.has(command) && !this.options.commands.value().has(command)) {
+            debug.log(`ignoring command for other plugin: ${line.substring(0, 78)}`);
+            return;
+        }
+        const commandExpression = / *((?:\\;|[^;])+) */g;
+        // this is an arbitrary limit on the number of semicolon-separated commands
+        // in case a future bug introduces an infinite loop
+        const limit = 1000;
+        for (let i = 0; i < limit; i++) {
+            let match = commandExpression.exec(tokens[1]);
+            // NOTE: regex.exec returns null instead of undefined
+            if (match === null) {
+                break;
+            }
+        
+            // this context object will survive until this command line is completely executed, including retries
+            let context = new PluginParserContext(
+                this.freezeOptions(), 
+                source, 
+                command, 
+                match[1]);
+
+            if (!source.authorize(context.rest)) {
+                debug.log(`command was disallowed by command source`);
+                continue;
+            }
+
+            // short circuit dump command for debugging
+            if (context.rest === 'dump') {
+                this.dispatchCommand(context);
+                continue;
+            }
+
+            // run on command queue, which does not execute unless everything else is done
+            debug.log(`scheduling !${command} ${match[1]}`);
+            this.work.scheduleWork(this.levels.commands, () => {
+                this.dispatchCommand(context);
+                return Promise.resolve();
+            });
+        }
+    }
+
+    queryCommandSource(source: ConfigurationCommandSource, opaque: any): void {
+        let context = new PluginLoaderContext(this.freezeOptions());
+
+        // load commands from calling source
+        source.query(context, opaque);
+
+        // potentially schedule some commands
+        this.handleLoaderResults(context);
+    }
+
+    swapIn(): void {
+        this.work.context.swapIn();
+    }
 }
 
 export class Plugin<T> {
+    // the plugin instance for this plugin
     private plugin: PluginImplementation<T>;
+
+    // set to true if start has been called
+    private started: boolean = false;
+
+    // factories for additional sources of commands, in addition to API chat messages
+    private commandSources: { factory: CommandSourceFactory, subtrees: string[] }[] = [ ];
 
     constructor(pluginName: string, factory: DefaultConstructed<T>) {
         if (typeof log !== 'function') {
@@ -516,6 +529,15 @@ export class Plugin<T> {
                 return;
             }
 
+            // default API chat source for commands
+            this.plugin.commandSources.push(new ChatCommandSource(this.plugin.options, this.plugin));
+
+            // additional registered sources for commands
+            for (let source of this.commandSources) {
+                this.plugin.commandSources.push(new source.factory(this.plugin.options, this.plugin, source.subtrees));
+            }
+
+            this.started = true;
             this.plugin.start();
         } catch (error) {
             // report remapped error
@@ -530,7 +552,7 @@ export class Plugin<T> {
      * to be called from asynchronous handlers to mark current execution as being part of this plugin
      */
     swapIn() {
-        this.plugin.work.context.swapIn();
+        this.plugin.swapIn();
     }
 
     /**
@@ -556,23 +578,15 @@ export class Plugin<T> {
 
         // NOTE: we cannot recreate the plugin from scratch, because it is registered for various Roll20 events
     }
-}
 
-// install a mix-in extension to the Plugin class (if base is omitted) or another default constructed class
-export function addExtension<B, E>(extension: DefaultConstructed<E>, base?: DefaultConstructed<B>): void {
-    for (let key of Object.getOwnPropertyNames(extension.prototype)) {
-        let target = base || Plugin;
-        let original = target.prototype[key];
-        let extended = extension.prototype[key];
-        if (key === 'constructor') {
-            // we aren't changing what class this is, so any constructor code in extension is lost
-            continue;
+    /**
+     * adds an additional source of configuration information
+     */
+    addCommandSource(source: CommandSourceFactory, legalSubtrees: string[]) {
+        if (this.started) {
+            throw new Error('command sources must be added before the initial call to Plugin.start()');
         }
-        if (original !== null && extended === undefined) {
-            // don't overwrite features of original with declared but undefined functions
-            continue;
-        }
-        target.prototype[key] = extension.prototype[key];
+        this.commandSources.push({ factory: source, subtrees: legalSubtrees });
     }
 }
 
@@ -619,14 +633,14 @@ class ContextBase implements ConfigurationContext {
 
 export class PluginLoaderContext extends ContextBase implements LoaderContext {
     messages: string[] = [];
-    commands: { source: ConfigurationSource; line: string }[] = [];
+    commands: { source: CommandSource; line: string }[] = [];
     asyncLoads: { promise: Promise<any>; handler: (value: any) => void }[] = [];
 
     addMessage(message: string): void {
         this.messages.push(message);
     }
 
-    addCommand(source: ConfigurationSource, command: string): void {
+    addCommand(source: CommandSource, command: string): void {
         this.commands.push({ source: source, line: command });
     }
 
@@ -636,21 +650,11 @@ export class PluginLoaderContext extends ContextBase implements LoaderContext {
 }
 
 export class PluginParserContext extends ContextBase implements ParserContext {
-    source: ConfigurationSource;
     asyncVariables: Record<string, any> = {};
     dialog: DialogFactory = Der20ChatDialog;
 
-    constructor(options: Options, public command: string, public rest: string) {
+    constructor(options: Options, public source: CommandSource, public command: string, public rest: string) {
         super(options);
         // generated
-    }
-}
-
-export class PluginCommandExecution extends PluginParserContext {
-    source: ConfigurationSourceImpl.Api;
-    constructor(options: Options, player: Player, message: ApiChatEventData, command: string, public rest: string) {
-        super(options, command, rest);
-        // generated code
-        this.source = new ConfigurationSourceImpl.Api(player, message);
     }
 }

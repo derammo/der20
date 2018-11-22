@@ -481,6 +481,7 @@ declare function on(event: "ready", callback: () => void): void;
 declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
 declare function on(event: "change:campaign:turnorder", callback: (obj: Campaign, prev: CampaignImmutableSynchronousGetProperties & CampaignMutableSynchronousGetProperties) => void): void;
 declare function on(event: 'change:handout', callback: (current: Handout, previous: Handout) => void): void;
+declare function on(event: 'change:graphic', callback: (current: Graphic, previous: Graphic) => void): void;
 
 /**
  * Sends a chat message.

@@ -32,6 +32,7 @@ export class ConfigurationLoader {
         for (let key of changedKeys) {
             if (typeof to.handleChange === 'function') {
                 let target = <ConfigurationChangeHandling>to;
+                debug.log(`loader change event for '${key}' on '${target.constructor.name}'`);
                 target.handleChange(key);
             }
         }

@@ -1,27 +1,22 @@
-import { ConfigurationSource } from "der20/interfaces/config";
+import { CommandSource } from "der20/interfaces/config";
 
-export namespace ConfigurationSourceImpl {
-    export class Base implements ConfigurationSource {
-        constructor(public kind: ConfigurationSource.Kind) {
+export namespace CommandSourceImpl {
+    export class Base implements CommandSource {
+        constructor(public kind: CommandSource.Kind) {
             // generated
         }
+
+        authorize(rest: string): boolean {
+            return true;
+        }
     }
 
     /**
-     * Command was submitted via ! API command
+     * Command was executed in response to configuration loading
      */
-    export class Api extends Base {
-        constructor(public player: Player, public message: ApiChatEventData) {
-            super(ConfigurationSource.Kind.Api);
-        }
-    }
-    
-    /**
-     * Command was read from a journal entry (handout etc.)
-     */
-    export class Journal extends Base {
-        constructor(public type: string, public id: string) {
-            super(ConfigurationSource.Kind.Journal);
+    export class Restore extends Base {
+        constructor() {
+            super(CommandSource.Kind.Restore);
         }
     }
 }

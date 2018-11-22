@@ -14,7 +14,7 @@ export class SessionRestoreCommand extends ConfigurationSimpleCommand {
     handleEndOfCommand(parserContext: ParserContext): Result {
         let changes = false;
         for (let record of Object.keys(this.data.dictionary)) {
-            let token = Der20Token.fetch({ id: record });
+            let token = Der20Token.fetch(record);
             if (token === undefined) {
                 // no longer exists, clean up
                 delete this.data.dictionary[record];

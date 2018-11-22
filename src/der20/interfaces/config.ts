@@ -7,16 +7,24 @@ export interface ConfigurationContext {}
 /**
  * A source of a configuration command, available in parser context
  */
-export interface ConfigurationSource {
-    kind: ConfigurationSource.Kind;
+export interface CommandSource {
+    kind: CommandSource.Kind;
+
+    /**
+     * @param rest is the command line not including the !command
+     * @returns true if the operation should be permitted
+     */
+    authorize(rest: string): boolean;
 }
-export namespace ConfigurationSource {
+export namespace CommandSource {
     /**
      * Supported configuration sources
      */
     export enum Kind {
         Api = 1,
-        Journal
+        Journal,
+        Restore,
+        Token
     }
 }
 
@@ -26,6 +34,7 @@ export namespace ConfigurationSource {
 export interface ConfigurationValue<T> {
     default: T;
     value(): T;
+    hasConfiguredValue(): boolean;
 }
 export namespace ConfigurationValue {
     // this is the value we use for unpopulated data
@@ -51,12 +60,12 @@ export interface Collection {
  * Classes that handle change events from parsing implement this, to be called by parser after command execution.
  */
 export interface ConfigurationChangeHandling {
-    handleChange(keyword: string): void;
+    handleChange(changedKeyword: string): void;
 }
 
 /**
  * Classes that support registration of an external change event handler implement this.
  */
 export interface ConfigurationChangeDelegation {
-    onChangeEvent(handler: (keyword: string) => void): void;
+    onChangeEvent(handler: (changedKeyword: string) => void): void;
 }

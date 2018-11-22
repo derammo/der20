@@ -99,6 +99,7 @@ export class ConfigurationParser {
         if (result.events.has(Result.Event.Change)) {
             if (typeof configuration.handleChange === 'function') {
                 let target = <ConfigurationChangeHandling>configuration;
+                debug.log(`parser change event for '${keywordToken}' on '${target.constructor.name}'`);
                 target.handleChange(keywordToken);
             }
         }
