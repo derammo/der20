@@ -50,25 +50,30 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
         switch (tokens[0]) {
             case '==':
             case '=':
+                debug.log(`${token.name} is present at level ${PartyScaling[level]}`);
                 scaling.present[PartyScaling[level]] = true;
                 break;
             case '<':
                 for (let i=0; i<level; i++) {
+                    debug.log(`${token.name} is present at level ${PartyScaling[i]}`);
                     scaling.present[PartyScaling[i]] = true;
                 }
                 break;
             case '>':
                 for (let i=level+1; i<PartyScalingLength; i++) {
+                    debug.log(`${token.name} is present at level ${PartyScaling[i]}`);
                     scaling.present[PartyScaling[i]] = true;
                 }
                 break;
             case '<=':
                 for (let i=0; i<=level; i++) {
+                    debug.log(`${token.name} is present at level ${PartyScaling[i]}`);
                     scaling.present[PartyScaling[i]] = true;
                 }
                 break;
             case '>=':
                 for (let i=level; i<PartyScalingLength; i++) {
+                    debug.log(`${token.name} is present at level ${PartyScaling[i]}`);
                     scaling.present[PartyScaling[i]] = true;
                 }
                 break;

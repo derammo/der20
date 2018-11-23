@@ -1,4 +1,4 @@
-import { clone, ConfigurationTermination, ParserContext, Result, Success, DialogResult, data } from 'der20/library';
+import { clone, ConfigurationTermination, ParserContext, Result, Success, DialogResult, data, DialogAware, Dialog } from 'der20/library';
 import { ConfigurationArray } from 'der20/library';
 import { ConfigurationBoolean, ConfigurationDate, ConfigurationFloat, ConfigurationInteger } from 'der20/library';
 import { ConfigurationChangeHandling } from 'der20/library';
@@ -7,7 +7,7 @@ import { ConfigurationIntermediateNode } from 'der20/library';
 import { ConfigurationValue } from 'der20/library';
 import { ConfigurationString } from 'der20/library';
 
-export class CheckPoint {
+export class CheckPoint implements DialogAware {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
 
@@ -17,12 +17,20 @@ export class CheckPoint {
     dm: ConfigurationBoolean = new ConfigurationBoolean(true);
     players: ConfigurationBoolean = new ConfigurationBoolean(true);
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
+
+    buildControls(dialog: Dialog, link: Dialog.Link): void {
+        dialog.addEditControl('Checkpoint Name', 'name', this.name, link);
+        dialog.addEditControl('Advancement Checkpoints', 'advancement', this.advancement, link);
+        dialog.addEditControl('Treasure Checkpoints', 'treasure', this.treasure, link);
+        dialog.addEditControl('Award to Players', 'players', this.players, link);
+        dialog.addEditControl('Award to DM', 'dm', this.dm, link);
+    }
 }
 
 // can't use enum type in generic, so we use a list of possible values instead
 export const Rarity: string[] = [ "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique" ];
 
-export class Unlock {
+export class Unlock implements DialogAware {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
 
@@ -49,6 +57,16 @@ export class Unlock {
 
     // actually awarded for this session?
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
+
+    buildControls(dialog: Dialog, link: Dialog.Link): void {
+        dialog.addEditControl('Item Name', 'name', this.name, link);
+        dialog.addEditControl('Description', 'description',this.description, link);
+        dialog.addEditControl('Rarity', 'rarity', this.rarity, link);
+        dialog.addEditControl('Item Tier', 'tier', this.tier, link);
+        dialog.addEditControl('DMG Table', 'table', this.table, link);
+        dialog.addEditControl('Award to Players', 'players', this.players, link);
+        dialog.addEditControl('Award to DM', 'dm', this.dm, link);
+    }
 }
 
 
@@ -66,7 +84,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
     name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     checkpoints: ConfigurationArray<CheckPoint> = new ConfigurationArray<CheckPoint>('checkpoint', CheckPoint);
     unlocks: ConfigurationArray<Unlock> = new ConfigurationArray<Unlock>('unlock', Unlock);
-    tier: ConfigurationInteger = new ConfigurationInteger(1);
+    tier: ConfigurationInteger = new ConfigurationInteger(0);
     season: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);
     hardcover: ConfigurationBoolean = new ConfigurationBoolean(false);
     level: LeagueModule.Level = new LeagueModule.Level();
@@ -170,13 +188,21 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         dialog.addEditControl('Module Name', 'name', this.name, link);
         dialog.addEditControl('Season', 'season', this.season, link);
         dialog.addEditControl('Hard Cover', 'hardcover', this.hardcover, link);
+        dialog.addSeparator();
         dialog.addEditControl('Tier', 'tier', this.tier, link);
         dialog.addEditControl('Minimum Level', 'level minimum', this.level.minimum, link);
         dialog.addEditControl('Maximum Level', 'level maximum', this.level.maximum, link);
         dialog.addEditControl('Target APL', 'target apl', this.target.apl, link);
+        dialog.addSeparator();
         dialog.addEditControl('Advancement/hr', 'hourly advancement', this.hourly.advancement, link);
         dialog.addEditControl('Treasure/hr', 'hourly treasure', this.hourly.treasure, link);
         dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
+        dialog.addSeparator();
+        dialog.addTableControl('Unlocks', 'unlock', this.unlocks.value(), link);
+        if ((this.checkpoints.value().length > 0) || ((!this.hardcover.value()) && (this.season.value() >= 8))) {
+            dialog.addSeparator();
+            dialog.addTableControl('Objectives', 'checkpoint', this.checkpoints.value(), link);
+        }
         dialog.endControlGroup();
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }

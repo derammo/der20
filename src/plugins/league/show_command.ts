@@ -104,14 +104,18 @@ export class ShowCommand extends RenderCommand {
         dialog.endControlGroup();
         dialog.addSeparator();
 
+        // dialog.addSubTitle('Consumables');
+        // REVISIT put a section here to provider a player picker for who received what consumable (needs support in league module definition)
+        // dialog.addSeparator();
 
-        dialog.addSubTitle('Consumables');
-        // REVISIT put a section here to provider a player picker for who received what consumable
-        dialog.addSeparator();
         dialog.addSubTitle('Current Totals');
         dialog.beginControlGroup();
         let count = this.party.pcs.count();
-        dialog.addTextLine(`${count} Character${count!==1?'s':''} at ${this.party.apl.value()} APL`);
+        if (count > 0) {
+            dialog.addTextLine(`${count} Player Character${count!==1?'s':''} at ${this.party.apl.value()} APL`);
+        } else {
+            dialog.addTextLine('No Player Characters');
+        }
         if (module.hasTierRewardsDifference()) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
