@@ -1,5 +1,5 @@
 import { ConfigurationInteger, ConfigurationBoolean, ConfigurationDate, ConfigurationFloat } from 'der20/config/atoms';
-import { Dialog } from 'der20/interfaces/ui';
+import { Dialog, DialogAware } from 'der20/interfaces/ui';
 import { ConfigurationEnumerated } from 'der20/config/enum';
 import { Result } from 'der20/interfaces/result';
 import { ConfigurationStep } from 'der20/config/base';
@@ -66,17 +66,7 @@ export class Der20ChatDialog implements Dialog {
         let configuredStyle = Der20ChatDialog.buttonStyle;
         let defaultedStyle = Der20ChatDialog.defaultedButtonStyle;
 
-        if (config instanceof ConfigurationString) {
-            // already a string, but need to assert type
-            let value = (<ConfigurationString>config).value();
-            text = this.getStringText(value);
-            extendedPath = `${path} ?{${label}}`;
-        } else if (config instanceof ConfigurationInteger || config instanceof ConfigurationFloat) {
-            let value = config.value();
-            text = this.getNumberText<T>(value);
-            // REVISIT do we have an integer control available somewhere?
-            extendedPath = `${path} ?{${label} (Integer)}`;
-        } else if (config instanceof ConfigurationDate) {
+        if (config instanceof ConfigurationDate) {
             let value = (<ConfigurationDate>config).value();
             text = this.getDateText(value);
             // REVISIT do we have an integer or date control available somewhere?
@@ -100,7 +90,18 @@ export class Der20ChatDialog implements Dialog {
                     return `${value},${value}`;
                 })
                 .join('|');
-            extendedPath = `${path} ?${label}|${choices}`;
+            extendedPath = `${path} ?{${label}|${choices}}`;
+        } else if (config instanceof ConfigurationString) {
+            // XXX check if string is longish, and present a full width left-aligned text box instead
+            // already a string, but need to assert type
+            let value = (<ConfigurationString>config).value();
+            text = this.getStringText(value);
+            extendedPath = `${path} ?{${label}}`;
+        } else if (config instanceof ConfigurationInteger || config instanceof ConfigurationFloat) {
+            let value = config.value();
+            text = this.getNumberText<T>(value);
+            // REVISIT do we have an integer control available somewhere?
+            extendedPath = `${path} ?{${label} (Integer)}`;
         }
         if (config.hasConfiguredValue()) {
             this.addButton(configuredStyle, text, extendedPath, link);
@@ -111,6 +112,9 @@ export class Der20ChatDialog implements Dialog {
     }
 
     addTextLine(label: string) {
+        if (label === undefined) {
+            label = '';
+        }
         let indent = '';
         if (label.startsWith(' ')) {
             const indentChars = label.match(/(?:[^ ]|$)/).index;
@@ -198,6 +202,30 @@ export class Der20ChatDialog implements Dialog {
         this.text.push(`<hr style='${Der20ChatDialog.separatorStyle}'>`);
     }
 
+    addTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void {
+        this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+        this.text.push(`<span style="${Der20ChatDialog.labelStyle}"><h3 style="display: inline-block">${label}</h3></span>`);
+        this.addButton(Der20ChatDialog.buttonStyle, 'New...', `${path} ?{ID for New Item}`, link);
+        this.text.push('</li>');
+        this.text.push(`<ul style="${Der20ChatDialog.groupStyle} padding-left: 3em;">`);
+        for (let item of config) {
+            let sublink: Dialog.Link = { command: '' };
+            Object.assign(sublink, link);
+            if (link.prefix !== undefined) {
+                sublink.prefix = `${link.prefix} ${path} ${item.id}`;
+            } else {
+                sublink.prefix = `${path} ${item.id}`;
+            }
+            this.addSeparator();
+            this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+            this.text.push(`<span style="${Der20ChatDialog.labelStyle}"><h4 style="display: inline-block">${label}: ${item.id}</h4></span>`);
+            // REVISIT: Delete button would go here if we supported it
+            this.text.push('</li>');
+            item.buildControls(this, sublink);
+        }
+        this.text.push('</ul>');
+    }
+    
     renderCommandEcho(line: string, resultType: Result.Kind): string {
         let style = Der20ChatDialog.commandEchoStyle;
         if (resultType === Result.Kind.Failure) {

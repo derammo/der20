@@ -35,7 +35,7 @@ export { Der20Player } from 'der20/roll20/player';
 export { ConfigurationValue } from 'der20/interfaces/config';
 export { Success, Failure, Asynchronous, Change, DialogResult } from 'der20/config/result';
 export { RollQuery } from 'der20/roll20/roll';
-export { Dialog } from 'der20/interfaces/ui';
+export { Dialog, DialogAware } from 'der20/interfaces/ui';
 export { CommandsFromTokens } from 'der20/roll20/token_commands';
 export { CommandSource } from 'der20/interfaces/config';
 export { NotesSource } from 'der20/roll20/notes_commands';

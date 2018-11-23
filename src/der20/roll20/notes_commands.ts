@@ -38,38 +38,37 @@ export abstract class CommandsFromNotes implements ConfigurationCommandSource {
     abstract query(context: LoaderContext, opaque: any): void;
     
     static extractLines(text: string): string[] {
+        // deal with formatting from interactive use
         let lines: string[];
-        if (text.startsWith('<')) {
-            // formatted by interactive use
-            let regex = /<p>(.*?)<\/p>/g;
-            lines = [];
-            // REVISIT configurable
-            let limit = 1000;
-            for (let i=0; i<limit; i++) {
-                let match = regex.exec(text);
-                // NOTE: regex.exec returns null instead of undefined
-                if (match === null) {
-                    break;
-                }
-                const paragraph = match[1];
-                // editing in UI will add break tags
-                for (let line of paragraph.split('<br>')) {
-                    let cleaned = line
-                        .replace(/<\/?[a-zA-Z0-9]+(>|$)/g, '') // remove common tags with alphanumeric names
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&[a-z]+;/g, ' ') // replace any remaining entities with spaces
-                        .replace(/  +/g, ' ') // collapse runs of spaces
-                        .trim();
-                    let decoded = cleaned.replace(/&#(\d+);/g, (regexMatch: string, code: string) => {
-                        return String.fromCharCode(parseInt(code, 10));
-                    });
-                    lines.push(decoded);
-                }
+        let regex = /<p>(.*?)<\/p>/g;
+        lines = [];
+        // REVISIT configurable
+        let limit = 1000;
+        for (let i=0; i<limit; i++) {
+            let match = regex.exec(text);
+            // NOTE: regex.exec returns null instead of undefined
+            let paragraph;
+            if (match !== null) {
+                paragraph = match[1];
+            } else if (i === 0) {
+                // no paragraph marks at all
+                paragraph = text;
+            } else {
+                // done with paragraph tags
+                break;
             }
-        } else {
-            // raw text set by code
-            lines = text.split('\n');
+            // editing in UI will add break tags
+            for (let line of paragraph.split('<br>')) {
+                let cleaned = line
+                    .replace(/<\/?[a-zA-Z0-9]+(>|$)/g, '') // remove common tags with alphanumeric names
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&#(\d+);/g, (regexMatch: string, code: string) => { return String.fromCharCode(parseInt(code, 10)); })
+                    .replace(/&[a-zA-Z0-9]+;/g, ' ') // replace any remaining entities with spaces
+                    .replace(/  +/g, ' ') // collapse runs of spaces
+                    .trim();
+                lines.push(cleaned);
+            }
         }
         return lines;       
     }

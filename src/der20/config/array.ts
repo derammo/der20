@@ -95,6 +95,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
             index = this.addItem(id, new this.classType());
             let result = ConfigurationParser.parse(tokens[1], this.current[index], context);
             result.messages.unshift(`created item ${id}`);
+            result.events.add(Result.Event.Change);
             return result;
         }
     }

@@ -67,10 +67,10 @@ export class CommandsFromTokens extends CommandsFromNotes {
             return String.fromCharCode(parseInt(hex2, 16));
         });
         // now do our regular quick scan for a command
+        // as long as some plugin command is the first line, we invest the time to read through
         if (!text.match(/^(<[a-z0-9]+>)*"?!/g)) {
-            // as long as some plugin command is the first line, we invest the time to read through
-            debug.log('ignoring token that does not have a command in the first line of GM Notes');
-            debug.log(`ignored GM Notes start with '${text.substring(0,79)}...'`)
+            // debug.log('ignoring token that does not have a command in the first line of GM Notes');
+            // debug.log(`ignored GM Notes start with '${text.substring(0,79)}...'`)
             return;
         }
 

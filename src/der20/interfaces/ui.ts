@@ -1,6 +1,13 @@
 import { Result } from "der20/interfaces/result";
 import { ConfigurationValue, CollectionItem } from "der20/interfaces/config";
 
+/**
+ * Configuration items that can provide callbacks to build their UI implement this.
+ */
+export interface DialogAware {
+    buildControls(dialog: Dialog, link: Dialog.Link): void;
+}
+
 export interface Dialog {
     beginControlGroup(): void;
     endControlGroup(): void;
@@ -15,6 +22,7 @@ export interface Dialog {
     addTextLine(text: string): void;
     addIndentedTextLine(text: string): void;
     addLinkTextLine(text: string, target: string): void;
+    addTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void;
     getDateText(value: number): string;
 
     /**
