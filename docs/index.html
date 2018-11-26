@@ -200,7 +200,7 @@ and showing the icon from the configured anonymous character.  If <a href="#anon
 <span class='format'>[ID]</span>
 </div>
 <div class='description'>This command presents a dialog to interactively configure a Dungeon Master definition.
-    The intent of this feature is to configure the name and DCI of a DM who uses the current game room, even there
+    The intent of this feature is to configure the name and DCI of a DM who uses the current game room, even if there
     are multiple DMs sharing the room.  During a session, <a href="#league/session_dm">!league session dm</a> can then be used
     to select the DM information to use in the rewards.
 </div>
@@ -223,7 +223,24 @@ and showing the icon from the configured anonymous character.  If <a href="#anon
 <span class='command' id='league/define_module'>define module</span>
 <span class='format'>[ID]</span>
 </div>
-<div class='description'></div><div class='title'>
+<div class='description'>This command presents a dialog to interactively configure a DDAL Module (or Hardcover) definition.
+    The intent of this feature is to configure the information for a DDAL Module that is run from the current game room, 
+    even if there are multiple modules run from the same room.  
+    During a session, <a href="#league/session_module">!league session module</a> can then be used
+    to select the module for the current session.  If there is only one module defined, that step is not necessary.
+</div>
+<div class='description'>Instead of using the interactive dialog, individual parameters of the Module definition 
+    can be configured directly by simply appending the name
+    of a value to set, as in <a href="#league/define_module_x_name">!league define module [ID] name [STRING]</a> and 
+    <a href="#league/define_module_x_season">!league define module [ID] season [INTEGER]</a>
+</div>
+<div class='description'>Multiple objectives or unlocks can also be added to a module definition using the dialog,
+    or by directly configuing them through providing the ID for both the module and each unlock or objective.  For example,
+    the command  <a href="#league/define_module_x_unlock_x_name">!league define module ddal01-100 unlock sword name Sword of Awesome</a> 
+    would create a module with id 'ddal01-100' and add an unlock with id 'sword' that is called 'Sword of Awesome'.  If the 
+    module and/or the unlock already existed, then it would simply set the specified property 'name' on the unlock to the given value.
+    This means you do not need to 'create' modules or their unlocks, they are created for you when you set their properties.
+</div><div class='title'>
 <span class='plugin'>!league</span>
 <span class='command' id='league/define_module_x_duration'>define module [ID] duration</span>
 <span class='format'>[NUMBER]</span>
@@ -774,167 +791,6 @@ not generally available to users, so this command cannot readily be used manuall
 <span class='format'>[STRING]</span>
 </div>
 <div class='description'></div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/show'>show</span>
-</div>
-<div class='description'>This command presents the primary dialog to use during a game session.  Most game sessions will start with <a href="#league/session_clear">!league session clear</a> 
-and then use <a href="#league/session_show">!league session show</a> multiple times to update the session.  Any interaction with this dialog will print out the direct
-command that could have been used to the same effect as clicking on the dialog, provided that <a href="#PLUGIN/option_echo">!league option echo true</a> is
-set, which it is by default.</div>
-<div class='description'>If this command is executed without selecting a current DM and Module, it will first present additional dialogs to select those items
-    from the definitions.  If there is only one DM or Module defined, it will automatically select it.
-</div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_start'>session start</span>
-<span class='format'>[-&gt; module current start]</span>
-</div>
-<div class='description'>This command just calls <a href="#league/session_module_x_start">!league session module current start</a></div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_stop'>session stop</span>
-<span class='format'>[-&gt; module current stop]</span>
-</div>
-<div class='description'>This command just calls <a href="#league/session_module_x_stop">!league session module current stop</a></div><div class="title" id="league">!league</div>
-<div class="postcontent">
-    <p>This API Script contains tools to help run sessions for D&amp;D Adventurers League (DDAL). &nbsp;Before the session,
-        you can enter all of the objectives and treasure unlock information about the modules or hardcover you are running
-        for DDAL. &nbsp;Rules differences between Season 8 and previous season's modules are considered and customizable
-        if things change.</p>
-    <p>Configuration is via a command language, which you can store in handouts so you can move them from room to room, or you
-        can just type in commands at the prompt and have the built-in state system store it.  For most configuration, you can
-        also use interactive dialogs.</p>
-    <p>
-        <img src="./assets/league/1.png">
-    </p>
-    <p>
-        <img src="./assets/league/2.png">
-    </p>
-    <p>
-        <img src="./assets/league/3.png">
-    </p>
-
-    <p>During the session, you select which DM you are (in case of shared rooms) and what module or hard cover you are running.</p>
-
-    <p>
-        <img src="./assets/league/4.png">
-    </p>
-    <p>The <a href="#league/session_show">!league session show</a></p>
-    <p>command then starts interactive use. &nbsp;It will show the rewards for the current module initialized to their defaults.
-        &nbsp;Depending on whether you are running a module or hardcover and depending on the tier and season, rewards are
-        calculated. &nbsp;You can override any of the defaults calculated for you.</p>
-    <p>
-        <img src="./assets/league/5.png">
-    </p>
-
-    <p>Then you interactively check off objectives as they are achieved and hit a start and stop timer for the session. &nbsp;Time
-        entry is either as an absolute time string, or empty string for "now" or a number meaning "this many hours ago."
-        &nbsp;So if you have been playing for about 3 hours, you can just hit start and type in "3."</p>
-    <p>When you set the start of the module, the script finds all player-owned characters in the game and adds them to the session
-        data. &nbsp;It selects the highest level character for each player as the probable player character. &nbsp;You can
-        then interactively correct which characters are included in the session. &nbsp; APL and player count are calculated
-        from this selection. &nbsp;In this example, there are two players: 'Ammo' and 'Test U.' &nbsp; &nbsp;'Test U' brought
-        at three characters to the session, only one of which counts.</p>
-   
-    <p>
-        <img src="./assets/league/6.png">
-    </p>
-
-    <p>For a Season 8+ module, you might have several explicit objectives and no rewards per hour:</p>
-    <p>
-        <img src="./assets/league/9.png">
-    </p>
-    <p>Finally, you can compile the rewards page in private and check everything before you share it with all the players.</p>
-
-    <p>
-        <img src="./assets/league/7.png">
-    </p>
-    <p>
-        <img src="./assets/league/8.png">
-    </p>
-</div>
-<div class="notes">
-    <p>Development on this tool continues. &nbsp;There is a feature to directly import this reward information into the website
-        <a href="https://www.adventurersleaguelog.com">https://www.adventurersleaguelog.com</a>. &nbsp;However, this functionality won't be enabled until the server side code
-        can be implemented under this issue&nbsp;
-        <a href="https://github.com/Ariel-Thomas/adventurers-league-log/issues/157">https://github.com/Ariel-Thomas/adventurers-league-log/issues/157</a>
-    </p>
-</div>
-<div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/define_dm'>define dm</span>
-<span class='format'>[ID]</span>
-</div>
-<div class='description'>This command presents a dialog to interactively configure a Dungeon Master definition.
-    The intent of this feature is to configure the name and DCI of a DM who uses the current game room, even there
-    are multiple DMs sharing the room.  During a session, <a href="#league/session_dm">!league session dm</a> can then be used
-    to select the DM information to use in the rewards.
-</div>
-<div class='description'>Instead of using the interactive dialog, individual parameters of the DM definition 
-    can be configured directly by simply appending the name
-    of a value to set, as in <a href="#league/define_dm_x_name">!league define dm [ID] name [STRING]</a> and 
-    <a href="#league/define_dm_x_dci">!league define dm [ID] dci [STRING]</a>
-</div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/define_module_x_season'>define module [ID] season</span>
-<span class='format'>[INTEGER]</span>
-</div>
-<div class='description'>This setting configures the DDAL season for the module.  
-    This is primarily used to default the rewards based on Season 8 rules for modules and hardcovers from 
-    different seasons.' rules.</div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_module_x_pc'>session module [ID/current] pc</span>
-<span class='format'>[USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK]</span>
-</div>
-<div class='description'>This setting is used by the interactive UI to select which currently present 
-player owned characters are part of the adventure.  The parameters required to use this setting are
-not generally available to users, so this command cannot readily be used manually.</div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_module_x_season'>session module [ID/current] season</span>
-<span class='format'>[INTEGER]</span>
-</div>
-<div class='description'>This is a per-session override for <a href='#league/define_module_x_season'>!league define module [ID] season</a>.</div>
-<div class='description'>This setting is discarded when the session is reset via <a href='#league/session_clear'>!league session clear</a> or when a different 
-    module is selected via <a href='#league/session_module'>!league session module</a>.</div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_module_x_start'>session module [ID/current] start</span>
-<span class='format'>[DATE/HOURS/BLANK]</span>
-</div>
-<div class='description'>This setting specifies the start time when the module session was begun, for 
-    calculation of hourly rewards and to put the date and time in the log sheet.
-</div>
-<div class='description'>The date and time can be specified in three different ways:
-    <ol>
-        <li>As a simple number, with or without a decimal point.</li>
-        <p>In this case, the start time is set to the specified number of hours before now.  For example, if you
-    have been playing for 3 1/2 hours, input <span class='code'>!league session module start 3.5</span></p>
-    <li>As a full date/time string in a variety of formats.</li>
-    <p>Most standard date/time formats are recognized.</p>
-    <li>As nothing at all.</li>
-    <p>Ending the command after <span class='code'>start</span> sets the start time to now.</p>
-</ol>
-</div>
-<div class='description'>
-    When the start time is set, the session also records the player characters that were present at that time.
-    If not all players were actually present when this setting was last changed, you can set the start time again to
-    redo the scan for players.
-</div><div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_module_x_stop'>session module [ID/current] stop</span>
-<span class='format'>[DATE/HOURS/BLANK]</span>
-</div>
-<div class='description'>This setting specifies the stop time when the module session was completed, for 
-        calculation of hourly rewards.
-    </div>
-    <div class='description'>The date and time can be specified in three different ways:
-        <ol>
-            <li>As a simple number, with or without a decimal point.</li>
-            <p>In this case, the stop time is set to the specified number of hours before now.  For example, if you
-        stopped playing 1/2 hour ago, input <span class='code'>!league session module stop 0.5</span></p>
-        <li>As a full date/time string in a variety of formats.</li>
-        <p>Most standard date/time formats are recognized.</p>
-        <li>As nothing at all.</li>
-        <p>Ending the command after <span class='code'>stop</span> sets the stop time to now.</p>
-    </ol>
-    </div><div class='title'>
 <span class='plugin'>!league</span>
 <span class='command' id='league/show'>show</span>
 </div>

@@ -4,7 +4,7 @@
 <span class='format'>[ID]</span>
 </div>
 <div class='description'>This command presents a dialog to interactively configure a Dungeon Master definition.
-    The intent of this feature is to configure the name and DCI of a DM who uses the current game room, even there
+    The intent of this feature is to configure the name and DCI of a DM who uses the current game room, even if there
     are multiple DMs sharing the room.  During a session, <a href="#league/session_dm">!league session dm</a> can then be used
     to select the DM information to use in the rewards.
 </div>
