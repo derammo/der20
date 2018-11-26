@@ -1,6 +1,6 @@
 import { ConfigurationParser } from './parser';
 import { DefaultConstructed, cloneExcept } from 'der20/common/utility';
-import { DialogResult, Change, Failure } from './result';
+import { DialogResult, Change, Failure, Success } from './result';
 import { ConfigurationLoader } from './loader';
 import { ConfigurationStep } from 'der20/config/base';
 import { LoaderContext } from 'der20/interfaces/loader';
@@ -13,6 +13,10 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
     private idToIndex: { [index: string]: number } = {};
     classType: DefaultConstructed<T>;
     keyword: string;
+
+    // this token can be provided after the id token in order to delete an item from the collection 
+    // without having to use a delete command prefix
+    static readonly DELETE_COMMAND_SUFFIX: string = '--delete';
 
     constructor(singularName: string, itemClass: DefaultConstructed<T>) {
         super([], 'ID');
@@ -87,6 +91,17 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         let id: string = tokens[0];
         if (id.length < 1) {
             return this.createItemChoiceDialog(context);
+        }
+        if (id === ConfigurationArrayReference.MAGIC_CURRENT_ID) {
+            return new Failure(new Error(`${id} is a reserved word referring to a currently selected item and cannot be used as an ID`));
+        }
+        if (tokens[1] === ConfigurationArray.DELETE_COMMAND_SUFFIX) {
+            if (this.removeItem(id)) {
+                return new Change(`removed item ${id}`);
+            } else {
+                // this is ok, we might just be cleaning up before reconfiguring
+                return new Success(`item ${id} does not exist in collection`);
+            }
         }
         let index = this.findItem(id);
         if (index !== undefined) {

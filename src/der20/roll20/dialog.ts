@@ -10,12 +10,13 @@ import { CollectionItem, ConfigurationValue } from 'der20/interfaces/config';
 export class Der20ChatDialog implements Dialog {
     text: string[] = [];
     static readonly dialogStyle: string = 'margin-top: 0.5em; overflow: hidden; border: 1px solid Black; padding: 5px; border-radius: 5px;';
-    static readonly buttonBaseStyle: string =
-        'min-width: 6em; text-decoration: none; background-color: White; border: 1px solid #eeeeee; border-radius: 3px; padding-left: 5px; padding-right: 5px; padding-top: 0px; padding-bottom: 0px; text-align: center; float: right;';
+    static readonly rightBaseStyle: string = 'min-width: 6em; text-decoration: none; border-radius: 3px; padding-left: 5px; padding-right: 5px; padding-top: 0px; padding-bottom: 0px; text-align: center; margin-right: 1px; float: right;';
+    static readonly buttonBaseStyle: string = Der20ChatDialog.rightBaseStyle + 'background-color: White; border: 1px solid #eeeeee;';
     static readonly buttonStyle: string = Der20ChatDialog.buttonBaseStyle + 'color: Black;';
     static readonly defaultedButtonStyle: string = Der20ChatDialog.buttonBaseStyle + 'color: #aaaaaa;';
+    static readonly tableButtonStyle: string = Der20ChatDialog.rightBaseStyle + 'background-color: #f4f4f4; color: Black; border: 1px solid #b0b0b0;';
     static readonly checkboxBaseStyle: string = 
-        'min-width: 6em; text-decoration: none; text-align: center; vertical-align: middle; float: right; border: none; background-color: transparent;';
+        'width: 6em; text-decoration: none; text-align: center; vertical-align: middle; margin-right: 1px; float: right; border: none; background-color: transparent;';
     static readonly checkboxStyle: string = Der20ChatDialog.checkboxBaseStyle + 'color: Black;';
     static readonly defaultedCheckboxStyle: string = Der20ChatDialog.checkboxBaseStyle + 'color: #aaaaaa;';
     static readonly commandStyle: string =
@@ -28,6 +29,10 @@ export class Der20ChatDialog implements Dialog {
     static readonly separatorStyle: string = 'margin-top: 1.0em; margin-bottom: 0.5em;';
     static readonly commandEchoStyle: string = `width: 98%%; border: 3px inset #ffffff; margin-top: 0.2em; padding: 0.2em; color: #3a3a3a; background-color: #eeeeee; font-family: Menlo, Monaco, 'Ubuntu Mono', monospace;`;
     static readonly commandEchoFailedStyle: string = `${Der20ChatDialog.commandEchoStyle} color: #ee0000;`;
+    static readonly textboxBaseStyle: string =
+        'width: 94%; text-decoration: none; background-color: White; border: 1px solid #eeeeee; border-radius: 3px; padding-left: 5px; padding-right: 5px; padding-top: 0px; padding-bottom: 0px; text-align: left; float: right;';
+    static readonly textboxStyle: string = Der20ChatDialog.textboxBaseStyle + 'color: Black;';
+    static readonly defaultedTextboxStyle: string = Der20ChatDialog.textboxBaseStyle + 'color: #aaaaaa;';
     static readonly undefinedLabel = '[ NONE ]';
 
     constructor() {
@@ -67,8 +72,7 @@ export class Der20ChatDialog implements Dialog {
         let defaultedStyle = Der20ChatDialog.defaultedButtonStyle;
 
         if (config instanceof ConfigurationDate) {
-            let value = (<ConfigurationDate>config).value();
-            text = this.getDateText(value);
+            text = this.getDateText((<ConfigurationDate>config).value());
             // REVISIT do we have an integer or date control available somewhere?
             extendedPath = `${path} ?{${label} (in hours before now, e.g. 3.5 or date string)}`;
         } else if (config instanceof ConfigurationBoolean) {
@@ -92,14 +96,18 @@ export class Der20ChatDialog implements Dialog {
                 .join('|');
             extendedPath = `${path} ?{${label}|${choices}}`;
         } else if (config instanceof ConfigurationString) {
-            // XXX check if string is longish, and present a full width left-aligned text box instead
             // already a string, but need to assert type
-            let value = (<ConfigurationString>config).value();
-            text = this.getStringText(value);
+            text = this.getStringText((<ConfigurationString>config).value());
             extendedPath = `${path} ?{${label}}`;
+            if (text.length > 10) {
+                // present a full width left-aligned text box instead
+                this.text.push('</li>');
+                this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+                configuredStyle = Der20ChatDialog.textboxStyle;
+                defaultedStyle = Der20ChatDialog.defaultedTextboxStyle;
+            }
         } else if (config instanceof ConfigurationInteger || config instanceof ConfigurationFloat) {
-            let value = config.value();
-            text = this.getNumberText<T>(value);
+            text = this.getNumberText<T>(config.value());
             // REVISIT do we have an integer control available somewhere?
             extendedPath = `${path} ?{${label} (Integer)}`;
         }
@@ -205,9 +213,9 @@ export class Der20ChatDialog implements Dialog {
     addTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void {
         this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
         this.text.push(`<span style="${Der20ChatDialog.labelStyle}"><h3 style="display: inline-block">${label}</h3></span>`);
-        this.addButton(Der20ChatDialog.buttonStyle, 'New...', `${path} ?{ID for New Item}`, link);
+        this.addButton(Der20ChatDialog.tableButtonStyle, 'New...', `${path} ?{ID for New Item}`, link);
         this.text.push('</li>');
-        this.text.push(`<ul style="${Der20ChatDialog.groupStyle} padding-left: 3em;">`);
+        this.text.push(`<ul style="${Der20ChatDialog.groupStyle} padding-left: 1.5em;">`);
         for (let item of config) {
             let sublink: Dialog.Link = { command: '' };
             Object.assign(sublink, link);
@@ -218,8 +226,8 @@ export class Der20ChatDialog implements Dialog {
             }
             this.addSeparator();
             this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
-            this.text.push(`<span style="${Der20ChatDialog.labelStyle}"><h4 style="display: inline-block">${label}: ${item.id}</h4></span>`);
-            // REVISIT: Delete button would go here if we supported it
+            this.text.push(`<span style="${Der20ChatDialog.labelStyle}"><h4 style="display: inline-block">${item.id}</h4></span>`);
+            this.addButton(Der20ChatDialog.tableButtonStyle, 'Delete', '--delete', sublink);
             this.text.push('</li>');
             item.buildControls(this, sublink);
         }
