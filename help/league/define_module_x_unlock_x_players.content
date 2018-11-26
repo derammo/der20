@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/define_module_x_unlock_x_players'>define module [ID] unlock [ID] players</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'></div>

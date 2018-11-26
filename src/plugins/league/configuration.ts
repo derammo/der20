@@ -1,4 +1,4 @@
-import { ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, format, keyword, ConfigurationValue, Result, ParserContext } from 'der20/library';
+import { ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationValue, Result, ParserContext } from 'der20/library';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 import { PartyState } from './ddal/party_state';
@@ -129,8 +129,4 @@ export class Configuration {
 
     // rewards awarded from current session
     rewards: RewardsConfiguration = new RewardsConfiguration(this.session, this.define);
-
-    // aliases for configuration that frequently has to change per session
-    @format('-> module current checkpoint')
-    checkpoint: ConfigurationAlias = new ConfigurationAlias(this.session.module, 'current checkpoint');
 }

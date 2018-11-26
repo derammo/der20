@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_party_pc'>session party pc</span>
+<span class='format'>[USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK]</span>
+</div>
+<div class='description'></div>

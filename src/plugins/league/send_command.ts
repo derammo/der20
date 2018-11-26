@@ -55,8 +55,8 @@ export class SendCommand extends RenderCommand {
         if (module.hasTierRewardsDifference()) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${tcp} Treasure CP for Tier 1 & 2 Characters`);
-            const explicitCheckpoints = module.checkpoints.current.some((checkpoint: any) => {
-                return checkpoint.awarded.value();
+            const explicitCheckpoints = module.objectives.current.some((objective: any) => {
+                return objective.awarded.value();
             });
             if (explicitCheckpoints) {
                 // there should not be explicit check point awards in a hard cover, because the rules assume

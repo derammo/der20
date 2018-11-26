@@ -1,0 +1,15 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/define_dm'>define dm</span>
+<span class='format'>[ID]</span>
+</div>
+<div class='description'>This command presents a dialog to interactively configure a Dungeon Master definition.
+    The intent of this feature is to configure the name and DCI of a DM who uses the current game room, even there
+    are multiple DMs sharing the room.  During a session, <a href="#league/session_dm">!league session dm</a> can then be used
+    to select the DM information to use in the rewards.
+</div>
+<div class='description'>Instead of using the interactive dialog, individual parameters of the DM definition 
+    can be configured directly by simply appending the name
+    of a value to set, as in <a href="#league/define_dm_x_name">!league define dm [ID] name [STRING]</a> and 
+    <a href="#league/define_dm_x_dci">!league define dm [ID] dci [STRING]</a>
+</div>

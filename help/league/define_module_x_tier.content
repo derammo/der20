@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/define_module_x_tier'>define module [ID] tier</span>
+<span class='format'>[INTEGER]</span>
+</div>
+<div class='description'></div>

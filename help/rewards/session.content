@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!rewards</span>
-<span class='command' id='rewards/session'>session</span>
-<span class='format'>[-&gt; module current session]</span>
-</div>
-<div class='description'></div>

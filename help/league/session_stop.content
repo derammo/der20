@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_stop'>session stop</span>
+<span class='format'>[-&gt; module current stop]</span>
+</div>
+<div class='description'>This command just calls <a href="#league/session_module_x_stop">!league session module current stop</a></div>

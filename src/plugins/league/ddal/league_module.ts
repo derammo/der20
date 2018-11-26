@@ -7,7 +7,7 @@ import { ConfigurationIntermediateNode } from 'der20/library';
 import { ConfigurationValue } from 'der20/library';
 import { ConfigurationString } from 'der20/library';
 
-export class CheckPoint implements DialogAware {
+export class Objective implements DialogAware {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
 
@@ -19,7 +19,7 @@ export class CheckPoint implements DialogAware {
     awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 
     buildControls(dialog: Dialog, link: Dialog.Link): void {
-        dialog.addEditControl('Checkpoint Name', 'name', this.name, link);
+        dialog.addEditControl('Objective Name', 'name', this.name, link);
         dialog.addEditControl('Advancement Checkpoints', 'advancement', this.advancement, link);
         dialog.addEditControl('Treasure Checkpoints', 'treasure', this.treasure, link);
         dialog.addEditControl('Award to Players', 'players', this.players, link);
@@ -82,7 +82,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
     id: string = null;
 
     name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-    checkpoints: ConfigurationArray<CheckPoint> = new ConfigurationArray<CheckPoint>('checkpoint', CheckPoint);
+    objectives: ConfigurationArray<Objective> = new ConfigurationArray<Objective>('objective', Objective);
     unlocks: ConfigurationArray<Unlock> = new ConfigurationArray<Unlock>('unlock', Unlock);
     tier: ConfigurationInteger = new ConfigurationInteger(0);
     season: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);
@@ -199,9 +199,9 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
         dialog.addSeparator();
         dialog.addTableControl('Unlocks', 'unlock', this.unlocks.value(), link);
-        if ((this.checkpoints.value().length > 0) || ((!this.hardcover.value()) && (this.season.value() >= 8))) {
+        if ((this.objectives.value().length > 0) || ((!this.hardcover.value()) && (this.season.value() >= 8))) {
             dialog.addSeparator();
-            dialog.addTableControl('Objectives', 'checkpoint', this.checkpoints.value(), link);
+            dialog.addTableControl('Objectives', 'objective', this.objectives.value(), link);
         }
         dialog.endControlGroup();
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
@@ -219,10 +219,10 @@ export class LeagueModule extends LeagueModuleDefinition {
 
  
     treasureAward(): number {
-        // sum all awarded treasure from checkpoints
-        let treasure = this.checkpoints.current.map((checkpoint) => {
-            if (checkpoint.awarded.value()) {
-                return checkpoint.treasure.value();
+        // sum all awarded treasure from objectives
+        let treasure = this.objectives.current.map((objective) => {
+            if (objective.awarded.value()) {
+                return objective.treasure.value();
             } else {
                 return 0;
             }
@@ -236,17 +236,17 @@ export class LeagueModule extends LeagueModuleDefinition {
             return treasure;
         }
 
-        // add any hourly treasure, which should be mutually exclusive with checkpoints
+        // add any hourly treasure, which should be mutually exclusive with objectives
         // but there may be modules in the future that change this
         treasure += this.hourly.treasure.value() * hours;
         return treasure;
     }
 
     advancementAward(): number {
-        // sum all awarded advancement from checkpoints
-        let advancement = this.checkpoints.current.map((checkpoint) => {
-            if (checkpoint.awarded.value()) {
-                return checkpoint.advancement.value();
+        // sum all awarded advancement from objectives
+        let advancement = this.objectives.current.map((objective) => {
+            if (objective.awarded.value()) {
+                return objective.advancement.value();
             } else {
                 return 0;
             }
@@ -260,7 +260,7 @@ export class LeagueModule extends LeagueModuleDefinition {
             return advancement;
         }
    
-        // add any hourly advancement, which should be mutually exclusive with checkpoints
+        // add any hourly advancement, which should be mutually exclusive with objectives
         // but there may be modules in the future that change this
         advancement += this.hourly.advancement.value() * hours;
         return advancement;

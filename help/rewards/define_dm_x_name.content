@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!rewards</span>
-<span class='command' id='rewards/define_dm_x_name'>define dm [ID] name</span>
-<span class='format'>[STRING]</span>
-</div>
-<div class='description'></div>

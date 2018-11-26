@@ -73,9 +73,9 @@ export class ShowCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.addSubTitle('Check Points and Unlocks');
         dialog.beginControlGroup();
-        for (let check of module.checkpoints.current) {
+        for (let check of module.objectives.current) {
             const label = `${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`;
-            dialog.addEditControl(label, `module current checkpoint ${check.id} awarded`, check.awarded, link);
+            dialog.addEditControl(label, `module current objective ${check.id} awarded`, check.awarded, link);
         }
         for (let item of module.unlocks.current) {
             const label = `Unlocked ${item.name.value()}`;
@@ -119,8 +119,8 @@ export class ShowCommand extends RenderCommand {
         if (module.hasTierRewardsDifference()) {
             // if hard cover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
-            const explicitAwards = module.checkpoints.current.some(checkpoint => {
-                return checkpoint.awarded.value();
+            const explicitAwards = module.objectives.current.some(objective => {
+                return objective.awarded.value();
             });
             if (explicitAwards) {
                 // there should not be explicit check point awards in a hard cover, because the rules assume

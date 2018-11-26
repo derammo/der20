@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!rewards</span>
-<span class='command' id='rewards/define_module_x_checkpoint_x_treasure'>define module [ID] checkpoint [ID] treasure</span>
-<span class='format'>[INTEGER]</span>
-</div>
-<div class='description'></div>

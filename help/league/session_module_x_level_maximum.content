@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_module_x_level_maximum'>session module [ID/current] level maximum</span>
+<span class='format'>[INTEGER]</span>
+</div>
+<div class='description'></div>

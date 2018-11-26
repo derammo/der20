@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_module_x_unlock_x_rarity'>session module [ID/current] unlock [ID] rarity</span>
+<span class='format'>[Common|Uncommon|Rare|Very Rare|Legendary|Artifact|Unique]</span>
+</div>
+<div class='description'></div>

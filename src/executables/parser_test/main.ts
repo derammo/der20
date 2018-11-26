@@ -56,9 +56,9 @@ let test = `
 	define rules advancement downtime unit 0.5
 	define rules advancement renown multiplier 0.25
 	define rules advancement renown unit 0.5
-	define module ddal12-01 checkpoint bosskill treasure 2
-	define module ddal12-01 checkpoint bosskill advancement 1
-	define module ddal12-01 checkpoint bosskill name grobs was killed
+	define module ddal12-01 objective bosskill treasure 2
+	define module ddal12-01 objective bosskill advancement 1
+	define module ddal12-01 objective bosskill name grobs was killed
 	define module ddal12-01 name DDAL12-01 The Killing of Grobs
 	define module ddal12-01 unlock hat name Hat of Disguise
 	define module ddal12-01 unlock hat description The entire length of this broad, red-silk ribbon is embroidered in gold thread. While wearing it, the wearer can read and understand, but not speak, Undercommon.
@@ -66,8 +66,8 @@ let test = `
 	define module ddal12-01 unlock hat dm false
 	define module ddal12-01 unlock hat table F
 	define module ddal12-01 unlock hat rarity Uncommon
-	define module ddal12-01 checkpoint bosskill dm true
-	define module ddal12-01 checkpoint bosskill players true
+	define module ddal12-01 objective bosskill dm true
+	define module ddal12-01 objective bosskill players true
 	define module ddal12-01 season 12
 	define module ddal12-01 tier 1
 	define module ddal12-01 hardcover false
@@ -78,30 +78,30 @@ let test = `
 	define module ddal12-01 hourly advancement 1
 	define dm ammo dci 0070070007
 	define dm ammo name Ammo Goettsch
-	checkpoint bosskill awarded true
+	session module current objective bosskill awarded true
 	define dm junk
-	dm junk
+	session dm junk
 	delete dm junk
 	define module trash
-	module trash
+	session module trash
 	delete module trash
 	clear
-	dm
-	dm ammo
-	module
-	module poop
-	module ddal12-01
-	module current tier 3
-	module current session 2
-	session 3
-	start
-	start 1.5
-	checkpoint
-	checkpoint bosskill awarded true
-	stop
-	show
-	preview
-	send
+	session dm
+	session dm ammo
+	session module
+	session module poop
+	session module ddal12-01
+	session module current tier 3
+	session module current session 2
+	session module current session 3
+	session start
+	session start 1.5
+	session module current objective
+	session module current objective bosskill awarded true
+	session stop
+	session show
+	rewards preview
+	rewards send
 `;
 
 let test2 = `option command hi
@@ -119,20 +119,20 @@ define module ddal08-74 tier 3
 define module ddal08-74 hardcover false
 define module ddal08-74 duration 4
 define module ddal08-74 level maximum 13
-define module ddal08-74 checkpoint bosskill advancement 2
-define module ddal08-74 checkpoint bosskill treasure 2
-define module ddal08-74 checkpoint bosskill name Grobs was killed
-define module ddal08-74 checkpoint bunny advancement 2
-define module ddal08-74 checkpoint bunny treasure 2
-define module ddal08-74 checkpoint bunny name All players made friends with the Bunny
+define module ddal08-74 objective bosskill advancement 2
+define module ddal08-74 objective bosskill treasure 2
+define module ddal08-74 objective bosskill name Grobs was killed
+define module ddal08-74 objective bunny advancement 2
+define module ddal08-74 objective bunny treasure 2
+define module ddal08-74 objective bunny name All players made friends with the Bunny
 define module ddal08-74 unlock hat name Hat of Disguise
 define module ddal08-74 unlock hat description The entire length of this broad, red-silk ribbon is embroidered in gold thread. While wearing it, the wearer can read and understand, but not speak, Undercommon.
 define module ddal08-74 unlock hat table F
 define module ddal08-74 unlock hat rarity Uncommon
 define dm ammo dci blablablabh
 define dm ammo name Ammo Goettsch
-dm ammo
-module ddal08-74`;
+session dm ammo
+session module ddal08-74`;
 
 export function testRun(): string {
 	let dialog = new Der20ChatDialog();

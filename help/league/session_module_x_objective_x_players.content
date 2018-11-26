@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_module_x_objective_x_players'>session module [ID/current] objective [ID] players</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'></div>

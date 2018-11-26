@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/define_dm_x_dci'>define dm [ID] dci</span>
+<span class='format'>[STRING]</span>
+</div>
+<div class='description'></div>

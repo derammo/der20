@@ -1,0 +1,8 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_module_x_season'>session module [ID/current] season</span>
+<span class='format'>[INTEGER]</span>
+</div>
+<div class='description'>This is a per-session override for <a href='#league/define_module_x_season'>!league define module [ID] season</a>.</div>
+<div class='description'>This setting is discarded when the session is reset via <a href='#league/session_clear'>!league session clear</a> or when a different 
+    module is selected via <a href='#league/session_module'>!league session module</a>.</div>

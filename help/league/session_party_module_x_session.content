@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_party_module_x_session'>session party module [ID/current] session</span>
+<span class='format'>[STRING]</span>
+</div>
+<div class='description'></div>

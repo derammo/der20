@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!rewards</span>
-<span class='command' id='rewards/define_module_x_unlock_x_tier'>define module [ID] unlock [ID] tier</span>
-<span class='format'>[INTEGER]</span>
-</div>
-<div class='description'></div>

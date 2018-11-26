@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/define_module_x_objective_x_advancement'>define module [ID] objective [ID] advancement</span>
+<span class='format'>[INTEGER]</span>
+</div>
+<div class='description'></div>

@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_start'>session start</span>
+<span class='format'>[-&gt; module current start]</span>
+</div>
+<div class='description'>This command just calls <a href="#league/session_module_x_start">!league session module current start</a></div>
