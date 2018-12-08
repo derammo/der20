@@ -1,0 +1,7 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_party_scan'>session party scan</span>
+</div>
+<div class='description'>This command records the player characters that are present in the session. This list is presented in <a href="#league/session_show">!league session show</a> to 
+    select which player characters are included for APL calculation and awards.  If not all players were actually present when this command was last called, you can 
+    call it again to redo the scan for players.</div>

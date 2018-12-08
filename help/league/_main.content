@@ -1,7 +1,7 @@
 <div class="title" id="league">!league</div>
 <div class="postcontent">
     <p>This API Script contains tools to help run sessions for D&amp;D Adventurers League (DDAL). &nbsp;Before the session,
-        you can enter all of the objectives and treasure unlock information about the modules or hardcover you are running
+        you can enter all of the objectives and treasure unlock information about the modules (or hardcover chapters) you are running
         for DDAL. &nbsp;Rules differences between Season 8 and previous season's modules are considered and customizable
         if things change.</p>
     <p>Configuration is via a command language, which you can store in handouts so you can move them from room to room, or you
@@ -24,7 +24,7 @@
     </p>
     <p>The <a href="#league/session_show">!league session show</a></p>
     <p>command then starts interactive use. &nbsp;It will show the rewards for the current module initialized to their defaults.
-        &nbsp;Depending on whether you are running a module or hardcover and depending on the tier and season, rewards are
+        &nbsp;Depending on whether you are running a module (or hardcover chapter) and depending on the tier and season, rewards are
         calculated. &nbsp;You can override any of the defaults calculated for you.</p>
     <p>
         <img src="./assets/league/5.png">

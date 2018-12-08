@@ -18,7 +18,6 @@
 </ol>
 </div>
 <div class='description'>
-    When the start time is set, the session also records the player characters that were present at that time.
-    If not all players were actually present when this setting was last changed, you can set the start time again to
-    redo the scan for players.
+    When the start time is set via this command, the list of players currently in the session is not updated.  Please use 
+    <a href='#league/session_party_scan'>!league session party scan</a> to update the list of players in the session.
 </div>

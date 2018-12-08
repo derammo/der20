@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_party_module_x_unlock_x_players'>session party module [ID/current] unlock [ID] players</span>
-<span class='format'>[TRUE/FALSE]</span>
-</div>
-<div class='description'></div>

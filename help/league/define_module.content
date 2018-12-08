@@ -3,13 +3,13 @@
 <span class='command' id='league/define_module'>define module</span>
 <span class='format'>[ID]</span>
 </div>
-<div class='description'>This command presents a dialog to interactively configure a DDAL Module (or Hardcover) definition.
-    The intent of this feature is to configure the information for a DDAL Module that is run from the current game room, 
+<div class='description'>This command presents a dialog to interactively configure a DDAL module (or hardcover chapter) definition.
+    The intent of this feature is to configure the information for a DDAL module that is run from the current game room, 
     even if there are multiple modules run from the same room.  
     During a session, <a href="#league/session_module">!league session module</a> can then be used
     to select the module for the current session.  If there is only one module defined, that step is not necessary.
 </div>
-<div class='description'>Instead of using the interactive dialog, individual parameters of the Module definition 
+<div class='description'>Instead of using the interactive dialog, individual parameters of the module definition 
     can be configured directly by simply appending the name
     of a value to set, as in <a href="#league/define_module_x_name">!league define module [ID] name [STRING]</a> and 
     <a href="#league/define_module_x_season">!league define module [ID] season [INTEGER]</a>
