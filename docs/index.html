@@ -135,10 +135,10 @@ and showing the icon from the configured anonymous character.  If <a href="#anon
         you can enter all of the objectives and treasure unlock information about the modules (or hardcover chapters) you are running
         for DDAL. &nbsp;Rules differences between Season 8 and previous season's modules are considered and customizable
         if things change.</p>
-    <p>Configuration is via a command language, which you can store in handouts so you can move them from room to room, or you
-        can just type in commands at the prompt and have the built-in state system store it.  For most configuration, you can
-        also use interactive dialogs.</p>
-    <p>
+    <p>Configuration is via a command language, which is documented in the page you are currently reading.  For most configuration, you can
+        also use interactive dialogs.  These dialogs effectively type in commands for you, which change the configuration that is stored
+        in the Roll20 API Script state.</p>
+    <p>Alternatively, you can store configuration commands in the GM Notes of handouts, so you can move them from room to room.
         <img src="./assets/league/1.png">
     </p>
     <p>
@@ -164,11 +164,12 @@ and showing the icon from the configured anonymous character.  If <a href="#anon
     <p>Then you interactively check off objectives as they are achieved and hit a start and stop timer for the session. &nbsp;Time
         entry is either as an absolute time string, or empty string for "now" or a number meaning "this many hours ago."
         &nbsp;So if you have been playing for about 3 hours, you can just hit start and type in "3."</p>
-    <p>When you set the start of the module, the script finds all player-owned characters in the game and adds them to the session
+    <p>When you set the start time of the module, the script finds all player-owned characters in the game and adds them to the session
         data. &nbsp;It selects the highest level character for each player as the probable player character. &nbsp;You can
         then interactively correct which characters are included in the session. &nbsp; APL and player count are calculated
-        from this selection. &nbsp;In this example, there are two players: 'Ammo' and 'Test U.' &nbsp; &nbsp;'Test U' brought
-        at three characters to the session, only one of which counts.</p>
+        from this selection. &nbsp;In this example, there are two players: 'Ammo' and 'Test U.' &nbsp; &nbsp;'Ammo' brought
+        three characters to the session, only one of which counts.  The tier of the hard cover is set to 3 based on the APL of this group.
+        Because the group is mixed-tier, TCP calculation is broken out by tier according to Season 8 rules.</p>
    
     <p>
         <img src="./assets/league/6.png">
