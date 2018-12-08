@@ -216,7 +216,6 @@ export class LeagueModule extends LeagueModuleDefinition {
     session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
     stop: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
-
  
     treasureAward(): number {
         // sum all awarded treasure from objectives

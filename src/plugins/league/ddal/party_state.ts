@@ -1,16 +1,16 @@
-import { ConfigurationChangeHandling, Clearable, ConfigurationString, ConfigurationFloat, ConfigurationValue, keyword, data } from 'der20/library';
-import { PlayerCharacters } from './player_characters';
+import { Change, Clearable, ConfigurationChangeHandling, ConfigurationFloat, ConfigurationIntermediateNode, ConfigurationSimpleCommand, ConfigurationString, ConfigurationValue, ParserContext, Result, keyword, noconfig } from 'der20/library';
 import { LeagueModule } from './league_module';
+import { PlayerCharacters } from './player_characters';
 
 export interface ScalingChangeObserver {
     handleStrengthChange(strength: string): void;
 }
 
-export class PartyState implements ConfigurationChangeHandling, Clearable {
-    @data
+export class PartyState extends ConfigurationIntermediateNode implements ConfigurationChangeHandling, Clearable {
+    @noconfig
     private module: ConfigurationValue<LeagueModule>;
 
-    @data
+    @noconfig
     private scalingChanges: ScalingChangeObserver;
 
     apl: ConfigurationFloat = new ConfigurationFloat(ConfigurationValue.UNSET);
@@ -20,19 +20,13 @@ export class PartyState implements ConfigurationChangeHandling, Clearable {
     @keyword('pc')
     pcs: PlayerCharacters = new PlayerCharacters();
 
+    scan: ConfigurationSimpleCommand;
+
     constructor(module: ConfigurationValue<LeagueModule>, scalingChanges: ScalingChangeObserver) {
+        super();
         this.module = module;
         this.scalingChanges = scalingChanges;
-    }
-
-    toJSON(): any {
-        const apl = this.apl.toJSON();
-        const strength = this.strength.toJSON();
-        if ((apl === undefined) && (strength === undefined)) {
-            return undefined;
-        }
-        // persist only those things that have overrides we might keep
-        return { apl: apl, strength: strength }
+        this.scan = new PlayerScan(this);
     }
 
     static readonly strengthTable = [
@@ -58,7 +52,7 @@ export class PartyState implements ConfigurationChangeHandling, Clearable {
                 let playerComparison; // 0,1,2 representing <,=,>
                 let aplComparison; // 0,1,2 representing <,=,>
                 const players = this.pcs.count();
-                if ((players < 1) || (!this.module.hasConfiguredValue())) {
+                if (players < 1 || !this.module.hasConfiguredValue()) {
                     playerComparison = 1;
                     aplComparison = 1;
                 } else {
@@ -69,18 +63,18 @@ export class PartyState implements ConfigurationChangeHandling, Clearable {
                 }
                 const previousValue = this.strength.value();
                 this.strength.default = PartyState.strengthTable[playerComparison][aplComparison];
-                if ((this.scalingChanges !== undefined) && (this.strength.value() !== previousValue)) {
+                if (this.scalingChanges !== undefined && this.strength.value() !== previousValue) {
                     this.scalingChanges.handleStrengthChange(this.strength.value());
                 }
                 break;
-            case 'strength': 
+            case 'strength':
                 // override
                 if (this.scalingChanges !== undefined) {
                     this.scalingChanges.handleStrengthChange(this.strength.value());
                 }
-                break;                
+                break;
             default:
-               // ignore
+            // ignore
         }
     }
 
@@ -88,5 +82,23 @@ export class PartyState implements ConfigurationChangeHandling, Clearable {
         this.apl.clear();
         this.strength.clear();
         this.pcs.clear();
+    }
+}
+
+class PlayerScan extends ConfigurationSimpleCommand {
+    constructor(private party: PartyState) {
+        super();
+        // generated
+    }
+
+    handleEndOfCommand(context: ParserContext): Result {
+        // reserved word to use to rescan list of currently loaded characters
+        this.party.pcs.scan();
+
+        // handle event we should have received from pcs
+        this.party.handleChange('pc');        
+
+        // this is a change event to trigger event change listeners above
+        return new Change('scanned players currently in session');
     }
 }

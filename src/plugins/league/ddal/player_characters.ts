@@ -1,4 +1,4 @@
-import { Der20Player, Der20Character, ConfigurationStep, ConfigurationBoolean, ParserContext, Result, Failure, Change } from "der20/library";
+import { Der20Player, Der20Character, ConfigurationStep, ConfigurationBoolean, ParserContext, Result, Failure } from "der20/library";
 
 class PlayerCharacter {
     // REVISIT: is it a problem that we hold references to these characters and players?  what happens if they are deleted in the GUI?
@@ -57,12 +57,6 @@ export class PlayerCharacters extends ConfigurationStep<PlayerCharacter[]> {
     }
 
     parse(line: string, context: ParserContext): Result {
-        if (line === 'scan') {
-            // reserved word to use t rescan list of currently loaded characters
-            this.scan();
-            // this is a change event to trigger event change listeners
-            return new Change('scanned players currently in session');
-        }
         let tokens = line.split(' ');
         if (tokens.length < 4) {
             return new Failure(new Error(`must specify 'USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK'`));
