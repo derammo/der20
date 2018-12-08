@@ -122,10 +122,13 @@ export class Configuration {
     delete: DeleteCommands = new DeleteCommands(this.define, this.options);
 
     // tokens added/removed based on scaling according to APL
-    scaling: TokenScalingCommand = new TokenScalingCommand();
+    // NOT READY FOR RELEASE
+    // scaling: TokenScalingCommand = new TokenScalingCommand();
 
     // current game session
-    session: SessionConfiguration = new SessionConfiguration(this.define, this.scaling);
+    // NOT READY FOR RELEASE
+    // session: SessionConfiguration = new SessionConfiguration(this.define, this.scaling);
+    session: SessionConfiguration = new SessionConfiguration(this.define, undefined);
 
     // rewards awarded from current session
     rewards: RewardsConfiguration = new RewardsConfiguration(this.session, this.define);
