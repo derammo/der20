@@ -56,11 +56,30 @@ export class Der20Meta {
 
 export namespace Der20Meta {
     export class Property {
+        /**
+         * if set, validator class to call before setting value
+         */
         validation: Validator;
+        /**
+         * comment string specifying the format of the property
+         */
         format: string;
+        /**
+         * if set, use this keyword instead of the name of the property
+         */
         keyword: string;
+        /**
+         * if set, specifies name of common module to use instead of plugin name when generating help
+         */
         common: string;
+        /**
+         * if set, cannot edit via commands
+         */
         data: boolean;
+        /**
+         * if set, do not persist or restore
+         */
+        ephemeral: boolean;
     }
 }
 

@@ -82,6 +82,10 @@ export class HelpCommand extends ConfigurationSimpleCommand {
             // consult meta info
             if (Der20Meta.hasProperty(object.constructor.prototype, key)) {
                 let meta = Der20Meta.getOrCreateProperty(object.constructor.prototype, key);
+                if (meta.data) {
+                    // no help generation
+                    continue;
+                }
                 dataFormat = meta.format || dataFormat;
                 keyword = meta.keyword || keyword;
                 validation = meta.validation;

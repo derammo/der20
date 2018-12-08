@@ -20,6 +20,15 @@ export function data(prototype: any, propertyName: string): void {
     Der20Meta.getOrCreateProperty(prototype, propertyName).data = true;
 }
 
+/**
+ *  decorator: if set, the target property is not considered part of the configuration, so it cannot be edited via parser 
+ *  commands and is not saved or restored
+ */
+export function noconfig(prototype: any, propertyName: string): void {
+    Der20Meta.getOrCreateProperty(prototype, propertyName).data = true;
+    Der20Meta.getOrCreateProperty(prototype, propertyName).ephemeral = true;
+}
+
 export class ConfigurationParser {
     // returns first word and rest of line as array
     static tokenizeFirst(line: string) {

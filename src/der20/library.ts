@@ -39,3 +39,4 @@ export { Dialog, DialogAware } from 'der20/interfaces/ui';
 export { CommandsFromTokens } from 'der20/roll20/token_commands';
 export { CommandSource } from 'der20/interfaces/config';
 export { NotesSource } from 'der20/roll20/notes_commands';
+export { noconfig } from 'der20/config/parser';
