@@ -71,11 +71,11 @@ export class ShowCommand extends RenderCommand {
         dialog.addEditControl('End Time', 'module current stop', module.stop, link);
         dialog.endControlGroup();
         dialog.addSeparator();
-        dialog.addSubTitle('Check Points and Unlocks');
+        dialog.addSubTitle('Objectives and Unlocks');
         dialog.beginControlGroup();
-        for (let check of module.objectives.current) {
-            const label = `${check.name.value()} (${check.advancement.value()} ACP, ${check.treasure.value()} TCP)`;
-            dialog.addEditControl(label, `module current objective ${check.id} awarded`, check.awarded, link);
+        for (let objective of module.objectives.current) {
+            const label = `${objective.name.value()} (${objective.advancement.value()} ACP, ${objective.treasure.value()} TCP)`;
+            dialog.addEditControl(label, `module current objective ${objective.id} awarded`, objective.awarded, link);
         }
         for (let item of module.unlocks.current) {
             const label = `Unlocked ${item.name.value()}`;
