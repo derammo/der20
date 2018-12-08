@@ -10,7 +10,7 @@ LIB_SOURCES := $(shell find src/der20 -name "*.ts" | grep -v 'src/der20/library.
 TSC := node_modules/typescript/bin/tsc
 
 .PHONY: all clean run release checkout_release build_release publish create_draft plugins executables documentation relnotes
-.PRECIOUS: build/%.js src/%/tsconfig.json merged/build/der20/%.js merged/build/der20/%_plugin.js
+.PRECIOUS: build/%.js src/%/tsconfig.json merged/build/der20/%.js merged/build/der20/%_plugin.js merged/compile/der20/library.js 
 
 all: node_modules plugins executables documentation
 plugins: $(DIST)
@@ -36,43 +36,6 @@ dist/der20_%_complete.js: build/%.js include/header.js.txt include/trailer.js.tx
 	@cat include/trailer.js.txt >> $@
 	@chmod 444 $@
 	@echo packaging $< as $@ for Roll20
-dist/der20_library.js: merged/build/der20/library.js include/library_header.js.txt include/library_trailer.js.txt Makefile LICENSE
-	@mkdir -p dist
-	@rm -f $@
-	@head -1 LICENSE > $@
-	@echo ' *' der20 library DER20 DEVELOPMENT BUILD >> $@
-	@echo ' *' >> $@
-	@tail -n +2 LICENSE >> $@
-	@sed \
-		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
-		-e 's/DER20_MAGIC_NAME/library/g' \
-		< include/library_header.js.txt >> $@
-	@sed \
-		-e 's/    Object\.defineProperty(.*);$$//' \
-		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
-	@cat include/library_trailer.js.txt >> $@
-	@chmod 444 $@
-	@echo packaging $< as separate library $@ for Roll20
-dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.txt include/plugin_trailer.js.txt Makefile LICENSE
-	@mkdir -p dist
-	@rm -f $@
-	@head -1 LICENSE > $@
-	@echo ' *' der20 $* plugin DER20 DEVELOPMENT BUILD >> $@
-	@echo ' *' >> $@
-	@tail -n +2 LICENSE >> $@
-	@sed \
-		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
-		-e 's/DER20_MAGIC_NAME/$*/g' \
-		< include/plugin_header.js.txt >> $@
-	@sed \
-		-e 's/    Object\.defineProperty(.*);$$//' \
-		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
-	@sed \
-		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
-		-e 's/DER20_MAGIC_NAME/$*/g' \
-		< include/plugin_trailer.js.txt >> $@	
-	@chmod 444 $@
-	@echo packaging $< as as separate plugin $@ for Roll20
 run: build/$(DEFAULT).js tmp
 	node build/$(DEFAULT).js | egrep --color -e '^\tresult of parse: {"kind":3.*$$' -e $$
 tmp:
@@ -131,6 +94,44 @@ help: $(HELP_JSON) scripts/update_helpfiles.js
 		node ../scripts/update_helpfiles.js < ../$${file} ; \
 	done
 	touch help
+
+dist/der20_library.js: merged/build/der20/library.js include/library_header.js.txt include/library_trailer.js.txt Makefile LICENSE
+	@mkdir -p dist
+	@rm -f $@
+	@head -1 LICENSE > $@
+	@echo ' *' der20 library DER20 DEVELOPMENT BUILD >> $@
+	@echo ' *' >> $@
+	@tail -n +2 LICENSE >> $@
+	@sed \
+		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
+		-e 's/DER20_MAGIC_NAME/library/g' \
+		< include/library_header.js.txt >> $@
+	@sed \
+		-e 's/    Object\.defineProperty(.*);$$//' \
+		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
+	@cat include/library_trailer.js.txt >> $@
+	@chmod 444 $@
+	@echo packaging $< as separate library $@ for Roll20
+dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.txt include/plugin_trailer.js.txt Makefile LICENSE
+	@mkdir -p dist
+	@rm -f $@
+	@head -1 LICENSE > $@
+	@echo ' *' der20 $* plugin DER20 DEVELOPMENT BUILD >> $@
+	@echo ' *' >> $@
+	@tail -n +2 LICENSE >> $@
+	@sed \
+		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
+		-e 's/DER20_MAGIC_NAME/$*/g' \
+		< include/plugin_header.js.txt >> $@
+	@sed \
+		-e 's/    Object\.defineProperty(.*);$$//' \
+		-e 's_^//. sourceMappingURL.*$$__' < $< >> $@
+	@sed \
+		-e 's/DER20_MAGIC_LICENSE_TEXT_LENGTH/$(LICENSE_LENGTH)/g' \
+		-e 's/DER20_MAGIC_NAME/$*/g' \
+		< include/plugin_trailer.js.txt >> $@	
+	@chmod 444 $@
+	@echo packaging $< as as separate plugin $@ for Roll20
 merged/build/der20/%_plugin.js: merged/compile/der20/%_plugin.js Makefile
 	@echo translating $< to $@
 	@mkdir -p merged/build/der20
@@ -143,7 +144,13 @@ merged/build/der20/%_plugin.js: merged/compile/der20/%_plugin.js Makefile
 	# we first have to deal with the helper code that uses the exports as locals (see code for LeagueModule namespace)
 	@cat src/sys/plugin_loader.js >> $@
 merged/compile/der20/%_plugin.js: merged/src/der20/%_plugin.ts merged/compile/der20/library.js src/sys/plugin_loader.js merged/tsconfig_%_plugin.json Makefile
+	@touch -r merged/compile/der20/library.js merged/compile/library.stamp
 	$(TSC) -p merged/tsconfig_$*_plugin.json
+	@echo 'restoring time stamp on merged/compile/der20/library.js'
+	@touch -r merged/compile/library.stamp merged/compile/der20/library.js
+merged/tsconfig_%.json: merged/src/der20/%.ts Makefile
+	@echo '{ "extends": "./tsconfig.json", "compilerOptions": { "rootDir": "src", "baseUrl": "src", "outDir": "compile", "outFile": null, "noEmitHelpers": true },' > $@
+	@echo '  "include": ["src/der20/$*.ts", "src/types/*.d.ts"] }' >> $@
 merged/build/der20/library.js: merged/compile/der20/library.js Makefile
 	@echo translating $< to $@
 	@mkdir -p merged/build/der20
@@ -155,9 +162,6 @@ merged/build/der20/library.js: merged/compile/der20/library.js Makefile
 	@cat src/sys/library_loader.js >> $@
 merged/compile/der20/library.js: merged/src/der20/library.ts src/sys/library_loader.js merged/tsconfig_library.json Makefile
 	$(TSC) -p merged/tsconfig_library.json
-merged/tsconfig_%.json: merged/src/der20/%.ts Makefile
-	@echo '{ "extends": "./tsconfig.json", "compilerOptions": { "rootDir": "src", "baseUrl": "src", "outDir": "compile", "outFile": null, "noEmitHelpers": true },' > $@
-	@echo '  "include": ["src/der20/$*.ts", "src/types/*.d.ts"] }' >> $@
 merged/src/der20/library.ts: $(LIB_SOURCES) build/tsmerge.js merged/src/types Makefile
 	@echo merging sources into $@
 	@mkdir -p merged/src/der20
