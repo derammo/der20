@@ -296,9 +296,8 @@ export class LeagueModule extends LeagueModuleDefinition {
             tier = 2;
         }
         this.tier.default = tier;
-        if (!this.tier.hasConfiguredValue()) {
-            this.handleChange('tier');
-        }
+        // NOTE: do not fire 'tier' change event, because we don't want to update level ranges and APL targets
+        this.hourly.treasure.default =  this.hourlyTreasure();
     }
 
     handleChange(keyword: string) {
