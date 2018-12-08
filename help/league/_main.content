@@ -37,7 +37,7 @@
         data. &nbsp;It selects the highest level character for each player as the probable player character. &nbsp;You can
         then interactively correct which characters are included in the session. &nbsp; APL and player count are calculated
         from this selection. &nbsp;In this example, there are two players: 'Ammo' and 'Test U.' &nbsp; &nbsp;'Test U' brought
-        at three characters to the session, only one of which counts.</p>
+        three characters to the session, only one of which counts.</p>
    
     <p>
         <img src="./assets/league/6.png">
