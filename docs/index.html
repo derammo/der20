@@ -140,9 +140,13 @@ and showing the icon from the configured anonymous character.  If <a href="#anon
         in the Roll20 API Script state.</p>
     <p>The minimum required configuration is to declare a DM and a module.  You can do this by executing <a href="#league/define_dm">!league define dm ID</a> and <a href="#league/define_module">!league define module ANOTHER_ID</a>.
         In these commands, replace 'ID' with some short word that identifies your DM entry, such as your first name.  Replace 'ANOTHER_ID' with a short word that identifies the module, such as the DDAL module code.
-        Both of these commands will then run a dialog, where you can fill in the information about these items.
     </p>
-    <p>Alternatively, you can store configuration commands in the GM Notes of handouts, so you can move them from room to room.
+    <p>Both of these commands will then run a dialog, where you can fill in the information about these items.</p>
+    <p>
+        <img src="./assets/league/module.png">
+    </p>
+    <p>Alternatively, you can store configuration commands in the GM Notes of handouts, so you can move them from room to room.</p>
+    <p>
         <img src="./assets/league/1.png">
     </p>
     <p>
@@ -156,9 +160,9 @@ and showing the icon from the configured anonymous character.  If <a href="#anon
      
     <p>Then run <a href="#league/session_show">!league session show</a> to start interactive use. If you have more than one DM or Module
         (in case of shared rooms), a selection dialog will be presented.</p>
-        <p>
-            <img src="./assets/league/4.png">
-        </p>
+    <p>
+        <img src="./assets/league/4.png">
+    </p>
     <p>After DM and module selection, it will show the rewards for the current module initialized to their defaults.
         &nbsp;Depending on whether you are running a module (or hardcover chapter) and depending on the tier and season, rewards are
         calculated. &nbsp;You can override any of the defaults calculated for you.</p>
@@ -235,6 +239,16 @@ and showing the icon from the configured anonymous character.  If <a href="#anon
     During a session, <a href="#league/session_module">!league session module</a> can then be used
     to select the module for the current session.  If there is only one module defined, that step is not necessary.
 </div>
+<div class='description'>For example, a season 8 module with multiple objectives might look like this:</div>
+<p>
+        <img src="./assets/league/module.png">
+</p>
+<div class='description'>A hard cover definition would instead have hourly advancement.  Note you may want to have a separate 'module' defined for each
+    hard cover chapter(s) that you run separately, 
+    instead of the simple example shown here.</div>
+<p>
+        <img src="./assets/league/hardcover.png">
+</p>
 <div class='description'>Instead of using the interactive dialog, individual parameters of the module definition 
     can be configured directly by simply appending the name
     of a value to set, as in <a href="#league/define_module_x_name">!league define module [ID] name [STRING]</a> and 
