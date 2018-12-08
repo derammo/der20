@@ -9,10 +9,10 @@ LICENSE_LENGTH := $(word 1, $(shell wc -l LICENSE))
 LIB_SOURCES := $(shell find src/der20 -name "*.ts" | grep -v 'src/der20/library.ts' | sort)
 TSC := node_modules/typescript/bin/tsc
 
-.PHONY: all clean run release checkout_release build_release publish create_draft plugins executables documentation relnotes
+.PHONY: all clean run release checkout_release build_release publish create_draft plugins executables relnotes
 .PRECIOUS: build/%.js src/%/tsconfig.json merged/build/der20/%.js merged/build/der20/%_plugin.js merged/compile/der20/library.js 
 
-all: node_modules plugins executables documentation
+all: node_modules plugins executables help
 plugins: $(DIST)
 executables: $(patsubst %,build/%.js,$(EXECUTABLES))
 theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
@@ -79,7 +79,6 @@ create_draft:
 	node scripts/publish_release.js ${RELEASE} 'src/der20 src/sys include LICENSE Makefile' $(patsubst %,src/plugins/%,$(PLUGINS)) 
 list:
 	@echo $(SRC)
-documentation: docs/index.html
 docs/index.html: help include/index_header.html.txt include/index_middle.html.txt include/index_trailer.html.txt $(wildcard help/*/*)
 	cat include/index_header.html.txt \
 		help/*/*.index \
