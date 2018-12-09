@@ -45,15 +45,23 @@ export namespace ConfigurationValue {
  * Classes that represent an item from a configurable collection indexed by a string id implement this.
  */
 export interface CollectionItem {
-    id: string;
+    id: string | null;
     name: ConfigurationValue<string>;
+}
+
+/**
+ * Collection-like classes that support removal by id implement this.
+ */
+export interface ItemRemoval {
+    removeItem(id: string): boolean;
 }
 
 /**
  * Configurable colections indexed by a string id implement this.
  */
-export interface Collection {
-    removeItem(id: string): boolean;
+export interface Collection extends ItemRemoval {
+    fetchItem(id: string): CollectionItem | undefined;
+    [Symbol.iterator](): Iterator<CollectionItem>;
 }
 
 /**

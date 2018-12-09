@@ -86,6 +86,18 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         return this.idToIndex[id];
     }
 
+    fetchItem(id: string): CollectionItem | undefined {
+        const index = this.findItem(id);
+        if (index === undefined) {
+            return undefined;
+        }
+        return this.current[index];
+    }
+
+    [Symbol.iterator](): Iterator<T> {
+        return this.current[Symbol.iterator]();
+    }    
+
     parse(line: string, context: ParserContext): Result {
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let id: string = tokens[0];

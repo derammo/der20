@@ -5,6 +5,7 @@ import { Result } from 'der20/interfaces/result';
 import { ConfigurationStep } from 'der20/config/base';
 import { ConfigurationString } from 'der20/config/string';
 import { CollectionItem, ConfigurationValue } from 'der20/interfaces/config';
+import { ConfigurationArray } from 'der20/config/array';
 
 // styling and layout based on https://github.com/RobinKuiper/Roll20APIScripts, with thanks
 export class Der20ChatDialog implements Dialog {
@@ -16,7 +17,7 @@ export class Der20ChatDialog implements Dialog {
     static readonly defaultedButtonStyle: string = Der20ChatDialog.buttonBaseStyle + 'color: #aaaaaa;';
     static readonly tableButtonStyle: string = Der20ChatDialog.rightBaseStyle + 'background-color: #f4f4f4; color: Black; border: 1px solid #b0b0b0;';
     static readonly checkboxBaseStyle: string = 
-        'width: 6em; text-decoration: none; text-align: center; vertical-align: middle; margin-right: 1px; float: right; border: none; background-color: transparent;';
+        'width: 6em; text-decoration: none; text-align: center; vertical-align: middle; margin-right: 1px; float: right; border: none; padding: 0px; background-color: transparent;';
     static readonly checkboxStyle: string = Der20ChatDialog.checkboxBaseStyle + 'color: Black;';
     static readonly defaultedCheckboxStyle: string = Der20ChatDialog.checkboxBaseStyle + 'color: #aaaaaa;';
     static readonly commandStyle: string =
@@ -89,7 +90,7 @@ export class Der20ChatDialog implements Dialog {
                 })
                 .map(value => {
                     if (value.length < 1) {
-                        return `${Der20ChatDialog.undefinedLabel},`;
+                        return `${Der20ChatDialog.undefinedLabel}, `;
                     }
                     return `${value},${value}`;
                 })
@@ -117,6 +118,13 @@ export class Der20ChatDialog implements Dialog {
             this.addButton(defaultedStyle, text, extendedPath, link);
         }
         this.text.push('</li>');
+    }
+
+    addEditCommand(label: string, buttonLabel: string, path: string, link: Dialog.Link) {
+        this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
+        this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${label}</span>`);
+        this.addButton(Der20ChatDialog.tableButtonStyle, buttonLabel, path, link);
+        this.text.push('</li>');        
     }
 
     addTextLine(label: string) {
@@ -210,11 +218,8 @@ export class Der20ChatDialog implements Dialog {
         this.text.push(`<hr style='${Der20ChatDialog.separatorStyle}'>`);
     }
 
-    addTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void {
-        this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
-        this.text.push(`<span style="${Der20ChatDialog.labelStyle}"><h3 style="display: inline-block">${label}</h3></span>`);
-        this.addButton(Der20ChatDialog.tableButtonStyle, 'New...', `${path} ?{ID for New Item}`, link);
-        this.text.push('</li>');
+    private addInlineTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void {
+        this.addEditCommand(`<h3 style="display: inline-block">${label}</h3>`, 'New...', `${path} ?{ID for New Item}`, link);
         this.text.push(`<ul style="${Der20ChatDialog.groupStyle} padding-left: 1.5em;">`);
         for (let item of config) {
             let sublink: Dialog.Link = { command: '' };
@@ -225,13 +230,44 @@ export class Der20ChatDialog implements Dialog {
                 sublink.prefix = `${path} ${item.id}`;
             }
             this.addSeparator();
-            this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
-            this.text.push(`<span style="${Der20ChatDialog.labelStyle}"><h4 style="display: inline-block">${item.id}</h4></span>`);
-            this.addButton(Der20ChatDialog.tableButtonStyle, 'Delete', '--delete', sublink);
-            this.text.push('</li>');
+            this.addEditCommand(`<h4 style="display: inline-block">${item.id}</h4>`, 'Delete', ConfigurationArray.DELETE_COMMAND_SUFFIX, sublink);
             item.buildControls(this, sublink);
         }
         this.text.push('</ul>');
+    }
+
+    private addReferenceTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void {
+        let modifiedLink: Dialog.Link = { command: '' };
+        Object.assign(modifiedLink, link);
+        delete modifiedLink.followUps;
+        this.addEditCommand(`<h3 style="display: inline-block">${label}</h3>`, 'New...', `${path} ?{ID for New Item}`, modifiedLink);
+        this.text.push(`<ul style="${Der20ChatDialog.groupStyle} padding-left: 1.5em;">`);
+        for (let item of config) {
+            if (link.prefix !== undefined) {
+                modifiedLink.prefix = `${link.prefix} ${path} ${item.id}`;
+            } else {
+                modifiedLink.prefix = `${path} ${item.id}`;
+            }
+            let itemLabel = item.id;
+            if (typeof (<any>item).displayName === 'function') {
+                // use pretty name
+                itemLabel = (<any>item).displayName();
+            }
+            this.addEditCommand(`<h4 style="display: inline-block">${itemLabel}</h4>`, 'Edit', '', modifiedLink);
+        }
+        this.text.push('</ul>');
+    }
+
+    addTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void {
+        if (config.length === 0) {
+            return;
+        }
+        if (typeof (<any>(config[0])).handleEndOfCommand === 'function') {
+            // this item can be edited directly
+            this.addReferenceTableControl(label, path, config, link);
+        } else {
+            this.addInlineTableControl(label, path, config, link);
+        }
     }
     
     renderCommandEcho(line: string, resultType: Result.Kind): string {

@@ -3,6 +3,14 @@ import { DialogFactory } from "der20/interfaces/ui";
 import { Result } from "der20/interfaces/result";
 
 /**
+ * A 'stack frame' in the parsing process, frequently  corresponding to one token each
+ */
+export interface ParserFrame {
+    route: string;
+    target: any;
+}
+
+/**
  * Context passed to any parsing functions for a specific command execution.
  */
 export interface ParserContext {
@@ -11,6 +19,7 @@ export interface ParserContext {
     command: string;
     rest: string;
     dialog: DialogFactory;
+    frames: ParserFrame[];
 }
 
 /**

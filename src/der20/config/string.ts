@@ -11,7 +11,7 @@ export class ConfigurationString extends ConfigurationStep<string> {
 
     parse(line: string, context: ParserContext): Result {
         if (line.length === 0) {
-            this.current = ConfigurationValue.UNSET;;
+            this.current = ConfigurationValue.UNSET;
         } else {
             this.current = line;
         }

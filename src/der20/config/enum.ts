@@ -25,4 +25,8 @@ export class ConfigurationEnumerated extends ConfigurationString {
         values.unshift('');
         return values;
     }
+
+    setChoices(choices: string[]): void {
+        this.valid = new Set(choices);
+    }
 }

@@ -41,7 +41,7 @@ export class ConfigurationParser {
     }
 
     static parse(line: string, configuration: any, context: ParserContext): Result {
-        debug.log(`parsing "${line}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`);
+        debug.log(`parsing "${line}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`); 
 
         if (line.length === 0) {
             // check if 'configuration' has handler to create UI or otherwise handle
@@ -88,6 +88,10 @@ export class ConfigurationParser {
 
         // execute
         if (result.kind === Result.Kind.Success) {
+            context.frames.push({
+                route: keywordToken,
+                target: route.target
+            });
             result = ConfigurationParser.parse(rest, route.target, context);
         }
 

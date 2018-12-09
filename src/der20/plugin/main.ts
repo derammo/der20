@@ -9,7 +9,7 @@ import { Asynchronous, Change, DialogResult, Failure } from 'der20/config/result
 import { CommandSourceImpl } from 'der20/config/source';
 import { CommandSource, ConfigurationContext } from 'der20/interfaces/config';
 import { LoaderContext } from 'der20/interfaces/loader';
-import { ParserContext } from 'der20/interfaces/parser';
+import { ParserContext, ParserFrame } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
 import { DialogFactory } from 'der20/interfaces/ui';
 import { BuiltinConfiguration } from 'der20/plugin/configuration';
@@ -652,6 +652,7 @@ export class PluginLoaderContext extends ContextBase implements LoaderContext {
 export class PluginParserContext extends ContextBase implements ParserContext {
     asyncVariables: Record<string, any> = {};
     dialog: DialogFactory = Der20ChatDialog;
+    frames: ParserFrame[] = [];
 
     constructor(options: Options, public source: CommandSource, public command: string, public rest: string) {
         super(options);

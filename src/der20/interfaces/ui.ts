@@ -12,6 +12,7 @@ export interface Dialog {
     beginControlGroup(): void;
     endControlGroup(): void;
     addEditControl<T>(label: string, path: string, config: ConfigurationValue<T>, link: Dialog.Link): void;
+    addEditCommand(label: string, buttonLabel: string, path: string, link: Dialog.Link): void;
     addChoiceControlGroup(label: string, path: string, choices: CollectionItem[], link: Dialog.Link): void;
     addSelectionGroup(label: string, path: string, choices: { label: string; result: string }[], link: Dialog.Link): void;
     addCommand(label: string, path: string, link: Dialog.Link): void;

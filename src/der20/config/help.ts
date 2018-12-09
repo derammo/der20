@@ -27,7 +27,7 @@ export function format(formatText: string): PropertyDecoratorFunction {
 export class HelpCommand extends ConfigurationSimpleCommand {
     static readonly command: string = 'help';
 
-    private helpItems: { plugin: string; command: string; format?: string; description?: string; validation?: string; common?: string }[] = [];
+    private helpItems: { plugin: string; command: string; format?: string; validation?: string; common?: string }[] = [];
 
     constructor(private pluginName: string, configurationRoot: any) {
         super();
@@ -69,18 +69,17 @@ export class HelpCommand extends ConfigurationSimpleCommand {
             }
 
             let dataFormat = child.format;
-            let humanReadable = undefined;
             let sampleConstructor: DefaultConstructed<any> = undefined;
             let validation: Validator = undefined;
             let commonPlugin: string = undefined;
 
-            // may be collection
             if ((<any>child).collectionItem !== undefined) {
+                // collection, so we have to create a sample object to enumerate for child properties
                 sampleConstructor = (<any>child).collectionItem();
             }
 
-            // consult meta info
             if (Der20Meta.hasProperty(object.constructor.prototype, key)) {
+                // consult meta info
                 let meta = Der20Meta.getOrCreateProperty(object.constructor.prototype, key);
                 if (meta.data) {
                     // no help generation
@@ -95,6 +94,7 @@ export class HelpCommand extends ConfigurationSimpleCommand {
             let command = `${prefix}${keyword}`;
             if (child instanceof ConfigurationStep) {
                 if (sampleConstructor !== undefined) {
+                    // configuration step that implements collection
                     dataFormat = dataFormat || 'ID';
                 }
                 let validationText = undefined;
@@ -105,7 +105,6 @@ export class HelpCommand extends ConfigurationSimpleCommand {
                     plugin: this.pluginName,
                     command: command,
                     format: dataFormat,
-                    description: humanReadable,
                     validation: validationText,
                     common: commonPlugin
                 });
@@ -120,10 +119,10 @@ export class HelpCommand extends ConfigurationSimpleCommand {
                     plugin: this.pluginName,
                     command: command,
                     format: dataFormat,
-                    description: humanReadable,
                     common: commonPlugin
                 });
             } else {
+                // generic class
                 this.enumerate(`${command} `, child);
             }
         }
@@ -140,7 +139,6 @@ export class HelpCommand extends ConfigurationSimpleCommand {
             const plugin = item.common || item.plugin;
             const href = `https://derammo.github.io/der20/#${plugin}/${item.command.replace(/\[.*?\]/g, 'x').replace(/ /g, '_')}`;
             dialog.addLinkTextLine(label, href);
-            dialog.addIndentedTextLine(`${item.description || ''}`);
             dialog.addIndentedTextLine(`${item.validation || ''}`);
             dialog.endControlGroup();
             dialog.addSeparator();

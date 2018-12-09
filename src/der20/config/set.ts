@@ -3,9 +3,9 @@ import { Result } from 'der20/interfaces/result';
 import { LoaderContext } from 'der20/interfaces/loader';
 import { ParserContext } from 'der20/interfaces/parser';
 import { Change } from 'der20/config/result';
-import { Collection } from 'der20/interfaces/config';
+import { ItemRemoval } from 'der20/interfaces/config';
 
-export class ConfigurationSet extends ConfigurationStep<Set<string>> implements Collection {
+export class ConfigurationSet extends ConfigurationStep<Set<string>> implements ItemRemoval {
     current: Set<string> = new Set<string>();
 
     constructor() {

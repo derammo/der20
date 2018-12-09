@@ -16,7 +16,7 @@ import { HelpCommand } from "der20/config/help";
 import { Der20ChatDialog } from "der20/roll20/dialog";
 import { DialogFactory } from "der20/interfaces/ui";
 import { LoaderContext } from "der20/interfaces/loader";
-import { ParserContext } from "der20/interfaces/parser";
+import { ParserContext, ParserFrame } from "der20/interfaces/parser";
 import { CommandSource } from "der20/interfaces/config";
 import { CommandSourceImpl } from "der20/config/source";
 import { DialogResult } from "der20/config/result";
@@ -28,6 +28,7 @@ class MockContext implements LoaderContext, ParserContext {
 	source: CommandSource = new CommandSourceImpl.Base(CommandSource.Kind.Journal);
 	dialog: DialogFactory = Der20ChatDialog;
 	options: Options = new Options();
+	frames: ParserFrame[] = [];
 
 	addCommand(source: CommandSource, command: string): void {
 		throw new Error("Method not implemented.");
