@@ -3,4 +3,4 @@
 <span class='command' id='league/define_module_x_unlock'>define module [ID] unlock</span>
 <span class='format'>[ID]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command presents an interactive dialog to configure an unlockable item in the module.</div>

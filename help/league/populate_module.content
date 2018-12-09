@@ -1,0 +1,22 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/populate_module'>populate module</span>
+<span class='format'>[ID] unlock [ID]</span>
+</div>
+<div class='description'>This command will try to find another unlock with the same name (not id) as the specified module unlock. 
+    The search will prefer unlocks defined in the same module, after which other modules will be searched.  The first unlock
+    with the same name, if any, is used to populate all the unconfigured properties of the specified unlock.
+</div>
+<div class='description'>The intended use of this command is for creation of many similar unlocks.  For example, you can 
+    create one unlock named &apos;Potion of Healing&apos; and fill in the rarity, DMG table, and related information.
+    For any additional potions of the same type, you only need to configure the name and then populate the rest automatically.
+    The UI supports this functionality when graphically configuring an unlock.
+</div>
+<div class='description'>
+    From the command line, an example use would be (assuming there is already another &apos;Potion of Healing&apos; defined):
+    <p><a href='#league/define_module_x_unlock_x_name'>!league define module foo unlock healing2 name Potion of Healing</a></p> 
+    <p><a href='#league/populate_module'>!league populate module foo unlock healing2</a></p> 
+</div>
+<div class='description'>Note you have to create the first item of each type yourself.  This tool cannot include the rarity and
+        table information for common items, because that is licensed content.
+</div>

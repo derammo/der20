@@ -3,4 +3,4 @@
 <span class='command' id='league/define_module_x_level_minimum'>define module [ID] level minimum</span>
 <span class='format'>[INTEGER]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting configures the minimum level for characters in this module.  It is defaulted based on the module tier.</div>

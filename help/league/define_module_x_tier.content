@@ -3,4 +3,7 @@
 <span class='command' id='league/define_module_x_tier'>define module [ID] tier</span>
 <span class='format'>[INTEGER]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting configures the default tier (1-4, or 0 if not specified) of the module or hardcover.  If the module is a hardcover, then 
+    the player characters&apos; APL during the game session will determine the default tier.  The per-session configuration command 
+    <a href='#league/session_module_x_tier'>!league session module current tier</a> can be used to manually override the tier in either case.
+</div>

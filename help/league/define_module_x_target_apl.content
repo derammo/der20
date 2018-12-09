@@ -3,4 +3,4 @@
 <span class='command' id='league/define_module_x_target_apl'>define module [ID] target apl</span>
 <span class='format'>[INTEGER]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting configures the target APL of the module.  It is defaulted to the middle of the configured level range.</div>

@@ -3,4 +3,11 @@
 <span class='command' id='league/session_module'>session module</span>
 <span class='format'>[ID/current]</span>
 </div>
-<div class='description'></div>
+<div class='description'>The magic string &apos;current&apos; refers to the current session module data.  During a session, exactly one module definition will
+    be loaded into that slot and then modified as the game progresses.  All necessary interaction should be done through the <a href="#league/session_show">!league session show</a> 
+    dialog, so you should never have to manually use these commands.  However, if you want to automate doing some of these operations, you can learn the required
+    paths by watching the commands executed by the dialog, provided <a href="#PLUGIN/option_echo">!league option echo true</a> is set, which it is by default.
+</div>
+<div class='description'>Using this command or any of its sub-commands with any ID other than &apos;current&apos; will load the specified module from 
+    the module definitions and replace the current session module data with it.
+</div>

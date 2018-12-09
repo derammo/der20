@@ -3,4 +3,4 @@
 <span class='command' id='league/define_module_x_unlock_x_awarded'>define module [ID] unlock [ID] awarded</span>
 <span class='format'>[TRUE/FALSE]</span>
 </div>
-<div class='description'></div>
+<div class='description'>If this setting is set to true, then the unlock is awarded by default.  The per-session configuration can override this default.</div>
