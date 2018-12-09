@@ -119,7 +119,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         dialog.beginControlGroup();
         dialog.addEditControl('Module Name', 'name', this.name, link);
         dialog.addEditControl('Season', 'season', this.season, link);
-        dialog.addEditControl('Hard Cover', 'hardcover', this.hardcover, link);
+        dialog.addEditControl('Hardcover', 'hardcover', this.hardcover, link);
         dialog.addSeparator();
         dialog.addEditControl('Tier', 'tier', this.tier, link);
         dialog.addEditControl('Minimum Level', 'level minimum', this.level.minimum, link);
@@ -139,6 +139,8 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 }
+
+type UniqueUnlock = { item: UnlockDefinition, count: number};
 
 export class LeagueModule extends LeagueModuleDefinition {
     // this is the actual APL of the party, written here when it is determined elsewhere
@@ -244,6 +246,23 @@ export class LeagueModule extends LeagueModuleDefinition {
             default:
                 super.handleChange(keyword);
         }
+    }
+
+    uniqueUnlocks(): UniqueUnlock[] {
+        let uniqueUnlocks: Map<string, UniqueUnlock> = new Map();
+        for (let item of this.unlocks.current) {
+            if (!item.awarded.value()) {
+                continue;
+            }
+            const key = [item.name.value(), item.description.value(), item.table.value(), item.rarity.value()].join(';');
+            if (!uniqueUnlocks.has(key)) {
+                uniqueUnlocks.set(key, { item: item, count: 1 });
+                continue;
+            }
+            let entry = uniqueUnlocks.get(key);
+            entry.count = entry.count + 1;
+        }
+        return Array.from(uniqueUnlocks.values());
     }
 } 
 

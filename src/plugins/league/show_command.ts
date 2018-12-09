@@ -57,7 +57,7 @@ export class ShowCommand extends RenderCommand {
         let module = this.module.current;
         dialog.addEditControl('Module Name', 'module current name', module.name, link);
         dialog.addEditControl('Season', 'module current season', module.season, link);
-        dialog.addEditControl('Hard Cover', 'module current hardcover', module.hardcover, link);
+        dialog.addEditControl('Hardcover', 'module current hardcover', module.hardcover, link);
         dialog.addSeparator();
         dialog.addEditControl('Tier', 'module current tier', module.tier, link);
         dialog.addEditControl('Minimum Level', 'module current level minimum', module.level.minimum, link);
@@ -78,8 +78,14 @@ export class ShowCommand extends RenderCommand {
             dialog.addEditControl(label, `module current objective ${objective.id} awarded`, objective.awarded, link);
         }
         for (let item of module.unlocks.current) {
-            const label = `Unlocked ${item.name.value()}`;
-            dialog.addEditControl(label, `module current unlock ${item.id} awarded`, item.awarded, link);
+            dialog.addEditControl(`Unlocked ${item.displayName()}`, `module current unlock ${item.id} awarded`, item.awarded, link);
+            if (item.awarded.value()) {
+                const choices = this.party.pcs.included();
+                if (choices.length > 0) {
+                    item.owner.setChoices(choices.map((pc) => { return pc.character.name }));
+                    dialog.addEditControl('Picked up by', `module current unlock ${item.id} owner`, item.owner, link);
+                }
+            }
         }
         dialog.endControlGroup();
         dialog.addSeparator();
@@ -104,10 +110,6 @@ export class ShowCommand extends RenderCommand {
         dialog.endControlGroup();
         dialog.addSeparator();
 
-        // dialog.addSubTitle('Consumables');
-        // REVISIT put a section here to provider a player picker for who received what consumable (needs support in league module definition)
-        // dialog.addSeparator();
-
         dialog.addSubTitle('Current Totals');
         dialog.beginControlGroup();
         let count = this.party.pcs.count();
@@ -117,13 +119,13 @@ export class ShowCommand extends RenderCommand {
             dialog.addTextLine('No Player Characters');
         }
         if (module.hasTierRewardsDifference()) {
-            // if hard cover, double treasure award for Tier 3+ characters
+            // if hardcover, double treasure award for Tier 3+ characters
             dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
             const explicitAwards = module.objectives.current.some(objective => {
                 return objective.awarded.value();
             });
             if (explicitAwards) {
-                // there should not be explicit check point awards in a hard cover, because the rules assume
+                // there should not be explicit check point awards in a hardcover, because the rules assume
                 // time-based awards, so make the DM figure this out if the rules allow this in the future
                 dialog.addTextLine(`You must manually calculate the treasure award for Tier 3 & 4 Characters`);
             } else {
