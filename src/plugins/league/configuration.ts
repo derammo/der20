@@ -1,4 +1,4 @@
-import { ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationValue, Result, ParserContext } from 'der20/library';
+import { ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationValue, Result, ParserContext, ConfigurationPopulateCommand, format } from 'der20/library';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 import { PartyState } from './ddal/party_state';
@@ -25,6 +25,19 @@ class DeleteCommands {
     constructor(definitions: Definitions, options: RewardsOptions) {
         this.module = new ConfigurationDeleteItemCommand(definitions.modules);
         this.dm = new ConfigurationDeleteItemCommand(definitions.dms);
+    }
+
+    toJSON(): any {
+        return undefined;
+    }
+}
+
+class PopulateCommands {
+    @format('ID] unlock [ID')
+    module: ConfigurationPopulateCommand;
+
+    constructor(definitions: Definitions) {
+        this.module = new ConfigurationPopulateCommand(definitions.modules);
     }
 
     toJSON(): any {
@@ -120,6 +133,7 @@ export class Configuration {
     options: RewardsOptions = new RewardsOptions();
     define: Definitions = new Definitions();
     delete: DeleteCommands = new DeleteCommands(this.define, this.options);
+    populate: PopulateCommands = new PopulateCommands(this.define);
 
     // current game session
     session: SessionConfiguration = new SessionConfiguration(this.define, undefined);
