@@ -1,0 +1,24 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/module_x_start'>module [ID/current] start</span>
+<span class='format'>[DATE/HOURS/BLANK]</span>
+</div>
+<div class='description'>This setting specifies the start time when the module session was begun, for 
+    calculation of hourly rewards and to put the date and time in the log sheet.
+</div>
+<div class='description'>The date and time can be specified in three different ways:
+    <ol>
+        <li>As a simple number, with or without a decimal point.</li>
+        <p>In this case, the start time is set to the specified number of hours before now.  For example, if you
+    have been playing for 3 1/2 hours, input <span class='code'>!rewards module start 3.5</span></p>
+    <li>As a full date/time string in a variety of formats.</li>
+    <p>Most standard date/time formats are recognized.</p>
+    <li>As nothing at all.</li>
+    <p>Ending the command after <span class='code'>start</span> sets the start time to now.</p>
+</ol>
+</div>
+<div class='description'>
+    When the start time is set, the session also records the player characters that were present at that time.
+    If not all players were actually present when this setting was last changed, you can set the start time again to
+    redo the scan for players.
+</div>

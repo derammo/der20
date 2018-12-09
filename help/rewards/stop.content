@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/stop'>stop</span>
+<span class='format'>[-&gt; module current stop]</span>
+</div>
+<div class='description'>This command just calls <a href="#rewards/module_x_stop">!rewards module current stop</a></div>

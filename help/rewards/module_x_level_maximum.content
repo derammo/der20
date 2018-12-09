@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/module_x_level_maximum'>module [ID/current] level maximum</span>
+<span class='format'>[INTEGER]</span>
+</div>
+<div class='description'></div>

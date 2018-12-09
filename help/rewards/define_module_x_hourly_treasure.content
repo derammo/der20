@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/define_module_x_hourly_treasure'>define module [ID] hourly treasure</span>
+<span class='format'>[NUMBER]</span>
+</div>
+<div class='description'></div>

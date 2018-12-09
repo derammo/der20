@@ -1,0 +1,64 @@
+<div class="title" id="rewards">!rewards</div>
+<div class="postcontent">
+    <p>This API Script is a rewards tracker for D&amp;D Adventurers League (DDAL) rewards tracking. &nbsp;Before the session,
+        you can enter all of the check point and treasure unlock information about the modules or hardcover you are running
+        for DDAL. &nbsp;Rules differences between Season 8 and previous season's modules are considered and customizable
+        if things change.</p>
+    <p>Configuration is via a command language, which you can store in handouts so you can move them from room to room, or you
+        can just type in commands at the prompt and have the built-in state system store it.</p>
+    <p>
+        <img src="./assets/rewards/1.png">
+    </p>
+    <p>
+        <img src="./assets/rewards/2.png">
+    </p>
+    <p>
+        <img src="./assets/rewards/3.png">
+    </p>
+
+    <p>During the session, you select which DM you are (in case of shared rooms) and what module or hard cover you are running.</p>
+
+    <p>
+        <img src="./assets/rewards/4.png">
+    </p>
+    <p>The <a href="#rewards/show">!rewards show</a></p>
+    <p>command then starts interactive use. &nbsp;It will show the rewards for the current module initialized to their defaults.
+        &nbsp;Depending on whether you are running a module or hardcover and depending on the tier and season, rewards are
+        calculated. &nbsp;You can override any of the defaults calculated for you.</p>
+    <p>
+        <img src="./assets/rewards/5.png">
+    </p>
+
+    <p>Then you interactively check off checkpoints as they are achieved and hit a start and stop timer for the session. &nbsp;Time
+        entry is either as an absolute time string, or empty string for "now" or a number meaning "this many hours ago."
+        &nbsp;So if you have been playing for about 3 hours, you can just hit start and type in "3."</p>
+    <p>When you set the start of the module, the script finds all player-owned characters in the game and adds them to the session
+        data. &nbsp;It selects the highest level character for each player as the probable player character. &nbsp;You can
+        then interactively correct which characters are included in the session. &nbsp; APL and player count are calculated
+        from this selection. &nbsp;In this example, there are two players: 'Ammo' and 'Test U.' &nbsp; &nbsp;'Test U' brought
+        at three characters to the session, only one of which counts.</p>
+   
+    <p>
+        <img src="./assets/rewards/6.png">
+    </p>
+
+    <p>For a Season 8+ module, you might have several explicit checkpoints and no rewards per hour:</p>
+    <p>
+        <img src="./assets/rewards/9.png">
+    </p>
+    <p>Finally, you can compile the rewards page in private and check everything before you share it with all the players.</p>
+
+    <p>
+        <img src="./assets/rewards/7.png">
+    </p>
+    <p>
+        <img src="./assets/rewards/8.png">
+    </p>
+</div>
+<div class="notes">
+    <p>Development on this tool continues. &nbsp;There is a feature to directly import this reward information into the website
+        <a href="https://www.adventurersleaguelog.com">https://www.adventurersleaguelog.com</a>. &nbsp;However, this functionality won't be enabled until the server side code
+        can be implemented under this issue&nbsp;
+        <a href="https://github.com/Ariel-Thomas/adventurers-league-log/issues/157">https://github.com/Ariel-Thomas/adventurers-league-log/issues/157</a>
+    </p>
+</div>

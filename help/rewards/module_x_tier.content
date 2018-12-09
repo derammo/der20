@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!rewards</span>
+<span class='command' id='rewards/module_x_tier'>module [ID/current] tier</span>
+<span class='format'>[INTEGER]</span>
+</div>
+<div class='description'></div>
