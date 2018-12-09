@@ -127,6 +127,31 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         return copied;
     }
 
+    /**
+     * @param source array of items to clone, potentially changing their type to our element type
+     */
+    cloneFrom(source: any) {
+        this.current = [];
+        this.idToIndex = {};
+        if (source === undefined) {
+            throw new Error('undefined property used as source of cloning operation; logic error');
+        }
+        if (source.current === undefined) {
+            // this could happen if we call this function with the wrong sort of object
+            throw new Error('undefined current value as source of cloning operation; logic error');
+        }
+        if (!Array.isArray(source.current)) {
+            // this could happen if we call this function with the wrong sort of object
+            throw new Error('non-array current value used as source of cloning operation; logic error');
+        }
+        for (let item of source.current) {
+            if (item.id === undefined) {
+                throw new Error('attempt to clone an array of items that are not of type CollectionItem; logic error');
+            }
+            this.addItem(item.id, cloneExcept(this.classType, item, ['id']));
+        }
+    }
+
     private createItemChoiceDialog(context: ParserContext): DialogResult {
         let dialog = new context.dialog();
         dialog.addTitle(`Selection for '${this.keyword}'`);

@@ -39,6 +39,13 @@ export function cloneExcept<T>(
             continue;
         }
         let item: any = source[key];
+        if (copied[key] !== undefined) {
+            // give target a chance to upgrade item class during cloning
+            if (typeof copied[key].cloneFrom === 'function') {
+                copied[key].cloneFrom(source[key]);
+                continue;
+            }
+        }
         if (item.clone === undefined) {
             throw new Error(`clone function is not implemented on key '${key}' of class ${factory.name}`);
         }

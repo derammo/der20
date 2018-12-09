@@ -1,74 +1,6 @@
-import { clone, ConfigurationTermination, ParserContext, Result, Success, DialogResult, data, DialogAware, Dialog } from 'der20/library';
-import { ConfigurationArray } from 'der20/library';
-import { ConfigurationBoolean, ConfigurationDate, ConfigurationFloat, ConfigurationInteger } from 'der20/library';
-import { ConfigurationChangeHandling } from 'der20/library';
-import { ConfigurationEnumerated } from 'der20/library';
-import { ConfigurationIntermediateNode } from 'der20/library';
-import { ConfigurationValue } from 'der20/library';
-import { ConfigurationString } from 'der20/library';
-
-export class Objective implements DialogAware {
-    // can't be undefined, because we need to detect that we can load it
-    id: string = null;
-
-    name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-    advancement: ConfigurationInteger = new ConfigurationInteger(1);
-    treasure: ConfigurationInteger = new ConfigurationInteger(1);
-    dm: ConfigurationBoolean = new ConfigurationBoolean(true);
-    players: ConfigurationBoolean = new ConfigurationBoolean(true);
-    awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
-
-    buildControls(dialog: Dialog, link: Dialog.Link): void {
-        dialog.addEditControl('Objective Name', 'name', this.name, link);
-        dialog.addEditControl('Advancement Checkpoints', 'advancement', this.advancement, link);
-        dialog.addEditControl('Treasure Checkpoints', 'treasure', this.treasure, link);
-        dialog.addEditControl('Award to Players', 'players', this.players, link);
-        dialog.addEditControl('Award to DM', 'dm', this.dm, link);
-    }
-}
-
-// can't use enum type in generic, so we use a list of possible values instead
-export const Rarity: string[] = [ "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique" ];
-
-export class Unlock implements DialogAware {
-    // can't be undefined, because we need to detect that we can load it
-    id: string = null;
-
-    // name of item
-    name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-
-    // item description including flavor text
-    description: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-
-    // rarity value, capitalized 
-    rarity: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationValue.UNSET, Rarity);
-
-    // tier restriction for item
-    tier: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);
-
-    // item is considered to be from this table for trading purposes
-    table: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-
-    // can unlock be awarded to players?
-    players: ConfigurationBoolean = new ConfigurationBoolean(true);
-
-    // can unlock be awarded to DM?
-    dm: ConfigurationBoolean = new ConfigurationBoolean(false);
-
-    // actually awarded for this session?
-    awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
-
-    buildControls(dialog: Dialog, link: Dialog.Link): void {
-        dialog.addEditControl('Item Name', 'name', this.name, link);
-        dialog.addEditControl('Description', 'description',this.description, link);
-        dialog.addEditControl('Rarity', 'rarity', this.rarity, link);
-        dialog.addEditControl('Item Tier', 'tier', this.tier, link);
-        dialog.addEditControl('DMG Table', 'table', this.table, link);
-        dialog.addEditControl('Award to Players', 'players', this.players, link);
-        dialog.addEditControl('Award to DM', 'dm', this.dm, link);
-    }
-}
-
+import { ConfigurationArray, ConfigurationBoolean, ConfigurationChangeHandling, ConfigurationDate, ConfigurationFloat, ConfigurationInteger, ConfigurationIntermediateNode, ConfigurationString, ConfigurationTermination, ConfigurationValue, DialogResult, ParserContext, Result, Success, clone, data } from 'der20/library';
+import { Objective } from './objective';
+import { Unlock, UnlockDefinition } from './unlock';
 
 class TargetConfiguration extends ConfigurationIntermediateNode {
     /**
@@ -83,7 +15,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
 
     name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     objectives: ConfigurationArray<Objective> = new ConfigurationArray<Objective>('objective', Objective);
-    unlocks: ConfigurationArray<Unlock> = new ConfigurationArray<Unlock>('unlock', Unlock);
+    unlocks: ConfigurationArray<UnlockDefinition> = new ConfigurationArray<UnlockDefinition>('unlock', UnlockDefinition);
     tier: ConfigurationInteger = new ConfigurationInteger(0);
     season: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);
     hardcover: ConfigurationBoolean = new ConfigurationBoolean(false);
@@ -212,6 +144,10 @@ export class LeagueModule extends LeagueModuleDefinition {
     // this is the actual APL of the party, written here when it is determined elsewhere
     @data
     apl: number;
+
+    // NOTE: this upgrades the type of a property from the base class, which works correctly
+    // because ConfigurationArray implements 'cloneFrom(...)' in such a way as to upgrade the items to 'Unlock' on copy
+    unlocks: ConfigurationArray<Unlock> = new ConfigurationArray<Unlock>('unlock', Unlock);
 
     session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
