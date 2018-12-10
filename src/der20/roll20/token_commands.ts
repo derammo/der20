@@ -17,7 +17,8 @@ export class CommandsFromTokens extends CommandsFromNotes {
         }
         debug.log(`completed scan of all tokens in ${Date.now() - start}ms`);
         // register for changes
-        on('change:graphic', (current: any, previous: any) => {
+        // NOTE: previous is a dictionary saved via toJSON, while current is the actual Graphic object
+        on('change:graphic', (current: Graphic, previous: any) => {
             this.plugin.swapIn();
             if (current.get('gmnotes') !== previous.gmnotes) {
                 this.plugin.queryCommandSource(this, current);
@@ -33,7 +34,7 @@ export class CommandsFromTokens extends CommandsFromNotes {
             }
             return;
         }
-        this.readToken(opaque, context);
+        this.readToken(<Graphic>opaque, context);
     }
 
     private getTokens(): Graphic[] {
@@ -47,8 +48,7 @@ export class CommandsFromTokens extends CommandsFromNotes {
         });
     }
 
-    // WARNING: the Graphic type in api.d.ts is incorrectly claiming gmnotes is a synchronous read property, so we can't use the type here
-    readToken(token: any, context: LoaderContext) {
+    readToken(token: Graphic, context: LoaderContext) {
         // check ownership of token to make sure it is not editable by player, who could be sending us commands via import
         let controllers = token.get('controlledby');
         let name = token.get('name');
@@ -62,10 +62,12 @@ export class CommandsFromTokens extends CommandsFromNotes {
         if (text.length < 1) {
             return;
         }
+
         // token gmnotes are URL escaped for some reason
         text = text.replace(/%([0-9A-F][0-9A-F])/g, (match: string, hex2: string) => {
             return String.fromCharCode(parseInt(hex2, 16));
         });
+
         // now do our regular quick scan for a command
         // as long as some plugin command is the first line, we invest the time to read through
         if (!text.match(/^(<[a-z0-9]+>)*"?!/g)) {

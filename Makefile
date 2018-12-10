@@ -131,6 +131,8 @@ dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.
 		< include/plugin_trailer.js.txt >> $@	
 	@chmod 444 $@
 	@echo packaging $< as as separate plugin $@ for Roll20
+# WARNING: to replace exports with	-e 's/^[[:space:]]*exports\.[[:alnum:]]* = [[:alnum:]]*;$$//g' 
+# we first have to deal with the helper code that uses the exports as locals (see code for LeagueModule namespace)
 merged/build/der20/%_plugin.js: merged/compile/der20/%_plugin.js Makefile
 	@echo translating $< to $@
 	@mkdir -p merged/build/der20
@@ -139,8 +141,6 @@ merged/build/der20/%_plugin.js: merged/compile/der20/%_plugin.js Makefile
 		-e 's/\([[:space:]\[(]\)library_[0-9]*\./\1der20_library./g' \
 		-e 's/^});//' \
 		$< > $@
-	# WARNING: to replace exports with	-e 's/^[[:space:]]*exports\.[[:alnum:]]* = [[:alnum:]]*;$$//g' 
-	# we first have to deal with the helper code that uses the exports as locals (see code for LeagueModule namespace)
 	@cat src/sys/plugin_loader.js >> $@
 merged/compile/der20/%_plugin.js: merged/src/der20/%_plugin.ts merged/compile/der20/library.js src/sys/plugin_loader.js merged/tsconfig_%_plugin.json Makefile
 	@touch -r merged/compile/der20/library.js merged/compile/library.stamp
