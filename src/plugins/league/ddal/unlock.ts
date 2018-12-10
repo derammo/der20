@@ -1,9 +1,9 @@
-import { ConfigurationBoolean, ConfigurationChangeHandling, ConfigurationEnumerated, ConfigurationInteger, ConfigurationString, ConfigurationValue, Dialog, LargeTableItem, format } from 'der20/library';
+import { ConfigurationBoolean, ConfigurationEnumerated, ConfigurationInteger, ConfigurationString, ConfigurationValue, Dialog, LargeTableItem, format } from 'der20/library';
 
 // can't use enum type in generic, so we use a list of possible values instead
 export const Rarity: string[] = [ "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique" ];
 
-export class UnlockDefinition extends LargeTableItem implements ConfigurationChangeHandling {
+export class UnlockDefinition extends LargeTableItem {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
 
@@ -61,17 +61,6 @@ export class UnlockDefinition extends LargeTableItem implements ConfigurationCha
        
     itemTitle(): string {
         return `Unlock ${this.id}`;
-    }
-
-    handleChange(changedKeyword: string): void {
-        if (changedKeyword === 'name') {
-            // REVISIT look through all module definitions, starting with the current one, and copy all the other values (except for location)
-            // for any values that are UNSET in this instance
-            // REVISIT: how would we do that?  we can't access the parser stack in change handlers (intentionally) so is there some other way to deal with this advanced case?
-            // NOTE: if we put the current call stack in the context as discussed elsewhere, maybe this could be an advanced parse() implementation?
-            // XXX better idea: since this would make configuration command order-dependent, instead just show a button when an unlock has only had its name configured and is elsewhere available to "Copy existing..."
-            // NOTE: we still need to reach up the stack frames to find the module and the collection of modules
-        }
     }
 
     displayName(): string {
