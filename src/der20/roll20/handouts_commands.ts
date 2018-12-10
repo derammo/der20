@@ -171,7 +171,7 @@ export class CommandsFromHandouts extends CommandsFromNotes {
         });
         let whenDone = (text: string) => {
             debug.log(`scanning handout '${name}'`);
-            if (!text.match(/^(<[a-z0-9]+>)*"?!/g)) {
+            if (!text.match(/^(<[a-z0-9]+( style="[^"]*")?>)*"?!/g)) {
                 // as long as some plugin command is the first line, we invest the time to read through
                 debug.log('ignoring handout that does not have a command in the first line of GM Notes');
                 debug.log(`ignored GM Notes start with '${text.substring(0,10)}...'`)

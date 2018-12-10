@@ -38,36 +38,33 @@ export abstract class CommandsFromNotes implements ConfigurationCommandSource {
     abstract query(context: LoaderContext, opaque: any): void;
     
     static extractLines(text: string): string[] {
+        let lines: string[] = [];
+
         // deal with formatting from interactive use
-        let lines: string[];
-        let regex = /<p>(.*?)<\/p>/g;
-        lines = [];
-        // REVISIT configurable
-        let limit = 1000;
-        for (let i=0; i<limit; i++) {
-            let match = regex.exec(text);
-            // NOTE: regex.exec returns null instead of undefined
-            let paragraph;
-            if (match !== null) {
-                paragraph = match[1];
-            } else if (i === 0) {
-                // no paragraph marks at all
-                paragraph = text;
-            } else {
-                // done with paragraph tags
-                break;
+        // consider every text section to be a line
+        const sections: string[] = text.split(/<\/?[a-zA-Z0-9]+(?: style="[^"]*")?>/);
+        for (let section of sections) {
+            if (section === undefined) {
+                continue;
             }
-            // editing in UI will add break tags
-            for (let line of paragraph.split('<br>')) {
+            if (section.length < 1) {
+                continue;
+            }
+            for (let line of section.split('\n')) {
+                if (line.length < 1) {
+                    // don't waste time on empty lines
+                    continue;
+                }
                 let cleaned = line
-                    .replace(/<\/?[a-zA-Z0-9]+(>|$)/g, '') // remove common tags with alphanumeric names
                     .replace(/&lt;/g, '<')
                     .replace(/&gt;/g, '>')
                     .replace(/&#(\d+);/g, (regexMatch: string, code: string) => { return String.fromCharCode(parseInt(code, 10)); })
                     .replace(/&[a-zA-Z0-9]+;/g, ' ') // replace any remaining entities with spaces
                     .replace(/  +/g, ' ') // collapse runs of spaces
                     .trim();
-                lines.push(cleaned);
+                if (cleaned.length > 0) {
+                    lines.push(cleaned);
+                }
             }
         }
         return lines;       
