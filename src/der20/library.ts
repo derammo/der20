@@ -44,3 +44,4 @@ export { CollectionItem } from 'der20/interfaces/config';
 export { ConfigurationPopulateCommand } from 'der20/config/populate';
 export { ItemRemoval } from 'der20/interfaces/config';
 export { LargeTableItem } from 'der20/config/largetableitem';
+export { ExportContext } from 'der20/interfaces/parser';

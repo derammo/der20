@@ -1,4 +1,4 @@
-import { ConfigurationParsing, ParserContext } from "der20/interfaces/parser";
+import { ConfigurationParsing, ParserContext, ExportContext } from "der20/interfaces/parser";
 import { ConfigurationLoading, LoaderContext } from "der20/interfaces/loader";
 import { Result } from "der20/interfaces/result";
 import { ConfigurationValue } from "der20/interfaces/config";
@@ -14,6 +14,7 @@ export abstract class ConfigurationStep<T> implements ConfigurationParsing, Conf
     }
 
     abstract parse(line: string, context: ParserContext): Result;
+    abstract export(context: ExportContext): void;
 
     load(json: any, context: LoaderContext) {
         this.current = json;

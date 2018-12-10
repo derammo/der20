@@ -18,6 +18,7 @@ import { PromiseQueue } from 'der20/plugin/promise';
 import { Der20ChatDialog } from 'der20/roll20/dialog';
 import { CommandSourceFactory, ConfigurationCommandSource, CommandSink } from 'der20/interfaces/source';
 import { ApiCommandSource, ChatCommandSource } from './chat';
+import { ConfigurationExportCommand } from './export';
 
 // from our wrapper
 declare var der20ScriptMode: string | undefined;
@@ -146,7 +147,14 @@ class PluginImplementation<T> implements CommandSink {
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'reset');
         }
 
+        // add export command
+        if (this.configurationRoot.export === undefined) {
+            this.configurationRoot.export = new ConfigurationExportCommand(this.configurationRoot);
+            common('PLUGIN')(this.configurationRoot.constructor.prototype, 'export');
+        }   
+
         // add help command
+        // WARNING: must be added last, because it enumerates the world when constructed
         if (this.configurationRoot.help === undefined) {
             this.configurationRoot.help = new HelpCommand(this.name, this.configurationRoot);
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'help');
@@ -184,7 +192,6 @@ class PluginImplementation<T> implements CommandSink {
         if (
             context.options.echo.value() &&
             result.kind !== Result.Kind.Asynchronous &&
-            result.kind !== Result.Kind.Dialog &&
             context.source.kind === CommandSource.Kind.Api
         ) {
             // NOTE: we don't actually use the contents of this dialog; it just provides the direct rendering of the command echo,
@@ -319,6 +326,7 @@ class PluginImplementation<T> implements CommandSink {
         }
     }
 
+    // XXX call utility object in another source file
     handleErrorThrown(error: Error, context?: PluginParserContext) {
         let frames = error.stack;
         let bodyText = [];

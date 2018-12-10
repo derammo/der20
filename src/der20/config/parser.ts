@@ -1,5 +1,5 @@
 import { PropertyDecoratorFunction, Der20Meta } from './meta';
-import { ParserContext, ConfigurationTermination, ConfigurationParsing } from 'der20/interfaces/parser';
+import { ParserContext, ConfigurationTermination, ConfigurationParsing, ExportContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
 import { Success, Failure } from 'der20/config/result';
 import { ConfigurationChangeHandling } from 'der20/interfaces/config';
@@ -41,7 +41,8 @@ export class ConfigurationParser {
     }
 
     static parse(line: string, configuration: any, context: ParserContext): Result {
-        debug.log(`parsing "${line}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`); 
+        // REVISIT this is far too expensive to serialize even when we are not debugging, we need to be able to check the global debug flag to guard this
+        // debug.log(`parsing "${line}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`); 
 
         if (line.length === 0) {
             // check if 'configuration' has handler to create UI or otherwise handle
@@ -164,5 +165,59 @@ export class ConfigurationParser {
         }
 
         return undefined;
+    }
+
+    static export(configuration: any, context: ExportContext): void {
+        if (configuration === undefined) {
+            return;
+        }
+        debug.log(`exporting configuration from ${configuration.constructor.name}`);
+        if (typeof configuration.export === 'function') {
+            // configuration object implements its own parsing
+            // validation and events were done one frame higher
+            const parsingObject = <ConfigurationParsing>configuration;
+            debug.log(`${configuration.constructor.name} supports export function`);
+            parsingObject.export(context);
+            return;
+        }
+
+        // enumerate keywords
+        const meta = Der20Meta.fetch(configuration.constructor.prototype);
+        for (let key of Object.getOwnPropertyNames(configuration)) {
+            const child = configuration[key];
+            let keywordToken = key;
+            if (typeof child !== 'object') {
+                debug.log(`${configuration.constructor.name} not exporting non-object key ${key}`);
+                continue;
+            }
+            if (Array.isArray(child)) {
+                debug.log(`${configuration.constructor.name} not exporting array key ${key}`);
+                continue;
+            }
+            if (child.hasOwnProperty('keyword')) {
+                keywordToken = child.keyword;
+            }
+            if (meta !== undefined) {
+                const property = meta.properties[key];
+                if (property !== undefined) {
+                    if (property.ephemeral) {
+                        debug.log(`${configuration.constructor.name} not exporting ephemeral key ${key}`);
+                        continue;
+                    }
+                    if (property.data) {
+                        debug.log(`${configuration.constructor.name} not exporting data key ${key}`);
+                        continue;
+                    }
+                    if (property.keyword !== undefined) {
+                        debug.log(`${configuration.constructor.name} property ${key} has keyword ${property.keyword}`);
+                        keywordToken = property.keyword;
+                    }
+                }
+            }
+            debug.log(`${configuration.constructor.name} exporting keyword ${keywordToken}`);
+            context.push(keywordToken);
+            ConfigurationParser.export(child, context);
+            context.pop();
+        }
     }
 }

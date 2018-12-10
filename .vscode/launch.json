@@ -8,8 +8,8 @@
             "type": "node",
             "request": "launch",
             "name": "Parser Test",
-            "program": "${workspaceFolder}/src/parser_test/main.ts",
-            "preLaunchTask": "tsc: build - src/parser_test/tsconfig.json",
+            "program": "${workspaceFolder}/src/executables/parser_test/main.ts",
+            "preLaunchTask": "tsc: build - src/executables/parser_test/tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],
@@ -19,8 +19,8 @@
             "type": "node",
             "request": "launch",
             "name": "Handout Test",
-            "program": "${workspaceFolder}/src/handout_test/main.ts",
-            "preLaunchTask": "tsc: build - src/handout_test/tsconfig.json",
+            "program": "${workspaceFolder}/src/executables/handout_test/main.ts",
+            "preLaunchTask": "tsc: build - src/executables/handout_test/tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],
@@ -30,8 +30,19 @@
             "type": "node",
             "request": "launch",
             "name": "Help Test",
-            "program": "${workspaceFolder}/src/help_test/main.ts",
-            "preLaunchTask": "tsc: build - src/help_test/tsconfig.json",
+            "program": "${workspaceFolder}/src/executables/help_test/main.ts",
+            "preLaunchTask": "tsc: build - src/executables/help_test/tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Minimal Test",
+            "program": "${workspaceFolder}/src/executables/minimal/main.ts",
+            "preLaunchTask": "tsc: build - src/executables/minimal/tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],

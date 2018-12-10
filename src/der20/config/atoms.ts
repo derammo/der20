@@ -1,5 +1,5 @@
 import { ConfigurationStep } from 'der20/config/base';
-import { ParserContext, ConfigurationTermination } from 'der20/interfaces/parser';
+import { ParserContext, ConfigurationTermination, ExportContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
 import { Change } from 'der20/config/result';
 import { ConfigurationValue } from 'der20/interfaces/config';
@@ -13,6 +13,10 @@ export abstract class ConfigurationCommand extends ConfigurationStep<boolean> {
     toJSON(): any {
         return undefined;
     }
+
+    export(context: ExportContext): void {
+        // do not export
+    }
 }
 
 // no actual data, subclassed by steps that just take an action without additional tokens
@@ -21,6 +25,10 @@ export abstract class ConfigurationSimpleCommand implements ConfigurationTermina
 
     toJSON(): any {
         return undefined;
+    }
+
+    export(context: ExportContext): void {
+        // do not export
     }
 }
 
@@ -36,6 +44,12 @@ export class ConfigurationInteger extends ConfigurationStep<number> {
             this.current = parseInt(line, 10);
         }
         return new Change(`set integer value ${this.current}`);
+    }
+
+    export(context: ExportContext): void {
+        if (this.hasConfiguredValue()) {
+            context.addRelativeCommand(`${this.current}`);
+        }
     }
 
     clone() {
@@ -56,6 +70,12 @@ export class ConfigurationFloat extends ConfigurationStep<number> {
             this.current = parseFloat(line);
         }
         return new Change(`set float value ${this.current}`);
+    }
+
+    export(context: ExportContext): void {
+        if (this.hasConfiguredValue()) {
+            context.addRelativeCommand(`${this.current}`);
+        }
     }
 
     clone() {
@@ -80,6 +100,12 @@ export class ConfigurationDate extends ConfigurationStep<number> {
         return new Change(`set date value ${new Date(this.current).toUTCString()}`);
     }
 
+    export(context: ExportContext): void {
+        if (this.hasConfiguredValue()) {
+            context.addRelativeCommand(new Date(this.current).toUTCString());
+        }
+    }
+
     clone() {
         let copied = new ConfigurationDate(this.value());
         return copied;
@@ -100,6 +126,12 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
             this.current = ConfigurationBoolean.trueValues.has(line);
         }
         return new Change(`set boolean value ${this.current}`);
+    }
+
+    export(context: ExportContext): void {
+        if (this.hasConfiguredValue()) {
+            context.addRelativeCommand(`${this.current}`);
+        }
     }
 
     clone() {

@@ -4,7 +4,7 @@ import { DialogResult, Change, Failure, Success } from './result';
 import { ConfigurationLoader } from './loader';
 import { ConfigurationStep } from 'der20/config/base';
 import { LoaderContext } from 'der20/interfaces/loader';
-import { ParserContext } from 'der20/interfaces/parser';
+import { ParserContext, ExportContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
 import { CollectionItem, Collection, ConfigurationValue } from 'der20/interfaces/config';
 
@@ -124,6 +124,14 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
             result.messages.unshift(`created item ${id}`);
             result.events.add(Result.Event.Change);
             return result;
+        }
+    }
+
+    export(context: ExportContext): void {
+        for (let item of this.current) {
+            context.push(item.id);
+            ConfigurationParser.export(item, context);
+            context.pop();
         }
     }
 
@@ -273,6 +281,13 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
         return this.loadItem(id, tokens[1], context);
     }
 
+    export(context: ExportContext): void {
+        // REVISIT: is there a use case for exporting the ephemeral state of our selected item?
+        if (this.selectedId !== undefined) {
+            context.addRelativeCommand(this.selectedId);
+        }
+    }
+    
     private loadItem(id: string, rest: string, context: ParserContext): Result {
         let index = this.array.findItem(id);
         this.current = cloneExcept(this.classType, this.array.current[index], ['id']);

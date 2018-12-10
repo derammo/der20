@@ -1,7 +1,7 @@
 import { ConfigurationStep } from 'der20/config/base';
 import { Result } from 'der20/interfaces/result';
 import { LoaderContext } from 'der20/interfaces/loader';
-import { ParserContext } from 'der20/interfaces/parser';
+import { ParserContext, ExportContext } from 'der20/interfaces/parser';
 import { Change } from 'der20/config/result';
 import { ItemRemoval } from 'der20/interfaces/config';
 
@@ -35,6 +35,12 @@ export class ConfigurationSet extends ConfigurationStep<Set<string>> implements 
     parse(line: string, context: ParserContext): Result {
         this.current.add(line);
         return new Change('item added to collection, if not already present');
+    }
+
+    export(context: ExportContext): void {
+        for (let item of this.current) {
+            context.addRelativeCommand(item);
+        }
     }
 
     removeItem(id: string): boolean {

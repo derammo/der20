@@ -1,5 +1,5 @@
 import { ConfigurationStep } from "der20/config/base";
-import { ParserContext } from "der20/interfaces/parser";
+import { ParserContext, ExportContext } from "der20/interfaces/parser";
 import { Result } from "der20/interfaces/result";
 import { Change } from "der20/config/result";
 import { ConfigurationValue } from "der20/interfaces/config";
@@ -16,6 +16,12 @@ export class ConfigurationString extends ConfigurationStep<string> {
             this.current = line;
         }
         return new Change(`set string value '${this.current}'`);
+    }
+
+    export(context: ExportContext): void {
+        if (this.hasConfiguredValue()) {
+            context.addRelativeCommand(this.current);
+        }
     }
 
     clone() {

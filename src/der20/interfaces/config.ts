@@ -77,3 +77,4 @@ export interface ConfigurationChangeHandling {
 export interface ConfigurationChangeDelegation {
     onChangeEvent(handler: (changedKeyword: string) => void): void;
 }
+

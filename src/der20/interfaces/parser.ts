@@ -22,11 +22,24 @@ export interface ParserContext {
     frames: ParserFrame[];
 }
 
+
+/**
+ * Context for enumeration of all currently active configuration commands
+ */
+export interface ExportContext {
+    push(token: string): void;
+    pop(): string;
+    prefix(): string;
+    addCommand(line: string): void;
+    addRelativeCommand(rest: string): void;
+}
+
 /**
  * Classes that handle their own parsing implement this.
  */
 export interface ConfigurationParsing {
     parse(line: string, context: ParserContext): Result;
+    export(context: ExportContext): void;
 }
 
 /**

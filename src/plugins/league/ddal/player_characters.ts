@@ -1,4 +1,4 @@
-import { Der20Player, Der20Character, ConfigurationStep, ConfigurationBoolean, ParserContext, Result, Failure } from "der20/library";
+import { ConfigurationBoolean, ConfigurationStep, Der20Character, Der20Player, ExportContext, Failure, ParserContext, Result } from "der20/library";
 
 class PlayerCharacter {
     // REVISIT: is it a problem that we hold references to these characters and players?  what happens if they are deleted in the GUI?
@@ -83,6 +83,10 @@ export class PlayerCharacters extends ConfigurationStep<PlayerCharacter[]> {
         return new Failure(new Error(`the specified player and character combination does not exist`));
     }
 
+    export(context: ExportContext): void {
+        // do not export, this object is ephemeral
+    }
+    
     count(): number {
         return this.characters.reduce((count, item) => {
             return count + (item.selected.value() ? 1 : 0);
