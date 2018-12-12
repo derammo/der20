@@ -2,4 +2,6 @@
 <span class='plugin'>!league</span>
 <span class='command' id='league/session_clear'>session clear</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command discards all per-session configuration.  It is intended
+    to be used when starting a new game session.
+</div>

@@ -1,0 +1,10 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/define_module_x_unlock_x_consumable'>define module [ID] unlock [ID] consumable</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'>If set to true, this unlock uses the consumables rules.  Specifically, the player character
+    that picks up the consumable gets to keep it at the end of the session, while any picked up permanent magic items 
+    disappear.  Setting this to true causes this unlock to be included in the session report as both an unlock and 
+    a note specifying which character picked up the item, if specified via <a href='#league/session_module_x_unlock_x_owner'>!league session module current unlock [ID] owner</a>.
+</div>

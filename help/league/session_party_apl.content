@@ -3,4 +3,6 @@
 <span class='command' id='league/session_party_apl'>session party apl</span>
 <span class='format'>[NUMBER]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting can be used to override the automatically calculated Average Party Level (APL) if
+    it was not correctly calculated.  This can happen if not all player characters are specified in the session data.
+</div>

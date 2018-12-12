@@ -6,6 +6,10 @@ import { Success, DialogResult } from "der20/config/result";
 import { ConfigurationArray } from "./array";
 import { ConfigurationString } from "./string";
 
+/**
+ * Collection item with complex configuration, which supports its own configuration
+ * dialog so that it does not have to be repeatedly inlined into a dialog.
+ */
 export abstract class LargeTableItem implements DialogAware, CollectionItem, ConfigurationTermination {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;

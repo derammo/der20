@@ -10,7 +10,9 @@
     <p>The minimum required configuration is to declare a DM and a module.  You can do this by executing <a href="#league/define_dm">!league define dm ID</a> and <a href="#league/define_module">!league define module ANOTHER_ID</a>.
         In these commands, replace 'ID' with some short word that identifies your DM entry, such as your first name.  Replace 'ANOTHER_ID' with a short word that identifies the module, such as the DDAL module code.
     </p>
-    <p>Both of these commands will then run a dialog, where you can fill in the information about these items.</p>
+    <p>Both of these commands will then run a dialog, where you can fill in the information about these items.  Please note that the following screen shots may be out of date, but the same information is 
+        presented by the current dialogs, even if the formatting is different.
+    </p>
     <p>
         <img src="./assets/league/module.png">
     </p>

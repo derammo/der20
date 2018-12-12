@@ -3,4 +3,6 @@
 <span class='command' id='league/session_module_x_objective_x_awarded'>session module [ID/current] objective [ID] awarded</span>
 <span class='format'>[TRUE/FALSE]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting should be set to true when the player characters achieve the objective.
+</div>
+<div class='description'>The rewards for this objective are then included in the totals.</div>

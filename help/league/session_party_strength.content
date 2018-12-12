@@ -3,4 +3,12 @@
 <span class='command' id='league/session_party_strength'>session party strength</span>
 <span class='format'>[STRING]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting can be used to override the automatically calculated 
+    party strength.  The standard values (Very Weak, Weak, Average, Strong, and Very Strong)
+    are set automatically based on the number and APL of player characters in the session
+    and the target APL of the current module.
+</div>
+<div class='description'>Additional unofficial values can be used at DM discretion (e.g. Epic, Hard Core,
+    Nightmare, TPK) but future module scaling features may not know which of these are higher
+    than each other, so they should be used sparingly.
+</div>

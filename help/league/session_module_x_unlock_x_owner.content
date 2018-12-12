@@ -1,0 +1,12 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/session_module_x_unlock_x_owner'>session module [ID/current] unlock [ID] owner</span>
+<span class='format'>[STRING]</span>
+</div>
+<div class='description'>This setting should be set to the name of a player character that picked up
+    the unlocked item in the adventure.  If the item is marked as a <a href='#league/define_module_x_unlock_x_consumable'>consumable</a>, then it will be kept by that player
+    at the end of the adventure (if not consumed.)
+</div>
+<div class='description'>The interactive dialogs provide a player picker to configure this setting, provided
+    the player characters have been scanned, which is usually done by starting the session.
+</div>

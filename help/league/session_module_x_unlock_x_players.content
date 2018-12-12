@@ -3,4 +3,4 @@
 <span class='command' id='league/session_module_x_unlock_x_players'>session module [ID/current] unlock [ID] players</span>
 <span class='format'>[TRUE/FALSE]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting is a per-session override for <a href='#league/define_module'>!league define module ...</a>.</div>
