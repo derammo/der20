@@ -1,4 +1,4 @@
-import { CommandSource } from "der20/interfaces/config";
+import { CommandInput } from "der20/interfaces/config";
 import { DialogFactory } from "der20/interfaces/ui";
 import { Result } from "der20/interfaces/result";
 
@@ -15,7 +15,7 @@ export interface ParserFrame {
  */
 export interface ParserContext {
     asyncVariables: Record<string, any>;
-    source: CommandSource;
+    input: CommandInput;
     command: string;
     rest: string;
     dialog: DialogFactory;

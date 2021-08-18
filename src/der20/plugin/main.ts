@@ -6,8 +6,8 @@ import { ConfigurationLoader } from 'der20/config/loader';
 import { ConfigurationParser } from 'der20/config/parser';
 import { ConfigurationPersistence } from 'der20/config/persistence';
 import { Asynchronous, Change, DialogResult, Failure } from 'der20/config/result';
-import { CommandSourceImpl } from 'der20/config/source';
-import { CommandSource, ConfigurationContext } from 'der20/interfaces/config';
+import { CommandInputImpl } from 'der20/config/input';
+import { CommandInput, ConfigurationContext } from 'der20/interfaces/config';
 import { LoaderContext } from 'der20/interfaces/loader';
 import { ParserContext, ParserFrame } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
@@ -16,8 +16,8 @@ import { BuiltinConfiguration } from 'der20/plugin/configuration';
 import { Options } from 'der20/plugin/options';
 import { PromiseQueue } from 'der20/plugin/promise';
 import { Der20ChatDialog } from 'der20/roll20/dialog';
-import { CommandSourceFactory, ConfigurationCommandSource, CommandSink } from 'der20/interfaces/source';
-import { ApiCommandSource, ChatCommandSource } from './chat';
+import { CommandSourceFactory, CommandSource, CommandSink } from 'der20/interfaces/source';
+import { ApiCommandInput, ChatCommandSource } from './chat';
 import { ConfigurationExportCommand } from './export';
 
 // from our wrapper
@@ -71,7 +71,7 @@ class PluginImplementation<T> implements CommandSink {
     } = { fetches: undefined, retries: undefined, config: undefined, configparse: undefined, followups: undefined, commands: undefined };
 
     // sources of configuration commands
-    commandSources: ConfigurationCommandSource[] = [];
+    commandSources: CommandSource[] = [];
 
     constructor(public name: string, public factory: DefaultConstructed<T>) {
         // generated code
@@ -192,20 +192,20 @@ class PluginImplementation<T> implements CommandSink {
         if (
             context.options.echo.value() &&
             result.kind !== Result.Kind.Asynchronous &&
-            context.source.kind === CommandSource.Kind.Api
+            context.input.kind === CommandInput.Kind.Api
         ) {
             // NOTE: we don't actually use the contents of this dialog; it just provides the direct rendering of the command echo,
             // which is not shown in dialog style
             let echo = new context.dialog();
             let rendered = echo.renderCommandEcho(`!${context.command} ${context.rest}`, result.kind);
-            let source = <ApiCommandSource>context.source;
+            let source = <ApiCommandInput>context.input;
             sendChat(this.name, `/w "${source.player.get('_displayname')}" ${rendered}`, null, { noarchive: true });
         }
         // send any messages to caller, regardless of result
         if (context.options.verbose.value()) {
             for (let message of result.messages) {
-                if (context.source.kind === CommandSource.Kind.Api) {
-                    let source = <ApiCommandSource>context.source;
+                if (context.input.kind === CommandInput.Kind.Api) {
+                    let source = <ApiCommandInput>context.input;
                     sendChat(this.name, `/w "${source.player.get('_displayname')}" ${message}`, null, { noarchive: true });
                 } else {
                     debug.log(`  ${message}`);
@@ -222,11 +222,11 @@ class PluginImplementation<T> implements CommandSink {
                 }
                 break;
             case Result.Kind.Dialog:
-                if (context.source.kind !== CommandSource.Kind.Api) {
+                if (context.input.kind !== CommandInput.Kind.Api) {
                     debug.log(`error: dialog generated for non-interactive configuration command '!${context.command} ${context.rest}; ignored`);
                     break;
                 }
-                let source = <ApiCommandSource>context.source;
+                let source = <ApiCommandInput>context.input;
                 let dialogResult = <DialogResult>result;
                 debug.log(`dialog from parse: ${dialogResult.dialog.substr(0, 16)}...`);
                 switch (dialogResult.destination) {
@@ -297,8 +297,8 @@ class PluginImplementation<T> implements CommandSink {
         for (let command of context.commands) {
             followUpWork = true;
             this.work.scheduleWork(this.levels.configparse, () => {
-                let parsing = new PluginParserContext(context.options, new CommandSourceImpl.Restore(), `!${this.name}`, command.line);
-                parsing.source = command.source;
+                let parsing = new PluginParserContext(context.options, new CommandInputImpl.Restore(), `!${this.name}`, command.line);
+                parsing.input = command.input;
                 this.dispatchCommand(parsing);
                 return Promise.resolve();
             });
@@ -443,7 +443,7 @@ class PluginImplementation<T> implements CommandSink {
         });
     }
 
-    dispatchCommands(source: CommandSource, line: string): void {
+    dispatchCommands(input: CommandInput, line: string): void {
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let command = tokens[0].slice(1);
         if (!this.builtinCommands.has(command) && !this.options.commands.value().has(command)) {
@@ -464,11 +464,11 @@ class PluginImplementation<T> implements CommandSink {
             // this context object will survive until this command line is completely executed, including retries
             let context = new PluginParserContext(
                 this.freezeOptions(), 
-                source, 
+                input, 
                 command, 
                 match[1]);
 
-            if (!source.authorize(context.rest)) {
+            if (!input.authorize(context.rest)) {
                 debug.log(`command was disallowed by command source`);
                 continue;
             }
@@ -488,7 +488,7 @@ class PluginImplementation<T> implements CommandSink {
         }
     }
 
-    queryCommandSource(source: ConfigurationCommandSource, opaque: any): void {
+    queryCommandSource(source: CommandSource, opaque: any): void {
         let context = new PluginLoaderContext(this.freezeOptions());
 
         // load commands from calling source
@@ -590,11 +590,11 @@ export class Plugin<T> {
     /**
      * adds an additional source of configuration information
      */
-    addCommandSource(source: CommandSourceFactory, legalSubtrees: string[]) {
+    addCommandSource(sourceFactory: CommandSourceFactory, legalSubtrees: string[]) {
         if (this.started) {
             throw new Error('command sources must be added before the initial call to Plugin.start()');
         }
-        this.commandSources.push({ factory: source, subtrees: legalSubtrees });
+        this.commandSources.push({ factory: sourceFactory, subtrees: legalSubtrees });
     }
 }
 
@@ -641,15 +641,15 @@ class ContextBase implements ConfigurationContext {
 
 export class PluginLoaderContext extends ContextBase implements LoaderContext {
     messages: string[] = [];
-    commands: { source: CommandSource; line: string }[] = [];
+    commands: { input: CommandInput; line: string }[] = [];
     asyncLoads: { promise: Promise<any>; handler: (value: any) => void }[] = [];
 
     addMessage(message: string): void {
         this.messages.push(message);
     }
 
-    addCommand(source: CommandSource, command: string): void {
-        this.commands.push({ source: source, line: command });
+    addCommand(input: CommandInput, command: string): void {
+        this.commands.push({ input: input, line: command });
     }
 
     addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void {
@@ -662,7 +662,7 @@ export class PluginParserContext extends ContextBase implements ParserContext {
     dialog: DialogFactory = Der20ChatDialog;
     frames: ParserFrame[] = [];
 
-    constructor(options: Options, public source: CommandSource, public command: string, public rest: string) {
+    constructor(options: Options, public input: CommandInput, public command: string, public rest: string) {
         super(options);
         // generated
     }

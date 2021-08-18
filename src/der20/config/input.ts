@@ -1,8 +1,8 @@
-import { CommandSource } from "der20/interfaces/config";
+import { CommandInput } from "der20/interfaces/config";
 
-export namespace CommandSourceImpl {
-    export class Base implements CommandSource {
-        constructor(public kind: CommandSource.Kind) {
+export namespace CommandInputImpl {
+    export class Base implements CommandInput {
+        constructor(public kind: CommandInput.Kind) {
             // generated
         }
 
@@ -16,7 +16,7 @@ export namespace CommandSourceImpl {
      */
     export class Restore extends Base {
         constructor() {
-            super(CommandSource.Kind.Restore);
+            super(CommandInput.Kind.Restore);
         }
     }
 }

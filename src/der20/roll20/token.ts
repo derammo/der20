@@ -3,8 +3,8 @@ import { Success, Failure, Asynchronous } from 'der20/config/result';
 import { ConfigurationCommand, ConfigurationSimpleCommand } from 'der20/config/atoms';
 import { ParserContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
-import { CommandSource } from 'der20/interfaces/config';
-import { ApiCommandSource } from 'der20/plugin/chat';
+import { CommandInput } from 'der20/interfaces/config';
+import { ApiCommandInput } from 'der20/plugin/chat';
 
 class TokenImage {
     constructor(private token: Graphic) {
@@ -97,10 +97,10 @@ class SelectedTokensMultiplex {
         // generated code
     }
     execute(line: string, handler: (token: Der20Token, line: string, context: ParserContext, tokenIndex: number) => Result): Result {
-        if (this.context.source.kind !== CommandSource.Kind.Api) {
+        if (this.context.input.kind !== CommandInput.Kind.Api) {
             throw new Error('selected tokens command requires api source');
         }
-        let source = <ApiCommandSource>this.context.source;
+        let source = <ApiCommandInput>this.context.input;
         let message = <ApiChatEventData>source.message;
         let tokens = Der20Token.selected(message).filter((item: Der20Token | undefined) => {
             return item !== undefined;

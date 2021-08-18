@@ -1,4 +1,4 @@
-import { ConfigurationCommand, ParserContext, Result, CommandSource, NotesSource, Der20Token, Failure, ConfigurationParser, Success } from "der20/library";
+import { ConfigurationCommand, ParserContext, Result, CommandInput, NotesInput, Der20Token, Failure, ConfigurationParser, Success } from "der20/library";
 import { PartyScaling, PartyScalingLength } from "./ddal/party_scaling";
 import { ScalingChangeObserver } from "./ddal/party_state";
 
@@ -19,23 +19,23 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
         return (<any>PartyScaling)[line];
     }
 
-    private configureFromToken(line: string, context: ParserContext, source: NotesSource) {
+    private configureFromToken(line: string, context: ParserContext, input: NotesInput) {
         let scaling: TokenScaling;
-        const token = Der20Token.fetch(source.id);
+        const token = Der20Token.fetch(input.id);
         if (token === undefined) {
             return new Failure(new Error(`configuration received from token which has since been removed`));
         }
-        debug.log(`${token.name} has sent '${line}' (firstLine: ${source.firstLine})`);      
-        if (source.firstLine) {
+        debug.log(`${token.name} has sent '${line}' (firstLine: ${input.firstLine})`);      
+        if (input.firstLine) {
             // start a fresh record
             scaling = new TokenScaling();
-            this.tokens[source.id] = scaling;
+            this.tokens[input.id] = scaling;
         } else {
             // continue existing record
-            scaling = this.tokens[source.id];
+            scaling = this.tokens[input.id];
             if (scaling === undefined) {
                 // this could happen based on even listener timing
-                return new Failure(new Error(`ignoring commands from token with id ${source.id} that has been removed since the first line was received`));
+                return new Failure(new Error(`ignoring commands from token with id ${input.id} that has been removed since the first line was received`));
             }
         }
         const tokens = ConfigurationParser.tokenizeFirst(line);
@@ -86,9 +86,9 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
     }
 
     parse(line: string, context: ParserContext): Result {
-        if (context.source.kind === CommandSource.Kind.Token) {
+        if (context.input.kind === CommandInput.Kind.Token) {
             // command is in gmnotes of the target token
-            return this.configureFromToken(line, context, <NotesSource>context.source);
+            return this.configureFromToken(line, context, <NotesInput>context.input);
         }
         return new Failure(new Error('XXX unimplemented'));
     }

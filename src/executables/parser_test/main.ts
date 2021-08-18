@@ -17,20 +17,20 @@ import { Der20ChatDialog } from "der20/roll20/dialog";
 import { DialogFactory } from "der20/interfaces/ui";
 import { LoaderContext } from "der20/interfaces/loader";
 import { ParserContext, ParserFrame } from "der20/interfaces/parser";
-import { CommandSource } from "der20/interfaces/config";
-import { CommandSourceImpl } from "der20/config/source";
+import { CommandInput } from "der20/interfaces/config";
+import { CommandInputImpl } from "der20/config/input";
 import { DialogResult } from "der20/config/result";
 
 class MockContext implements LoaderContext, ParserContext {
 	command: string;
 	rest: string;
 	asyncVariables: Record<string, any> = {};
-	source: CommandSource = new CommandSourceImpl.Base(CommandSource.Kind.Journal);
+	input: CommandInput = new CommandInputImpl.Base(CommandInput.Kind.Journal);
 	dialog: DialogFactory = Der20ChatDialog;
 	options: Options = new Options();
 	frames: ParserFrame[] = [];
 
-	addCommand(source: CommandSource, command: string): void {
+	addCommand(source: CommandInput, command: string): void {
 		throw new Error("Method not implemented.");
 	}
 	addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void {

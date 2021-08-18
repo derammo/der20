@@ -19,7 +19,7 @@ class Module {
         let emitted: string[] = [];
         const contents = fs.readFileSync(name, { encoding: 'utf8' });
         const lines = contents.split('\n', -1);
-        const regex = /^import .* from ['"]([^'"]+)['"];?$/;
+        const regex = /^import .* from ['"]([^'"]+)['"];?/;
         for (let index = 0; index < lines.length; index++) {
             const line = lines[index];
             if (line.trim().length < 1) {
@@ -35,16 +35,21 @@ class Module {
                 let provider: string = `${match[1]}.ts`;
                 if (provider[0] === '.') {
                     provider = provider.replace('.', name.slice(0, name.lastIndexOf('/')));
+                    console.log(`// relative changed to: ${provider}`);
                 }
                 if (provider.startsWith('der20/')) {
                     provider = `src/${provider}`;
+                    console.log(`// der20 changed to: ${provider}`);
                 }
                 if (includedModules.has(provider)) {
                     this.dependencies.push(provider);
+                    console.log(`// found and pushed: ${provider}`);
                 } else {
                     externalDependencies.add(line);
+                    console.log(`// external dependency: ${provider}`);
                 }
             } else {
+                console.log(`// no match: ${line}`);
                 const body = lines.slice(index);
                 this.text = emitted.concat(body).join('\n');
                 break;

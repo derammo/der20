@@ -1,17 +1,17 @@
-import { CommandSourceImpl } from "der20/config/source";
-import { CommandSource } from "der20/interfaces/config";
+import { CommandInputImpl } from "der20/config/input";
+import { CommandInput } from "der20/interfaces/config";
 import { LoaderContext } from "der20/interfaces/loader";
-import { CommandSink, ConfigurationCommandSource } from "der20/interfaces/source";
+import { CommandSink, CommandSource } from "der20/interfaces/source";
 import { ConfigurationParser } from "der20/config/parser";
 
-export class NotesSource extends CommandSourceImpl.Base {
+export class NotesInput extends CommandInputImpl.Base {
     /**
      * if true, the command being enumerated is the first line of the Notes section,
      * which may be relevant to command implementations that need to reset 
      */
     firstLine: boolean = true;
 
-    constructor(kind: CommandSource.Kind, public type: string, public id: string, private subtrees: Set<string>) {
+    constructor(kind: CommandInput.Kind, public type: string, public id: string, private subtrees: Set<string>) {
         super(kind);
         // generated code
     }
@@ -22,7 +22,7 @@ export class NotesSource extends CommandSourceImpl.Base {
     }
 }
 
-export abstract class CommandsFromNotes implements ConfigurationCommandSource {
+export abstract class CommandsFromNotes implements CommandSource {
     // interface to our host
     protected plugin: CommandSink;
 
@@ -70,10 +70,10 @@ export abstract class CommandsFromNotes implements ConfigurationCommandSource {
         return lines;       
     }
 
-    protected dispatchLines(text: any, kind: CommandSource.Kind, roll20Type: string, roll20Id: string) {
+    protected dispatchLines(text: any, kind: CommandInput.Kind, roll20Type: string, roll20Id: string) {
         let lines = CommandsFromNotes.extractLines(text);
-        let source = new NotesSource(kind, roll20Type, roll20Id, this.subtrees);
-        const source2 = new NotesSource(kind, roll20Type, roll20Id, this.subtrees);
+        let source = new NotesInput(kind, roll20Type, roll20Id, this.subtrees);
+        const source2 = new NotesInput(kind, roll20Type, roll20Id, this.subtrees);
         source2.firstLine = false;
         for (let line of lines) {
             // let plugin figure out if this command is for it

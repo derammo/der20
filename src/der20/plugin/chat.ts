@@ -1,15 +1,15 @@
-import { CommandSource } from "der20/interfaces/config";
-import { ConfigurationCommandSource, CommandSink } from "der20/interfaces/source";
+import { CommandInput } from "der20/interfaces/config";
+import { CommandSource, CommandSink } from "der20/interfaces/source";
 import { LoaderContext } from "der20/interfaces/loader";
-import { CommandSourceImpl } from "der20/config/source";
+import { CommandInputImpl } from "der20/config/input";
 
 
 /**
  * Command was submitted via ! API command
  */
-export class ApiCommandSource extends CommandSourceImpl.Base {
+export class ApiCommandInput extends CommandInputImpl.Base {
     constructor(public player: Player, public message: ApiChatEventData) {
-        super(CommandSource.Kind.Api);
+        super(CommandInput.Kind.Api);
     }
 
     authorize(rest: string): boolean {
@@ -22,7 +22,7 @@ export class ApiCommandSource extends CommandSourceImpl.Base {
 /**
  * This is the most typical command source.  It reads commands from API Chat Events
  */
-export class ChatCommandSource implements ConfigurationCommandSource {
+export class ChatCommandSource implements CommandSource {
     constructor(options: any, private plugin: CommandSink) {
         // generated code
     }
@@ -36,13 +36,13 @@ export class ChatCommandSource implements ConfigurationCommandSource {
                 this.plugin.swapIn();
                 let player = getObj('player', message.playerid);
                 let lines = message.content.split('\n');
+                const source = new ApiCommandInput(player, message);
                 for (let line of lines) {
                     // REVISIT consult access control tree
                     if (!playerIsGM(player.id)) {
                         this.plugin.reportParseError(new Error(`player ${player.get('_displayname')} tried to use GM command ${line.substring(0, 78)}`));
                         return;
                     }
-                    const source = new ApiCommandSource(player, message);
                     this.plugin.dispatchCommands(source, line);
                 }
             } catch (error) {

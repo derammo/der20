@@ -5,7 +5,7 @@ import { LoaderContext } from "der20/interfaces/loader";
 import { CommandSink } from "der20/interfaces/source";
 import { Options } from "der20/plugin/options";
 import { CommandsFromNotes } from "./notes_commands";
-import { CommandSource } from "der20/interfaces/config";
+import { CommandInput } from "der20/interfaces/config";
 
 /**
  * interface to be supported by the plugin options object if plugin wants handouts support
@@ -178,7 +178,7 @@ export class CommandsFromHandouts extends CommandsFromNotes {
                 return;
             }
             // read text
-            this.dispatchLines(text, CommandSource.Kind.Journal, 'handout', handout.id);
+            this.dispatchLines(text, CommandInput.Kind.Journal, 'handout', handout.id);
         };
         context.addAsynchronousLoad(promise, whenDone);
     }

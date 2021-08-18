@@ -1,8 +1,8 @@
-import { CommandSource } from "der20/interfaces/config";
+import { CommandInput } from "der20/interfaces/config";
 import { Options } from "der20/plugin/options";
 import { LoaderContext } from "./loader";
 
-export interface ConfigurationCommandSource {
+export interface CommandSource {
     /**
      * read all commands from the source and subscribe to changes
      */
@@ -19,12 +19,12 @@ export interface CommandSink {
      * check if the given command line contains commands for the target, and 
      * schedule them for execution if there are any
      */
-    dispatchCommands(source: CommandSource, line: string): void;
+    dispatchCommands(input: CommandInput, line: string): void;
 
     /**
-     * request callback to AdditionalCommandSource.query
+     * request callback to source.query
      */
-    queryCommandSource(source: ConfigurationCommandSource, opaque: any): void;
+    queryCommandSource(source: CommandSource, opaque: any): void;
 
     /**
      * to be called from async event handlers to swap in debug context for correct plugin
@@ -43,5 +43,5 @@ export interface CommandSink {
 }
 
 export interface CommandSourceFactory {
-    new(options: Options, plugin: CommandSink, subtrees: string[]): ConfigurationCommandSource;
+    new(options: Options, plugin: CommandSink, subtrees: string[]): CommandSource;
 }

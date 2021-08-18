@@ -1,4 +1,4 @@
-import { CommandSource } from "der20/interfaces/config";
+import { CommandInput } from "der20/interfaces/config";
 import { LoaderContext } from "der20/interfaces/loader";
 import { CommandSink } from "der20/interfaces/source";
 import { Options } from "der20/plugin/options";
@@ -77,6 +77,6 @@ export class CommandsFromTokens extends CommandsFromNotes {
         }
 
         // read text
-        this.dispatchLines(text, CommandSource.Kind.Token, 'graphic', token.id);
+        this.dispatchLines(text, CommandInput.Kind.Token, 'graphic', token.id);
     }
 }

@@ -6,9 +6,11 @@ export interface ConfigurationContext {}
 
 /**
  * A source of a configuration command, available in parser context
+ * 
+ * XXX this is crap.  it is roll20 specific and really should be part of ConfigurationContext?  also the name clashes with ConfigurationCommandSource (which should have this name)
  */
-export interface CommandSource {
-    kind: CommandSource.Kind;
+export interface CommandInput {
+    kind: CommandInput.Kind;
 
     /**
      * @param rest is the command line not including the !command
@@ -16,7 +18,7 @@ export interface CommandSource {
      */
     authorize(rest: string): boolean;
 }
-export namespace CommandSource {
+export namespace CommandInput {
     /**
      * Supported configuration sources
      */
