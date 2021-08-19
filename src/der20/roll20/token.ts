@@ -1,10 +1,8 @@
 import { Der20Character } from './character';
-import { Success, Failure, Asynchronous } from 'der20/config/result';
 import { ConfigurationCommand, ConfigurationSimpleCommand } from 'der20/config/atoms';
 import { ParserContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
-import { CommandInput } from 'der20/interfaces/config';
-import { ApiCommandInput } from 'der20/plugin/chat';
+import { Multiplex } from './multiplex';
 
 class TokenImage {
     constructor(private token: Graphic) {
@@ -61,6 +59,10 @@ export class Der20Token {
         return this.graphic.get('name');
     }
 
+    get isdrawing(): boolean {
+        return this.graphic.get('isdrawing');
+    }
+    
     /**
      * this is the character represented by the token, or undefined
      * NOTE: this value is cached
@@ -85,73 +87,31 @@ export class Der20Token {
     }
 }
 
-class SelectedTokensMultiplex {
-    private mergeEvents(to: Set<Result.Event>, from: Set<Result.Event>, commentVerb: string) {
-        for (let event of from) {
-            debug.log(`${commentVerb} event ${event} received from token operation`);
-            to.add(event);
-        }
+class SelectedTokensMultiplex extends Multiplex<Der20Token> {
+    protected itemsDescription: string = "selected tokens";
+
+    constructor(context: ParserContext) {
+        super(context);
     }
 
-    constructor(private context: ParserContext) {
-        // generated code
-    }
-    execute(line: string, handler: (token: Der20Token, line: string, context: ParserContext, tokenIndex: number) => Result): Result {
-        if (this.context.input.kind !== CommandInput.Kind.Api) {
-            throw new Error('selected tokens command requires api source');
-        }
-        let source = <ApiCommandInput>this.context.input;
-        let message = <ApiChatEventData>source.message;
-        let tokens = Der20Token.selected(message).filter((item: Der20Token | undefined) => {
+    protected createMultiplex(message: ApiChatEventData) : any[] {
+        return Der20Token.selected(message).filter((item: Der20Token | undefined) => {
             return item !== undefined;
         });
-        if (tokens.length < 1) {
-            return new Failure(new Error('no valid tokens were selected for current command'));
-        }
-        let messages: string[] = [];
-        let asyncResult: Asynchronous;
-        let result: Result;
-        let index = 0;
-        let events: Set<Result.Event> = new Set<Result.Event>();
-        for (let token of tokens) {
-            result = handler(token, line, this.context, index);
-            this.mergeEvents(events, result.events, 'saving');
-            // now interpret result
-            switch (result.kind) {
-                case Result.Kind.Asynchronous:
-                    asyncResult = asyncResult || new Asynchronous('asynchronous resources required by one or more token operations');
-                    Object.assign(asyncResult.promises, (<Asynchronous>result).promises);
-                    messages = messages.concat(result.messages);
-                    break;
-                case Result.Kind.Success:
-                    // generic success, accumulate messages
-                    messages = messages.concat(result.messages);
-                    break;
-                default:
-                    // prepend any collected messages and add any collected events, then abort iteration
-                    result.messages = messages.concat(result.messages);
-                    this.mergeEvents(result.events, events, 'restoring');
-                    return result;
-            }
-            index++;
-        }
-        if (asyncResult !== undefined) {
-            result = asyncResult;
-        } else {
-            result = new Success(`command executed against ${tokens.length} selected tokens`);
-        }
-        result.messages = result.messages.concat(messages);
-        this.mergeEvents(result.events, events, 'restoring');
-        return result;
     }
 }
 
 export abstract class SelectedTokensCommand extends ConfigurationCommand {
     parse(line: string, context: ParserContext): Result {
         const multiplex = new SelectedTokensMultiplex(context);
-        return multiplex.execute('', (token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number) => {
-            return this.handleTokenCommand(token, rest, parserContext, tokenIndex);
-        });    
+        return multiplex.execute(
+            '', 
+            (token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number) => {
+                return this.handleTokenCommand(token, rest, parserContext, tokenIndex);
+            },
+            (_parserContext: ParserContext) => {
+                // no success action
+            });    
     }
 
     // tokenIndex is the index of the token in the selected tokens array, which remains the same during async retries
@@ -161,9 +121,14 @@ export abstract class SelectedTokensCommand extends ConfigurationCommand {
 export abstract class SelectedTokensSimpleCommand extends ConfigurationSimpleCommand {
     handleEndOfCommand(context: ParserContext): Result {
         const multiplex = new SelectedTokensMultiplex(context);
-        return multiplex.execute('', (token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number) => {
-            return this.handleToken(token, parserContext, tokenIndex);
-        });
+        return multiplex.execute(
+            '', 
+            (token: Der20Token, _rest: string, parserContext: ParserContext, tokenIndex: number) => {
+                return this.handleToken(token, parserContext, tokenIndex);
+            },
+            (_parserContext: ParserContext) => {
+                // no success action
+            });
     }
 
     // tokenIndex is the index of the token in the selected tokens array, which remains the same during async retries

@@ -1,7 +1,7 @@
 import { ConfigurationTermination, ConfigurationString, LoaderContext, ParserContext } from 'der20/library';
 import { Der20Character } from 'der20/library';
 import { setDefaultToken } from './set';
-import { Result, Asynchronous, Change, DialogResult, Failure } from 'der20/library';
+import { Result, Asynchronous, Success, DialogResult, Failure } from 'der20/library';
 
 export class CharacterConfiguration extends ConfigurationString implements ConfigurationTermination {
     handleEndOfCommand(context: ParserContext): Result {
@@ -20,7 +20,7 @@ export class CharacterConfiguration extends ConfigurationString implements Confi
         if (imageSource !== undefined) {
             setDefaultToken(imageSource.url);
             // XXX we need some way to display this message even if verbose is not set, without introducing a new result type
-            return new Change(`loaded anonymous icon from character '${this.value()}'`);
+            return new Success(`loaded anonymous icon from character '${this.value()}'`);
         }
         let result: Result = super.parse(line, context);
         if (!result.isSuccess()) {

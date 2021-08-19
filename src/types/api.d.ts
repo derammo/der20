@@ -110,7 +110,7 @@ interface CampaignImmutableSynchronousGetProperties extends Roll20ObjectBaseProp
 
 interface CampaignMutableSynchronousGetProperties {
     turnorder: string;
-    initiativepage: string;
+    initiativepage: string | boolean;
     playerpageid: string;
     playerspecificpages: any; //TODO
 }

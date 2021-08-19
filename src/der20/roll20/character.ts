@@ -162,8 +162,6 @@ export class Der20Character {
 }
 
 class MissingAttribute extends Der20Attribute {
-    id: string;
-
     set<K extends "name" | "current" | "max">(property: K, value: AttributeMutableSynchronousGetProperties[K]): void;
     set(properties: Partial<AttributeMutableSynchronousGetProperties>): void;
     set(property: any, value?: any) {

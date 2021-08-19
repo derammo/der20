@@ -1,9 +1,10 @@
-PLUGINS := league anonymous setup
+PLUGINS := league anonymous setup init5e
 EXECUTABLES := parser_test help_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 DEFAULT := $(word 1,$(EXECUTABLES))
-DIST := $(patsubst %,dist/der20_%_complete.js,$(PLUGINS)) dist/der20_library.js $(patsubst %,dist/der20_%_plugin.js,$(PLUGINS))
+DIST_PLUGINS := $(patsubst %,dist/der20_%_plugin.js,$(PLUGINS))
+DIST := $(patsubst %,dist/der20_%_complete.js,$(PLUGINS)) dist/der20_library.js $(DIST_PLUGINS)
 HELP_JSON := $(patsubst %,build/%_help.json,$(PLUGINS))
 LICENSE_LENGTH := $(word 1, $(shell wc -l LICENSE))
 LIB_SOURCES := $(shell find src/der20 -name "*.ts" | grep -v 'src/der20/library.ts' | sort)
@@ -14,10 +15,13 @@ TSC := node_modules/typescript/bin/tsc
 
 all: node_modules plugins executables help
 plugins: $(DIST)
+combo: dist/der20.js
 executables: $(patsubst %,build/%.js,$(EXECUTABLES))
 theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
+dist/der20.js: dist/der20_library.js $(DIST_PLUGINS)
+	cat $^ > $@
 dist/der20_%_complete.js: build/%.js include/header.js.txt include/trailer.js.txt Makefile LICENSE
 	@mkdir -p dist
 	@rm -f $@
