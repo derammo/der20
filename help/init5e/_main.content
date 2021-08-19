@@ -1,0 +1,10 @@
+<div class="title" id = "init5e">!init5e</div>
+<div class="postcontent">
+    <p>This plugin rolls initiative and does some combat tracking.  It tries to be a fixed configuration solution for league play, 
+        using strict RAW rolling and without the full feature set of combat tracking or general group initiative scripts.</p>
+    <p>Usage: select all tokens you want to add to initiative, then execute <a href="#init5e/roll">!init5e roll</a></p>
+    <p>
+        <img src="./assets/init5e/init5e.png">
+        <img>
+    </p>
+</div>

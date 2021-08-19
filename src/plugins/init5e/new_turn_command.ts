@@ -51,8 +51,7 @@ export class NewTurnCommand extends ConfigurationSimpleCommand {
         var text = [];
         const regex = new RegExp(`^repeating_npcaction_(-[-A-Za-z0-9]+?|\\d+)_name`);
 
-        text.push(`next turn is for ${character.name}`);
-        text.push(character.href);
+        text.push(`next turn is for [${character.name}](${character.href})`);
         findObjs({ type: 'attribute', characterid: character.id }).forEach(raw => {
             var attribute: Attribute = raw as Attribute;
             var attribute_name = attribute.get('name');
