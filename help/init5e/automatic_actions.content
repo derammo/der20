@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/automatic_actions'>automatic actions</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'>If true, the GM is sent a set of useful links for each creature that starts its turn.</div>

@@ -1,0 +1,5 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/sort'>sort</span>
+</div>
+<div class='description'>This command sorts the initiative tracker.</div>

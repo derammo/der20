@@ -1,0 +1,5 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/clear'>clear</span>
+</div>
+<div class='description'>This command removes all entries from the initiative tracker.</div>

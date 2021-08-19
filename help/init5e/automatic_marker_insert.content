@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/automatic_marker_insert'>automatic marker insert</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'>If true, an initiative tracker round marker is automatically added when there isn't one with the configured name.</div>

@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/automatic_marker_name'>automatic marker name</span>
+<span class='format'>[STRING]</span>
+</div>
+<div class='description'>This setting configures the name of the initiative tracker special round marker.</div>

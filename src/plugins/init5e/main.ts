@@ -14,10 +14,10 @@ class ActionsConfiguration extends ConfigurationIntermediateNode {
     announce: NewTurnCommand;
 }
 class Configuration extends PluginWithOptions {
-    roll: RollCommand = new RollCommand();
+    automatic: AutomaticFeaturesConfiguration = new AutomaticFeaturesConfiguration();
     clear: ClearCommand = new ClearCommand();
     sort: SortCommand = new SortCommand();
-    automatic: AutomaticFeaturesConfiguration = new AutomaticFeaturesConfiguration();
+    roll: RollCommand = new RollCommand(this.automatic);
     actions: ActionsConfiguration = new ActionsConfiguration(this.automatic);
 }
 

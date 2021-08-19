@@ -1,0 +1,5 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/scaling'>scaling</span>
+</div>
+<div class='description'>This command can be placed in the gmnotes of a token to add/remove that token to the game based on party strength.</div>

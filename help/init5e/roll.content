@@ -1,0 +1,5 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/roll'>roll</span>
+</div>
+<div class='description'>This command rolls initiative for all selected 5e OGL tokens according to RAW rules, including grouping all identical creatures under the same initiative.</div>

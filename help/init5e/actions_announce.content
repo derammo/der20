@@ -1,0 +1,5 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/actions_announce'>actions announce</span>
+</div>
+<div class='description'>This command takes the configured actions for a new turn starting.  It is automaticaly called on turn changes.</div>
