@@ -1,0 +1,9 @@
+<div class='title'>
+<span class='plugin'>!league</span>
+<span class='command' id='league/define_module_x_unlock_x_location'>define module [ID] unlock [ID] location</span>
+<span class='format'>[STRING]</span>
+</div>
+<div class='description'>This setting configures a description of where in the module the item is found.  This is useful
+    for disambiguating multiple items of the same type.  If this is configured, then this location string is displayed
+    in the unlocks list, in addition to the the unlock name.
+</div>

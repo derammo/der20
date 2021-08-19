@@ -2,4 +2,6 @@
 <span class='plugin'>!league</span>
 <span class='command' id='league/rewards_preview'>rewards preview</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command displays the calculated session report to the GM for review.
+    The resulting dialog includes a button to share it with the players.
+</div>

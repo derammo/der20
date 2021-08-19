@@ -3,4 +3,4 @@
 <span class='command' id='league/session_dm_x_dci'>session dm [ID/current] dci</span>
 <span class='format'>[STRING]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting is a per-session override for <a href='#league/define_dm'>!league define dm ...</a>.</div>

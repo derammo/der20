@@ -3,4 +3,4 @@
 <span class='command' id='league/session_module_x_unlock_x_rarity'>session module [ID/current] unlock [ID] rarity</span>
 <span class='format'>[Common|Uncommon|Rare|Very Rare|Legendary|Artifact|Unique]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting is a per-session override for <a href='#league/define_module'>!league define module ...</a>.</div>

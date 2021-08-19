@@ -3,4 +3,4 @@
 <span class='command' id='league/session_module_x_hourly_advancement'>session module [ID/current] hourly advancement</span>
 <span class='format'>[NUMBER]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting is a per-session override for <a href='#league/define_module'>!league define module ...</a>.</div>

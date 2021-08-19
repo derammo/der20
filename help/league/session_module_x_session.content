@@ -3,4 +3,6 @@
 <span class='command' id='league/session_module_x_session'>session module [ID/current] session</span>
 <span class='format'>[STRING]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting specifies the session number for an adventure that spans multiple sessions.
+    This is the session number that will appear in players' adventure logs.
+</div>

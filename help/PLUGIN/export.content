@@ -1,0 +1,15 @@
+<div class='title'>
+<span class='plugin'>!PLUGIN</span>
+<span class='command' id='PLUGIN/export'>export</span>
+<span class='format'>[PATH]</span>
+</div>
+<div class='description'>This commmand is supported by multiple der20 plugins.  Use the name of the plugin instead of the word &#039;PLUGIN&#039; when using this command.</div>
+<div class='description'>This command prints the configuration commands that make up the current configuration.</div>
+<div class='description'>Without any additional arguments, the entire configuration is printed.</div>
+<div class='description'>To limit the scope of the output, you can specify a path that would have been a valid configuration path.  For example,
+    the configuration commands under <a href='#league/define_module'>!league define module example</a> would be exported via
+    <a href='#PLUGIN/export'>!league export define module example</a>.
+</div>
+<div class='description'>The output of this command can then be shared with other DMs or pasted into a handout for those
+    plugins that support <a href='#PLUGIN/option_handouts_journal'>handout configuration.</a>
+</div>

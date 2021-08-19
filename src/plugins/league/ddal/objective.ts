@@ -18,5 +18,6 @@ export class Objective extends LargeTableItem {
         dialog.addEditControl('Treasure Checkpoints', 'treasure', this.treasure, link);
         dialog.addEditControl('Award to Players', 'players', this.players, link);
         dialog.addEditControl('Award to DM', 'dm', this.dm, link);
+        dialog.addEditControl('Awarded at Start', 'awarded', this.awarded, link);
     }
 }

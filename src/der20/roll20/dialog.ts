@@ -259,10 +259,7 @@ export class Der20ChatDialog implements Dialog {
     }
 
     addTableControl<T extends DialogAware & CollectionItem>(label: string, path: string, config: T[], link: Dialog.Link): void {
-        if (config.length === 0) {
-            return;
-        }
-        if (typeof (<any>(config[0])).handleEndOfCommand === 'function') {
+        if ((config.length > 0) && (typeof (<any>(config[0])).handleEndOfCommand === 'function')) {
             // this item can be edited directly
             this.addReferenceTableControl(label, path, config, link);
         } else {

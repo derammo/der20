@@ -11,3 +11,5 @@
 <div class='description'>Using this command or any of its sub-commands with any ID other than &apos;current&apos; will load the specified module from 
     the module definitions and replace the current session module data with it.
 </div>
+<div class='description'>Any settings created by this command or any of its sub-commands are discarded when the session is reset via <a href='#league/session_clear'>!league session clear</a> or when a different 
+    module is selected via <a href='#league/session_module'>!league session module</a>.</div>

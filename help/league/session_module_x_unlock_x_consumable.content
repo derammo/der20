@@ -1,6 +1,6 @@
 <div class='title'>
 <span class='plugin'>!league</span>
-<span class='command' id='league/session_module_x_level_minimum'>session module [ID/current] level minimum</span>
-<span class='format'>[INTEGER]</span>
+<span class='command' id='league/session_module_x_unlock_x_consumable'>session module [ID/current] unlock [ID] consumable</span>
+<span class='format'>[TRUE/FALSE]</span>
 </div>
 <div class='description'>This setting is a per-session override for <a href='#league/define_module'>!league define module ...</a>.</div>

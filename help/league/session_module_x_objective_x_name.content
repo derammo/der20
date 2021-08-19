@@ -3,4 +3,4 @@
 <span class='command' id='league/session_module_x_objective_x_name'>session module [ID/current] objective [ID] name</span>
 <span class='format'>[STRING]</span>
 </div>
-<div class='description'></div>
+<div class='description'>This setting is a per-session override for <a href='#league/define_module'>!league define module ...</a>.</div>

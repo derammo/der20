@@ -2,4 +2,8 @@
 <span class='plugin'>!league</span>
 <span class='command' id='league/rewards_send'>rewards send</span>
 </div>
-<div class='description'></div>
+<div class='description'>This command displays the calculated session report to all players.  It
+    is usually preferable to execute <a href='#league/rewards_preview'>!league rewards preview</a> instead,
+    which allows you to review the report and includes a button to run this command to share it with
+    the players.
+</div>

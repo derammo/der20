@@ -3,4 +3,9 @@
 <span class='command' id='league/session_dm'>session dm</span>
 <span class='format'>[ID/current]</span>
 </div>
-<div class='description'></div>
+<div class='description'>The magic string &apos;current&apos; refers to the current session DM data.  During a session, exactly one DM definition will
+        be loaded into that slot.
+</div>
+<div class='description'>Using this command or any of its sub-commands with any ID other than &apos;current&apos; will change the DM information for 
+    the current session to the specified DM, loaded from the <a href='#league/define_dm'>DM definitions</a>.
+</div>
