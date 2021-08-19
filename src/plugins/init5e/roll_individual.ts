@@ -1,4 +1,4 @@
-import { SelectedTokensSimpleCommand, Der20Token, Asynchronous, RollQuery, ParserContext, Result, Success, Sheet5eOGL } from 'der20/library';
+import { SelectedTokensSimpleCommand, Der20Token, Asynchronous, RollQuery, ParserContext, Result, Success, Sheet5eOGL, Failure } from 'der20/library';
 
 // rolls individual initiative, ignoring grouping by creature (not according to RAW)
 export class RollIndividualCommand extends SelectedTokensSimpleCommand {
@@ -20,6 +20,11 @@ export class RollIndividualCommand extends SelectedTokensSimpleCommand {
         // need async roll and restart this command
         const sheet = new Sheet5eOGL(character);
         const spec = sheet.calculateInitiativeRoll();
+        if (spec === undefined) {
+            return new Failure(new Error("this plugin cannot roll initiative for characters using sheets other than 5e OGL"))
+        }
+
+        // request async roll
         const roll = spec.generateRoll();
         const narrative = `${roll} (${spec.factors.join(", ")})`;
         parserContext.asyncVariables[specKey] = narrative;

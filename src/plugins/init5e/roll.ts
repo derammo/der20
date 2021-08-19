@@ -1,4 +1,5 @@
-import { Asynchronous, ConfigurationSimpleCommand, D20RollSpec, Der20Character, Der20Token, Multiplex, ParserContext, Result, RollQuery, Sheet5eOGL, Success, TurnOrder } from 'der20/library';
+import { Asynchronous, ConfigurationSimpleCommand, D20RollSpec, Der20Character, Der20Token, Failure, Multiplex, ParserContext, Result, RollQuery, Sheet5eOGL, Success, TurnOrder, TurnOrderRecord } from 'der20/library';
+import { AutomaticFeaturesConfiguration } from './automatic_features_configuration';
 
 enum Mode {
     Advantage,
@@ -22,6 +23,11 @@ class RollingGroup {
     disadvantage: Der20Token[] = [];
 
     add(token: Der20Token): void {
+        if (this.spec === undefined) {
+            // unsupported platform
+            return;
+        }
+
         // classify and place into correct set
         // XXX consider poisoned, fatigued, and the base spec together
         if (this.spec.advantage && !this.spec.disadvantage) {
@@ -92,6 +98,10 @@ class RollingGroupMultiplex extends Multiplex<RollingGroup> {
 }
 
 export class RollCommand extends ConfigurationSimpleCommand {
+    constructor(private autoFeatures: AutomaticFeaturesConfiguration) {
+        super();
+    }
+    
     handleEndOfCommand(context: ParserContext): Result {
         const multiplex = new RollingGroupMultiplex(context);
         return multiplex.execute(
@@ -116,6 +126,11 @@ export class RollCommand extends ConfigurationSimpleCommand {
     static BATCH_KEY: string = `RollCommand batch`;
 
     handleGroup(group: RollingGroup, parserContext: ParserContext, multiplexIndex: number): Result {
+        // check for unsupported platform
+        if (group.spec === undefined) {
+            return new Failure(new Error("this plugin cannot roll initiative for characters using sheets other than 5e OGL"))
+        }
+
         const number1Key = `RollCommand number 1 ${multiplexIndex}`;
         const number2Key = `RollCommand number 2 ${multiplexIndex}`;
         const narrativeKey = `RollCommand spec ${multiplexIndex}`;
@@ -202,38 +217,52 @@ export class RollCommand extends ConfigurationSimpleCommand {
             return !tokenIds.has(turn.id);
         });
 
-        // make sure we have a round marker so we know when to sort
-        // XXX make this an option and the name configurable
-        if (!turns.some(turn => turn.custom == "Round")) {
+        const roundMarkerName = this.autoFeatures.marker.name.value();
+
+        var roundMarker = turns.findIndex(turn => turn.custom == roundMarkerName);
+        if (roundMarker < 0 && this.autoFeatures.marker.insert.value()) {
+            // make sure we have a round marker
             if (turns.length == 0) {
                 // just add the turn marker
-                turns.push({ id: "-1", pr: 1, custom: "Round", formula: "-1" });
+                turns.push({ id: "-1", pr: 101, custom: roundMarkerName, formula: "+1" });
+                roundMarker = 0;
             } else {
-                // insert in front of the minimum value
-                const min = turns.reduce((indexOfMinValue, turn, currentIndex) => {
-                        if (turn.pr < turns[indexOfMinValue].pr) {
+                // insert it before the maximum value (first occurrence)
+                const max = turns.reduce((indexOfMinValue, turn, currentIndex) => {
+                        if (turn.pr > turns[indexOfMinValue].pr) {
                             return currentIndex;
                         } else {
                             return indexOfMinValue;
                         } 
                     }, 
                     0);
-                turns.splice(min, 0, { id: "-1", pr: 0, custom: "Round", formula: "-1" });
+                turns.splice(max, 0, { id: "-1", pr: 101, custom: roundMarkerName, formula: "+1" });
+                roundMarker = max;
             }
         }
 
-        // always add at the end, we will sort into any existing items when new round starts
-        const newTurns: { id: string, pr: number, custom: string, formula?: string }[] = [];
-        writes.identicalGroups.forEach(identicalGroup => {
-            identicalGroup.tokens.forEach(token => {
-                newTurns.push({ id: token.id, pr: identicalGroup.rolledNumber, custom: "" });
-            })
-        });
-        TurnOrder.sort(newTurns);
-        turns = turns.concat(newTurns);
+        if (roundMarker > 0 || !this.autoFeatures.sort.value()) {
+            // we are in the middle of a round or we aren't allowed to automatically sort, so add at the end
+            const newTurns: TurnOrderRecord[] = [];
+            this.appendNewEntries(newTurns, writes);
+            TurnOrder.sort(newTurns);
+            turns = turns.concat(newTurns);
+        } else {
+            // we are at the top of a round, so we can sort the next items in now
+            this.appendNewEntries(turns, writes)
+            TurnOrder.sort(turns);
+        }
 
         // update turn order
         return TurnOrder.save(turns);
+    }
+
+    private appendNewEntries(targetArray: TurnOrderRecord[], writes: RollingBatchWrites) {
+        writes.identicalGroups.forEach(identicalGroup => {
+            identicalGroup.tokens.forEach(token => {
+                targetArray.push({ id: token.id, pr: identicalGroup.rolledNumber, custom: "" });
+            });
+        });
     }
 }
 

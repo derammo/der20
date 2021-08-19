@@ -31,5 +31,5 @@ export { RollQuery } from 'der20/roll20/roll';
 export { Sheet5eOGL } from 'der20/roll20/sheet_5e_ogl';
 export { Der20Token, SelectedTokensCommand, SelectedTokensSimpleCommand } from 'der20/roll20/token';
 export { CommandsFromTokens } from 'der20/roll20/token_commands';
-export { TurnOrder } from 'der20/roll20/turn_order';
+export { TurnOrder, TurnOrderAnnouncer, TurnOrderRecord } from 'der20/roll20/turn_order';
 

@@ -36,7 +36,7 @@ export class Der20Attribute {
             value = defaultValue;
         }
         if (typeof defaultValue === 'number') {
-            return parseInt(value, 10);
+            return parseFloat(value);
         }
         return value;
     }
