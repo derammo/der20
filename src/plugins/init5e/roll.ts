@@ -1,4 +1,4 @@
-import { Asynchronous, ConfigurationSimpleCommand, D20RollSpec, Der20Character, Der20Token, Failure, Multiplex, ParserContext, Result, RollQuery, Sheet5eOGL, Success, TurnOrder, TurnOrderRecord } from 'der20/library';
+import { Asynchronous, CommandInput, ConfigurationSimpleCommand, D20RollSpec, Der20Character, Der20Token, DialogResult, Failure, Multiplex, ParserContext, Result, RollQuery, Sheet5eOGL, Success, TurnOrder, TurnOrderRecord } from 'der20/library';
 import { AutomaticFeaturesConfiguration } from './automatic_features_configuration';
 
 enum Mode {
@@ -18,6 +18,7 @@ class RollingGroup {
     spec: D20RollSpec;
 
     // the tokens classified into sets
+    // XXX this isn't right, we need to actually remember which token had what conditions that caused this
     advantage: Der20Token[] = [];
     straight: Der20Token[] = [];
     disadvantage: Der20Token[] = [];
@@ -62,7 +63,7 @@ class RollingGroup {
 }
 
 class RollingBatchWrites {
-    identicalGroups: { tokens: Der20Token[], rolledNumber: number }[] = [];
+    sharedRolls: { group: RollingGroup, tokens: Der20Token[], result: number }[] = [];
 }
 
 class RollingGroupMultiplex extends Multiplex<RollingGroup> {
@@ -113,14 +114,32 @@ export class RollCommand extends ConfigurationSimpleCommand {
                 // on success, fetch batch of new initiatives
                 var writes: RollingBatchWrites = parserContext.asyncVariables[RollCommand.BATCH_KEY];
                 if (writes === undefined) {
-                    debug.log("no batched initiative writes found in context");
-                    return;
+                    return new Failure(new Error("no batched initiative writes found in context"));
                 }
 
                 // write initiatives
                 const json = this.setInitiative(writes);
                 debug.log(`new initiative ${json}`);
+
+                if (parserContext.input.kind === CommandInput.Kind.Api) {
+                    // return a dialog showing who got what and why
+                    return new DialogResult(DialogResult.Destination.Caller, this.createDialog(parserContext, writes));
+                }
+                return new Success("rolled initiative for all selected tokens");
             });
+    }
+    createDialog(parserContext: ParserContext, writes: RollingBatchWrites): string {
+        let dialog = new parserContext.dialog();
+        var rolls = Array.from(writes.sharedRolls);
+        rolls.sort((left, right) => right.result - left.result);
+        for (let item of rolls) {
+            dialog.beginControlGroup();
+            dialog.addLinkTextLine(`${item.group.character.name} = ${item.result}`, item.group.character.href);
+            // XXX concatenate each unique set of unique factors from the per-token factors
+            dialog.addIndentedTextLine(item.group.spec.factors.join(", "));
+            dialog.endControlGroup();
+        }
+        return dialog.render();
     }
 
     static BATCH_KEY: string = `RollCommand batch`;
@@ -153,17 +172,17 @@ export class RollCommand extends ConfigurationSimpleCommand {
                 switch (group.mode) {
                     case Mode.Advantage: {
                         // that was an advantage roll already
-                        writes.identicalGroups.push({ tokens: group.advantage, rolledNumber: rolledNumber1 });
+                        writes.sharedRolls.push({ group: group, tokens: group.advantage, result: rolledNumber1 });
                         return new Success(`rolled initiative ${rolledNumber1} (with advantage) for ${group.character.name} using ${narrative}`);
                     }
                     case Mode.Straight: {
                         // that was a straight roll
-                        writes.identicalGroups.push({ tokens: group.straight, rolledNumber: rolledNumber1 });
+                        writes.sharedRolls.push({ group: group, tokens: group.straight, result: rolledNumber1 });
                         return new Success(`rolled initiative ${rolledNumber1} for ${group.character.name} using ${narrative}`);
                     }
                     case Mode.Disadvantage: {
                         // that was a disadvantage roll already
-                        writes.identicalGroups.push({ tokens: group.disadvantage, rolledNumber: rolledNumber1 });
+                        writes.sharedRolls.push({ group: group, tokens: group.disadvantage, result: rolledNumber1 });
                         return new Success(`rolled initiative ${rolledNumber1} (with disadvantage) for ${group.character.name} using ${narrative}`);
                     }
                     case Mode.Separate: {
@@ -177,9 +196,9 @@ export class RollCommand extends ConfigurationSimpleCommand {
             }
 
             // have both rolls; service everything from separate rolls
-            writes.identicalGroups.push({ tokens: group.advantage, rolledNumber: Math.max(rolledNumber1, rolledNumber2) });
-            writes.identicalGroups.push({ tokens: group.straight, rolledNumber: rolledNumber1 });
-            writes.identicalGroups.push({ tokens: group.disadvantage, rolledNumber: Math.min(rolledNumber1, rolledNumber2) });
+            writes.sharedRolls.push({ group: group, tokens: group.advantage, result: Math.max(rolledNumber1, rolledNumber2) });
+            writes.sharedRolls.push({ group: group, tokens: group.straight, result: rolledNumber1 });
+            writes.sharedRolls.push({ group: group, tokens: group.disadvantage, result: Math.min(rolledNumber1, rolledNumber2) });
             return new Success(`rolled initiative ${rolledNumber1} (mixed advantage/disadvantage) for ${group.character.name} using ${narrative}`);
         }
 
@@ -210,36 +229,14 @@ export class RollCommand extends ConfigurationSimpleCommand {
 
         // index to avoid n^2 comparisons
         const tokenIds: Set<String> = new Set<string>();
-        writes.identicalGroups.forEach(group => group.tokens.forEach(token => tokenIds.add(token.id)));
+        writes.sharedRolls.forEach(group => group.tokens.forEach(token => tokenIds.add(token.id)));
 
         // remove from initiative, since we re-rolled
         turns = turns.filter(function (turn) {
             return !tokenIds.has(turn.id);
         });
 
-        const roundMarkerName = this.autoFeatures.marker.name.value();
-
-        var roundMarker = turns.findIndex(turn => turn.custom == roundMarkerName);
-        if (roundMarker < 0 && this.autoFeatures.marker.insert.value()) {
-            // make sure we have a round marker
-            if (turns.length == 0) {
-                // just add the turn marker
-                turns.push({ id: "-1", pr: 101, custom: roundMarkerName, formula: "+1" });
-                roundMarker = 0;
-            } else {
-                // insert it before the maximum value (first occurrence)
-                const max = turns.reduce((indexOfMinValue, turn, currentIndex) => {
-                        if (turn.pr > turns[indexOfMinValue].pr) {
-                            return currentIndex;
-                        } else {
-                            return indexOfMinValue;
-                        } 
-                    }, 
-                    0);
-                turns.splice(max, 0, { id: "-1", pr: 101, custom: roundMarkerName, formula: "+1" });
-                roundMarker = max;
-            }
-        }
+        var roundMarker = this.findOrCreateRoundMarker(turns);
 
         if (roundMarker > 0 || !this.autoFeatures.sort.value()) {
             // we are in the middle of a round or we aren't allowed to automatically sort, so add at the end
@@ -257,13 +254,42 @@ export class RollCommand extends ConfigurationSimpleCommand {
         return TurnOrder.save(turns);
     }
 
+    private findOrCreateRoundMarker(turns: TurnOrderRecord[]) {
+        const roundMarkerName = this.autoFeatures.marker.name.value();
+
+        var roundMarker = turns.findIndex(turn => turn.custom == roundMarkerName);
+        if (roundMarker >= 0 || !this.autoFeatures.marker.insert.value()) {
+            // exists or we are not allowed to create it
+            return roundMarker;
+        }
+
+        if (turns.length == 0) {
+            // empty initiative, just add the turn marker
+            turns.push({ id: "-1", pr: 101, custom: roundMarkerName, formula: "+1" });
+            roundMarker = 0;
+        } else {
+            // insert it before the maximum value (first occurrence)
+            const max = turns.reduce((indexOfMinValue, turn, currentIndex) => {
+                if (turn.pr > turns[indexOfMinValue].pr) {
+                    return currentIndex;
+                } else {
+                    return indexOfMinValue;
+                }
+            },
+                0);
+            turns.splice(max, 0, { id: "-1", pr: 101, custom: roundMarkerName, formula: "+1" });
+            roundMarker = max;
+        }
+
+        return roundMarker;
+    }
+
     private appendNewEntries(targetArray: TurnOrderRecord[], writes: RollingBatchWrites) {
-        writes.identicalGroups.forEach(identicalGroup => {
+        writes.sharedRolls.forEach(identicalGroup => {
             identicalGroup.tokens.forEach(token => {
-                targetArray.push({ id: token.id, pr: identicalGroup.rolledNumber, custom: "" });
+                targetArray.push({ id: token.id, pr: identicalGroup.result, custom: "" });
             });
         });
     }
 }
-
 

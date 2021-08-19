@@ -15,6 +15,11 @@ export class Der20Attribute {
         // generated code
     }
 
+    static create(character: Der20Character, name: string) : Der20Attribute {
+        const raw : Attribute = createObj("attribute", { _characterid: character.id, name: name });
+        return new Der20Attribute(raw);
+    }
+
     get raw(): Attribute {
         return this.data;
     }
@@ -135,6 +140,10 @@ export class Der20Character {
         return this.journalEntry;
     }
 
+    get href(): string {
+        return `https://journal.roll20.net/character/${this.id}`;
+    }
+    
     // REVISIT make this safe for unknown attributes (log and create dummy that creates on write?) 
     attribute(attributeName: string): Der20Attribute {
         let attributes = findObjs({
@@ -165,7 +174,7 @@ class MissingAttribute extends Der20Attribute {
     set<K extends "name" | "current" | "max">(property: K, value: AttributeMutableSynchronousGetProperties[K]): void;
     set(properties: Partial<AttributeMutableSynchronousGetProperties>): void;
     set(property: any, value?: any) {
-        // XXX create on write
+        // XXX create on write?
         debug.log(`${this.parent} attribute ${this.attributeName}`);
         throw new Error("Method not implemented.");
     }
@@ -173,7 +182,7 @@ class MissingAttribute extends Der20Attribute {
     setWithWorker<K extends "name" | "current" | "max">(property: K, value: AttributeMutableSynchronousGetProperties[K]): void;
     setWithWorker(properties: Partial<AttributeMutableSynchronousGetProperties>): void;
     setWithWorker(property: any, value?: any) {
-        // XXX create on write
+        // XXX create on write?
         throw new Error("Method not implemented.");
     }
 

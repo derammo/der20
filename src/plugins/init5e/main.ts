@@ -19,6 +19,8 @@ class Configuration extends PluginWithOptions {
     sort: SortCommand = new SortCommand();
     roll: RollCommand = new RollCommand(this.automatic);
     actions: ActionsConfiguration = new ActionsConfiguration(this.automatic);
+
+    // XXX up and down commands to move each selected token within the initiative, only moving past items with the same pr
 }
 
 const plugin = new Plugin('init5e', Configuration);

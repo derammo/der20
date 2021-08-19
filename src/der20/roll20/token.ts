@@ -108,9 +108,6 @@ export abstract class SelectedTokensCommand extends ConfigurationCommand {
             '', 
             (token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number) => {
                 return this.handleTokenCommand(token, rest, parserContext, tokenIndex);
-            },
-            (_parserContext: ParserContext) => {
-                // no success action
             });    
     }
 
@@ -125,9 +122,6 @@ export abstract class SelectedTokensSimpleCommand extends ConfigurationSimpleCom
             '', 
             (token: Der20Token, _rest: string, parserContext: ParserContext, tokenIndex: number) => {
                 return this.handleToken(token, parserContext, tokenIndex);
-            },
-            (_parserContext: ParserContext) => {
-                // no success action
             });
     }
 

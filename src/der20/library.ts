@@ -21,7 +21,7 @@ export { Dialog, DialogAware } from 'der20/interfaces/ui';
 export { Plugin } from 'der20/plugin/main';
 export { Options, PluginWithOptions } from 'der20/plugin/options';
 export { consoleOutput, debugOutput } from 'der20/plugin/output';
-export { Der20Character } from 'der20/roll20/character';
+export { Der20Character, Der20Attribute } from 'der20/roll20/character';
 export { D20RollSpec } from 'der20/roll20/d20_roll_spec';
 export { CommandsFromHandouts, HandoutsOptions, HandoutsSupport } from 'der20/roll20/handouts_commands';
 export { Multiplex } from 'der20/roll20/multiplex';

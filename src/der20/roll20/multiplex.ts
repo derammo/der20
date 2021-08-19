@@ -16,7 +16,9 @@ export abstract class Multiplex<MultiplexContext> {
         }
     }
 
-    execute(line: string, handler: (multiplexContext: MultiplexContext, line: string, parserContext: ParserContext, multiplexIndex: number) => Result, successHandler: (parserContext: ParserContext) => void): Result {
+    execute(line: string, 
+        handler: (multiplexContext: MultiplexContext, line: string, parserContext: ParserContext, multiplexIndex: number) => Result, 
+        successHandler?: (parserContext: ParserContext) => Result): Result {
         if (this.context.input.kind !== CommandInput.Kind.Api) {
             throw new Error(`${this.itemsDescription} command requires api source`);
         }
@@ -55,8 +57,9 @@ export abstract class Multiplex<MultiplexContext> {
         }
         if (asyncResult !== undefined) {
             result = asyncResult;
+        } else if (successHandler !== undefined) {
+            result = successHandler(this.context);
         } else {
-            successHandler(this.context);
             result = new Success(`command executed against ${multiplex.length} ${this.itemsDescription}`);
         }
         result.messages = result.messages.concat(messages);

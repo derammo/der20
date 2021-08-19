@@ -14,6 +14,9 @@ export class NewTurnCommand extends ConfigurationSimpleCommand {
 
         if (turns[0].custom == this.autoFeatures.marker.name.value()) {
             // round tracker recognized
+            const counter = Number(turns[0].pr);
+            sendChat('init5e', `/w GM ${this.autoFeatures.marker.name.value()} ${counter > 100 ? counter - 100 : counter}`, null, { noarchive: true });
+
             if (!this.autoFeatures.sort.value()) {
                 return new Success("automatic initiative sorting on new round is disabled");
             }
@@ -49,7 +52,7 @@ export class NewTurnCommand extends ConfigurationSimpleCommand {
         const regex = new RegExp(`^repeating_npcaction_(-[-A-Za-z0-9]+?|\\d+)_name`);
 
         text.push(`next turn is for ${character.name}`);
-        text.push(`https://journal.roll20.net/character/${character.id}`);
+        text.push(character.href);
         findObjs({ type: 'attribute', characterid: character.id }).forEach(raw => {
             var attribute: Attribute = raw as Attribute;
             var attribute_name = attribute.get('name');
