@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!rewards</span>
-<span class='command' id='rewards/define_module_x_level_maximum'>define module [ID] level maximum</span>
-<span class='format'>[INTEGER]</span>
-</div>
-<div class='description'></div>

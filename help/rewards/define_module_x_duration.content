@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!rewards</span>
-<span class='command' id='rewards/define_module_x_duration'>define module [ID] duration</span>
-<span class='format'>[NUMBER]</span>
-</div>
-<div class='description'></div>
