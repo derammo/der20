@@ -51,8 +51,8 @@ class StartCommand extends ConfigurationAlias {
         // generated code
     }
 
-    parse(line:string, context: ParserContext): Result {
-        const result = super.parse(line, context);
+    parse(text:string, context: ParserContext): Result {
+        const result = super.parse(text, context);
         if (result.isSuccess()) {
             // do a scan now and update from it
             this.party.pcs.scan();

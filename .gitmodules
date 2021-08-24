@@ -1,0 +1,3 @@
+[submodule "types-roll20"]
+	path = types-roll20
+	url = https://github.com/derammo/types-roll20

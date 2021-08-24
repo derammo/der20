@@ -46,7 +46,7 @@ export class PartyState extends ConfigurationIntermediateNode implements Configu
                 if (this.apl.hasConfiguredValue()) {
                     break;
                 }
-            // tslint:disable-next-line:no-switch-case-fall-through
+            // eslint-disable-next-line no-fallthrough
             case 'apl':
                 // based on apl, update strength default
                 let playerComparison; // 0,1,2 representing <,=,>

@@ -1,7 +1,7 @@
 import { ConfigurationStep } from 'der20/config/base';
 import { ParserContext, ConfigurationTermination, ExportContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
-import { Change } from 'der20/config/result';
+import { Change, Failure } from 'der20/config/result';
 import { ConfigurationValue } from 'der20/interfaces/config';
 
 // no actual data, subclassed by steps that just take an action in code but do parse additional tokens
@@ -37,11 +37,15 @@ export class ConfigurationInteger extends ConfigurationStep<number> {
         super(defaultValue, 'INTEGER');
     }
 
-    parse(line: string, context: ParserContext): Result {
-        if (line.length === 0) {
+    parse(text: string, context: ParserContext): Result {
+        if (text.length === 0) {
             this.current = ConfigurationValue.UNSET;
         } else {
-            this.current = parseInt(line, 10);
+            const parsed = parseInt(text, 10);
+            if (isNaN(parsed)) {
+                return new Failure(new Error(`${text} is not a valid integer`));
+            }
+            this.current = parsed;
         }
         return new Change(`set integer value ${this.current}`);
     }
@@ -63,11 +67,11 @@ export class ConfigurationFloat extends ConfigurationStep<number> {
         super(defaultValue, 'NUMBER');
     }
 
-    parse(line: string, context: ParserContext): Result {
-        if (line.length === 0) {
+    parse(text: string, context: ParserContext): Result {
+        if (text.length === 0) {
             this.current = ConfigurationValue.UNSET;
         } else {
-            this.current = parseFloat(line);
+            this.current = parseFloat(text);
         }
         return new Change(`set float value ${this.current}`);
     }
@@ -89,13 +93,13 @@ export class ConfigurationDate extends ConfigurationStep<number> {
         super(defaultValue, 'DATE/HOURS/BLANK');
     }
 
-    parse(line: string, context: ParserContext): Result {
-        if (line.length === 0) {
+    parse(text: string, context: ParserContext): Result {
+        if (text.length === 0) {
             this.current = Date.now();
-        } else if (line.match(/^-?[0-9]*\.?[0-9]+$/)) {
-            this.current = Date.now() - parseFloat(line) * 60 * 60 * 1000;
+        } else if (text.match(/^-?[0-9]*\.?[0-9]+$/)) {
+            this.current = Date.now() - parseFloat(text) * 60 * 60 * 1000;
         } else {
-            this.current = Date.parse(line);
+            this.current = Date.parse(text);
         }
         return new Change(`set date value ${new Date(this.current).toUTCString()}`);
     }
@@ -119,11 +123,11 @@ export class ConfigurationBoolean extends ConfigurationStep<boolean> {
         super(defaultValue, 'TRUE/FALSE');
     }
 
-    parse(line: string, context: ParserContext): Result {
-        if (line.length === 0) {
+    parse(text: string, context: ParserContext): Result {
+        if (text.length === 0) {
             this.current = ConfigurationValue.UNSET;
         } else {
-            this.current = ConfigurationBoolean.trueValues.has(line);
+            this.current = ConfigurationBoolean.trueValues.has(text);
         }
         return new Change(`set boolean value ${this.current}`);
     }

@@ -12,11 +12,11 @@ export class ConfigurationEnumerated extends ConfigurationString {
         this.format = Array.from(this.valid.values()).join('|');
     }
 
-    parse(line: string, context: ParserContext): Result {
-        if ((line.length !== 0) && (!this.valid.has(line))) {
-            return new Failure(new Error(`'${line}' is not a valid value of enumeration '${Array.from(this.valid.values())}'`))
+    parse(text: string, context: ParserContext): Result {
+        if ((text.length !== 0) && (!this.valid.has(text))) {
+            return new Failure(new Error(`'${text}' is not a valid value of enumeration '${Array.from(this.valid.values())}'`))
         }
-        return super.parse(line, context);
+        return super.parse(text, context);
     }
 
     choices(): string[] {

@@ -1,4 +1,4 @@
-import { ConfigurationChooser, ConfigurationFromTemplate, DialogResult, Failure, ParserContext, Result } from 'der20/library';
+import { ConfigurationChooser, ConfigurationFromTemplate, DialogResult, Failure, ParserContext, Result, Tokenizer } from 'der20/library';
 import { AdventurersLeagueLog } from './adventurers_league_log';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
@@ -35,10 +35,13 @@ export class SendCommand extends RenderCommand {
 
         const dm = this.dm.current.name.value();
         const dci = this.dm.current.dci.value();
-        const acp = module.advancementAward();
-        const tcp = module.treasureAward();
-        const downtime = this.rules.advancement.downtime.valueFrom(acp);
-        const renown = this.rules.advancement.renown.valueFrom(acp);
+
+        // XXX calculate hours played, downtime, renown
+        // const downtime = this.rules.advancement.downtime.valueFrom(acp);
+        // const renown = this.rules.advancement.renown.valueFrom(acp);
+        const downtime = 0;
+        const renown = this.rules.advancement.renown.valueFrom(0);
+
         const moduleName = module.name.value();
         const tier = module.tier.value();
 
@@ -55,25 +58,8 @@ export class SendCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.beginControlGroup();
 
-        // REVISIT: add hours played for clarity
+        // XXX add hours played
 
-        dialog.addTextLine(`${acp} Advancement CP`);
-        if (module.hasTierRewardsDifference()) {
-            // if hardcover, double treasure award for Tier 3+ characters
-            dialog.addTextLine(`${tcp} Treasure CP for Tier 1 & 2 Characters`);
-            const explicitCheckpoints = module.objectives.current.some((objective: any) => {
-                return objective.awarded.value();
-            });
-            if (explicitCheckpoints) {
-                // there should not be explicit check point awards in a hardcover, because the rules assume
-                // time-based awards, so make the DM figure this out if the rules allow this in the future
-                dialog.addTextLine(`Ask your DM for the treasure award for Tier 3 & 4 Characters`);
-            } else {
-                dialog.addTextLine(`${2 * tcp} Treasure CP for Tier 3 & 4 Characters`);
-            }
-        } else {
-            dialog.addTextLine(`${tcp} Treasure CP`);
-        }
         dialog.addTextLine(`${downtime} Downtime`);
         dialog.addTextLine(`${renown} Renown`);
         dialog.endControlGroup();
@@ -122,7 +108,7 @@ export class SendCommand extends RenderCommand {
             dialog.addSubTitle('Consumables:');
             dialog.beginControlGroup();
             for (let item of consumables) {
-                dialog.addTextLine(`${item.owner.value().split(' ')[0]} picked up ${item.displayName()}`);
+                dialog.addTextLine(`${Tokenizer.tokenize(item.owner.value())[0]} picked up ${item.displayName()}`);
                 dialog.addIndentedTextLine(`${item.rarity.value()} Consumable on Table ${item.table.value()}`);
                 if (item.description.hasValue()) {
                     dialog.addIndentedTextLine(item.description.value());
@@ -135,9 +121,10 @@ export class SendCommand extends RenderCommand {
         if (this.preview) {
             dialog.addCommand('Send to Players', 'rewards send', { command: context.command });
         } else {
+            // XXX add hours played to notes
+            // XXX add levels gained if 1, otherwise players have to figure it out based on hours banked (rules unclear)
             destination = DialogResult.Destination.All;
             let log = new AdventurersLeagueLog.LogEntry();
-            log.advancement_checkpoints = acp;
             log.adventure_title = moduleName;
             log.dm_dci_number = dci;
             log.dm_name = dm;
@@ -145,7 +132,6 @@ export class SendCommand extends RenderCommand {
             log.magic_items_attributes = [];
             log.notes = undefined; // XXX
             log.renown_gained = renown;
-            log.treasure_checkpoints = tcp;
             log.treasure_tier = tier;
 
             for (let item of module.unlocks.current) {
@@ -156,7 +142,7 @@ export class SendCommand extends RenderCommand {
                 magicItem.location_found = moduleName;
                 magicItem.name = item.name.value();
                 magicItem.notes = item.description.value();
-                magicItem.rarity = AdventurersLeagueLog.Rarity[item.rarity.value()];
+                magicItem.rarity = AdventurersLeagueLog.rarity[item.rarity.value()];
                 magicItem.table = item.table.value();
                 magicItem.table_result = undefined;
                 magicItem.tier = item.tier.value();

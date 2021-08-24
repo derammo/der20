@@ -3,6 +3,7 @@ import { ParserContext, ExportContext } from "der20/interfaces/parser";
 import { Result } from "der20/interfaces/result";
 import { ConfigurationParser } from 'der20/config/parser';
 import { Failure, DialogResult } from "der20/config/result";
+import { Tokenizer } from "der20/config/tokenizer";
 
 class ExportContextImpl implements ExportContext {
     commands: string[] = [];
@@ -35,13 +36,13 @@ export class ConfigurationExportCommand extends ConfigurationCommand {
         // generated
     }
 
-    parse(line: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Result {
         // context to track path from root and accumulate commands
         const exportContext = new ExportContextImpl();
         exportContext.push(`!${context.command}`);
 
         // walk any tokens specified after 'export' command
-        const tokens = line.split(' ');
+        const tokens = Tokenizer.tokenize(text);
         let walk = this.configurationRoot;
         for (let token of tokens) {
             if (token === undefined) {

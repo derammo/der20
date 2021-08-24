@@ -13,11 +13,17 @@ TSC := node_modules/typescript/bin/tsc
 .PHONY: all clean run release checkout_release build_release publish create_draft plugins executables relnotes
 .PRECIOUS: build/%.js src/%/tsconfig.json merged/build/der20/%.js merged/build/der20/%_plugin.js merged/compile/der20/library.js 
 
-all: node_modules plugins executables help
+all: environment plugins executables docs/index.html
 plugins: $(DIST)
 combo: dist/der20.js
 executables: $(patsubst %,build/%.js,$(EXECUTABLES))
 theoretical: build/empty.js build/minimal.js dist/der20_minimal_plugin.js
+environment: node_modules src/types/api.d.ts
+src/types/api.d.ts: types-roll20/LICENSE
+	cd src/types && rm -f api.d.ts
+	cd src/types && ln -s ../../types-roll20/index.d.ts api.d.ts
+types-roll20/LICENSE:
+	git submodule update --init --recursive
 node_modules:
 	npm install || echo ignoring result from npm install, since it is only used for publishing release
 dist/der20.js: dist/der20_library.js $(DIST_PLUGINS)

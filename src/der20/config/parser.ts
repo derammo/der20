@@ -3,6 +3,7 @@ import { ParserContext, ConfigurationTermination, ConfigurationParsing, ExportCo
 import { Result } from 'der20/interfaces/result';
 import { Success, Failure } from 'der20/config/result';
 import { ConfigurationChangeHandling } from 'der20/interfaces/config';
+import { Tokenizer } from './tokenizer';
 
 /**
  * decorator: keyword to use for this property instead of its name, e.g. singular name for collections
@@ -14,37 +15,28 @@ export function keyword(keywordToken: string): PropertyDecoratorFunction {
 }
 
 /**
- *  decorator: if set, the target property is considered data for save/restore but cannot be edited via parser commands
+ * decorator: if set, the target property is considered data for save/restore but cannot be edited via parser commands
  */
 export function data(prototype: any, propertyName: string): void {
     Der20Meta.getOrCreateProperty(prototype, propertyName).data = true;
 }
 
 /**
- *  decorator: if set, the target property is not considered part of the configuration, so it cannot be edited via parser 
- *  commands and is not saved or restored
+ * decorator: if set, the target property is not considered part of the configuration, so it cannot be edited via parser 
+ * commands and is not saved or restored
  */
 export function noconfig(prototype: any, propertyName: string): void {
     Der20Meta.getOrCreateProperty(prototype, propertyName).data = true;
     Der20Meta.getOrCreateProperty(prototype, propertyName).ephemeral = true;
 }
 
-export class ConfigurationParser {
-    // returns first word and rest of line as array
-    static tokenizeFirst(line: string) {
-        let clean = line.trim();
-        let space = clean.indexOf(' ');
-        if (space < 0) {
-            return [clean, ''];
-        }
-        return [clean.substr(0, space), clean.substr(space + 1)];
-    }
-
-    static parse(line: string, configuration: any, context: ParserContext): Result {
+export class ConfigurationParser extends Tokenizer {
+    static parse(text: string, configuration: any, context: ParserContext): Result {
         // REVISIT this is far too expensive to serialize even when we are not debugging, we need to be able to check the global debug flag to guard this
-        // debug.log(`parsing "${line}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`); 
+        // debug.log(`parsing "${line}" with rest "${context.rest}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`); 
+        debug.log(`parsing "${text}" with rest "${context.rest}" against ${configuration.constructor.name}`); 
 
-        if (line.length === 0) {
+        if (text.length === 0) {
             // check if 'configuration' has handler to create UI or otherwise handle
             // the end of a configuration command that does not hit a ConfigurationStep
             if (typeof configuration.handleEndOfCommand === 'function') {
@@ -57,14 +49,14 @@ export class ConfigurationParser {
             // configuration object implements its own parsing
             // validation and events were done one frame higher
             const parsingObject = <ConfigurationParsing>configuration;
-            return parsingObject.parse(line, context);
+            return parsingObject.parse(text, context);
         }
 
         // try to route keyword
         let result: Result = new Success('no configuration changed');
-        const tokens: string[] = ConfigurationParser.tokenizeFirst(line);
-        const keywordToken = tokens[0];
-        const rest = tokens[1];
+        const tokenAndRest: string[] = ConfigurationParser.tokenizeFirst(text);
+        const keywordToken = tokenAndRest[0];
+        const rest = tokenAndRest[1];
         const route = ConfigurationParser.route(keywordToken, configuration);
         if (route === undefined) {
             if (keywordToken.length > 0) {

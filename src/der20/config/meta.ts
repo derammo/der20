@@ -2,7 +2,7 @@ import { Result } from "der20/interfaces/result";
 
 // avoid circular dependency by placing this here
 export abstract class Validator {
-    abstract validate(line: string): Result;
+    abstract validate(text: string): Result;
 
     constructor(public readonly humanReadable: string) {
         // generated

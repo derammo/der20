@@ -13,7 +13,7 @@ export abstract class ConfigurationStep<T> implements ConfigurationParsing, Conf
         this.format = format;
     }
 
-    abstract parse(line: string, context: ParserContext): Result;
+    abstract parse(text: string, context: ParserContext): Result;
     abstract export(context: ExportContext): void;
 
     load(json: any, context: LoaderContext) {

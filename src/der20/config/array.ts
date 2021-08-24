@@ -44,7 +44,7 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
             context.addMessage('ignoring non-array JSON in saved state; configuration array reset');
             return;
         }
-        // tslint:disable-next-line:forin
+        // eslint-disable-next-line guard-for-in
         for (let jsonItem of json) {
             let item = new this.classType();
             ConfigurationLoader.restore(jsonItem, item, context);
@@ -98,8 +98,8 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationS
         return this.current[Symbol.iterator]();
     }    
 
-    parse(line: string, context: ParserContext): Result {
-        let tokens = ConfigurationParser.tokenizeFirst(line);
+    parse(text: string, context: ParserContext): Result {
+        let tokens = ConfigurationParser.tokenizeFirst(text);
         let id: string = tokens[0];
         if (id.length < 1) {
             return this.createItemChoiceDialog(context);
@@ -260,8 +260,8 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
         return new Failure(new Error(`${this.array.keyword} could not be selected, because none are defined`));
     }
 
-    parse(line: string, context: ParserContext): Result {
-        let tokens = ConfigurationParser.tokenizeFirst(line);
+    parse(text: string, context: ParserContext): Result {
+        let tokens = ConfigurationParser.tokenizeFirst(text);
         let id = tokens[0];
 
         if (id === ConfigurationChooser.MAGIC_CURRENT_ID) {

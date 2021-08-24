@@ -14,7 +14,7 @@ export class CharacterConfiguration extends ConfigurationString implements Confi
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
 
-    parse(line: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Result {
         const imageKey = 'CharacterConfiguration_image';
         let imageSource = context.asyncVariables[imageKey];
         if (imageSource !== undefined) {
@@ -22,7 +22,7 @@ export class CharacterConfiguration extends ConfigurationString implements Confi
             // XXX we need some way to display this message even if verbose is not set, without introducing a new result type
             return new Success(`loaded anonymous icon from character '${this.value()}'`);
         }
-        let result: Result = super.parse(line, context);
+        let result: Result = super.parse(text, context);
         if (!result.isSuccess()) {
             return result;
         }

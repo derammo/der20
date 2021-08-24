@@ -21,6 +21,7 @@ export class Der20Token {
         }
         return message.selected
             .map((dict: any) => {
+                // eslint-disable-next-line no-underscore-dangle
                 return Der20Token.fetch(dict._id);
             })
             .filter((token: Der20Token | undefined) => {
@@ -102,17 +103,17 @@ class SelectedTokensMultiplex extends Multiplex<Der20Token> {
 }
 
 export abstract class SelectedTokensCommand extends ConfigurationCommand {
-    parse(line: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Result {
         const multiplex = new SelectedTokensMultiplex(context);
         return multiplex.execute(
-            '', 
+            text, 
             (token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number) => {
                 return this.handleTokenCommand(token, rest, parserContext, tokenIndex);
             });    
     }
 
     // tokenIndex is the index of the token in the selected tokens array, which remains the same during async retries
-    abstract handleTokenCommand(token: Der20Token, line: string, parserContext: ParserContext, tokenIndex: number): Result;
+    abstract handleTokenCommand(token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number): Result;
 }
 
 export abstract class SelectedTokensSimpleCommand extends ConfigurationSimpleCommand {

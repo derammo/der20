@@ -32,8 +32,8 @@ export class ConfigurationSet extends ConfigurationStep<Set<string>> implements 
         }
     }
 
-    parse(line: string, context: ParserContext): Result {
-        this.current.add(line);
+    parse(text: string, context: ParserContext): Result {
+        this.current.add(text);
         return new Change('item added to collection, if not already present');
     }
 

@@ -63,8 +63,8 @@ export class ConfigurationPopulateCommand extends ConfigurationCommand {
         return false;
     }
 
-    parse(line: string): Result {
-        let tokens = ConfigurationParser.tokenizeFirst(line);
+    parse(text: string): Result {
+        let tokens = ConfigurationParser.tokenizeFirst(text);
         const item = this.collection.fetchItem(tokens[0]);
         if (item === undefined) {
             return new Failure(new Error(`'${tokens[0]}' is not an item in the collection`));

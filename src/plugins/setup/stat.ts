@@ -1,4 +1,4 @@
-import { SelectedTokensSimpleCommand, Der20Token, Asynchronous, RollQuery } from 'der20/library';
+import { SelectedTokensSimpleCommand, Der20Token, Asynchronous, RollQuery, Tokenizer } from 'der20/library';
 import { ParserContext } from 'der20/library';
 import { Result, Success } from 'der20/library';
 
@@ -15,6 +15,7 @@ export class StatCommand extends SelectedTokensSimpleCommand {
         }
     }
 
+    /* eslint-disable @typescript-eslint/naming-convention */
     private statPc(token: Der20Token, parserContext: ParserContext): Result {
         const character = token.character;
         const result = new Success(`set up player character token for ${character.name}`);
@@ -40,7 +41,7 @@ export class StatCommand extends SelectedTokensSimpleCommand {
         }
 
         // first name only
-        name = name.split(/ /)[0];
+        name = Tokenizer.tokenize(name)[0];
         token.raw.set({
             name: name,
             showname: true,
@@ -49,6 +50,7 @@ export class StatCommand extends SelectedTokensSimpleCommand {
 
         return result;
     }
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     private statNpc(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
         const character = token.character;

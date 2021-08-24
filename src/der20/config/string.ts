@@ -9,11 +9,11 @@ export class ConfigurationString extends ConfigurationStep<string> {
         super(defaultValue, 'STRING');
     }
 
-    parse(line: string, context: ParserContext): Result {
-        if (line.length === 0) {
+    parse(text: string, context: ParserContext): Result {
+        if (text.length === 0) {
             this.current = ConfigurationValue.UNSET;
         } else {
-            this.current = line;
+            this.current = text;
         }
         return new Change(`set string value '${this.current}'`);
     }

@@ -9,10 +9,10 @@ export class ConfigurationDeleteItemCommand<T> extends ConfigurationCommand {
         // generated code
     }
 
-    parse(line: string): Result {
-        if (this.collection.removeItem(line)) {
-            return new Change(`item '${line}' deleted`);
+    parse(text: string): Result {
+        if (this.collection.removeItem(text)) {
+            return new Change(`item '${text}' deleted`);
         }
-        return new Success(`item '${line}' does not exist`);
+        return new Success(`item '${text}' does not exist`);
     }
 }

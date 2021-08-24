@@ -13,7 +13,7 @@ export class ConfigurationLoader {
         }
         // iterate objects, recurse
         let changedKeys: string[] = [];
-        // tslint:disable-next-line:forin
+        // eslint-disable-next-line guard-for-in
         for (let key in from) {
             if (to.hasOwnProperty(key)) {
                 let target = to[key];

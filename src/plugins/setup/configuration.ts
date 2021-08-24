@@ -5,11 +5,12 @@ import { StatCommand } from './stat';
 import { SaveCommand } from './save';
 import { RestoreCommand } from './restore';
 import { TokenResetCommand } from './reset';
-import { LampCommand } from './lamp';
+import { LightCommand as LightCommand } from './light';
 import { DarkvisionCommand } from './darkvision';
 import { ClearCommand } from 'der20/library';
 import { PositionData } from './data';
 import { SessionRestoreCommand } from './session_restore';
+import { DeadCommand } from './dead';
 
 /**
  * token settings
@@ -17,8 +18,9 @@ import { SessionRestoreCommand } from './session_restore';
 class TokenConfiguration extends ConfigurationIntermediateNode {
     stat: StatCommand = new StatCommand();
     reset: TokenResetCommand = new TokenResetCommand();
-    lamp: LampCommand = new LampCommand();
+    light: LightCommand = new LightCommand();
     darkvision: DarkvisionCommand = new DarkvisionCommand();
+    dead: DeadCommand = new DeadCommand();
 }
 
 /**

@@ -214,7 +214,7 @@ class PluginImplementation<T> implements CommandSink {
         }
 
         // this switch must be exhaustive
-        // tslint:disable-next-line:switch-default
+        // eslint-disable-next-line default-case
         switch (result.kind) {
             case Result.Kind.Failure:
                 for (let error of (<Failure>result).errors) {
@@ -258,7 +258,7 @@ class PluginImplementation<T> implements CommandSink {
 
     scheduleFetches(level: PromiseQueue.Level, from: Asynchronous, to: PluginParserContext): void {
         let promisesMap = from.promises;
-        // tslint:disable-next-line:forin
+        // eslint-disable-next-line guard-for-in
         for (let asyncVariable in promisesMap) {
             let handler = (value: any) => {
                 to.asyncVariables[asyncVariable] = value;

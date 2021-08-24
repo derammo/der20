@@ -1,4 +1,4 @@
 package-lock.json
-src/types/api.d.ts
 test/testquery.js
 docs/index.html
+types-roll20

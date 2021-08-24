@@ -74,7 +74,7 @@ derScript.stat_pc = function(result, token, character_id) {
     token.set({ bar2_link: attr_passive_wisdom.id, bar2_value: attr_passive_wisdom.get('current'), bar2_max: 30 });
 
     // first name only
-    var name = token.get('name').split(/ /)[0];
+    var name = Tokenizer.tokenize(token.get('name'))[0];
     token.set({
         name: name,
         showname: true,

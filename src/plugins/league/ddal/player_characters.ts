@@ -1,4 +1,4 @@
-import { ConfigurationBoolean, ConfigurationStep, Der20Character, Der20Player, ExportContext, Failure, ParserContext, Result } from "der20/library";
+import { ConfigurationBoolean, ConfigurationStep, Der20Character, Der20Player, ExportContext, Failure, ParserContext, Result, Tokenizer } from "der20/library";
 
 class PlayerCharacter {
     // REVISIT: is it a problem that we hold references to these characters and players?  what happens if they are deleted in the GUI?
@@ -56,8 +56,8 @@ export class PlayerCharacters extends ConfigurationStep<PlayerCharacter[]> {
         }
     }
 
-    parse(line: string, context: ParserContext): Result {
-        let tokens = line.split(' ');
+    parse(text: string, context: ParserContext): Result {
+        let tokens = Tokenizer.tokenize(text);
         if (tokens.length < 4) {
             return new Failure(new Error(`must specify 'USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK'`));
         }
@@ -105,7 +105,13 @@ export class PlayerCharacters extends ConfigurationStep<PlayerCharacter[]> {
         for (let pc of this.characters) {
             if (pc.selected.value()) {
                 count += 1;
-                total += pc.character.attribute('level').value(0);
+                const level = pc.character.attribute('level').value(0);
+                if (level < 1) {
+                    // uninitialized, might be Beyond20 for example and we did not fix it in the UI
+                    // XXX edit levels in the UI after scan
+                    return 0;
+                }
+                total += level;
             }
         }
         if (count === 0) {

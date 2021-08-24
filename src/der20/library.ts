@@ -32,4 +32,4 @@ export { Sheet5eOGL } from 'der20/roll20/sheet_5e_ogl';
 export { Der20Token, SelectedTokensCommand, SelectedTokensSimpleCommand } from 'der20/roll20/token';
 export { CommandsFromTokens } from 'der20/roll20/token_commands';
 export { TurnOrder, TurnOrderAnnouncer, TurnOrderRecord } from 'der20/roll20/turn_order';
-
+export { Tokenizer } from 'der20/config/tokenizer';

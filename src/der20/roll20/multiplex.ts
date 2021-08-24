@@ -4,6 +4,9 @@ import { Result } from 'der20/interfaces/result';
 import { CommandInput } from 'der20/interfaces/config';
 import { ApiCommandInput } from 'der20/plugin/chat';
 
+type ExecuteHandlerType<MultiplexContext> = (multiplexContext: MultiplexContext, text: string, parserContext: ParserContext, multiplexIndex: number) => Result;
+type SuccessHandlerType = (parserContext: ParserContext) => Result;
+
 export abstract class Multiplex<MultiplexContext> {
     constructor(protected context: ParserContext) {
         // no code
@@ -16,9 +19,9 @@ export abstract class Multiplex<MultiplexContext> {
         }
     }
 
-    execute(line: string, 
-        handler: (multiplexContext: MultiplexContext, line: string, parserContext: ParserContext, multiplexIndex: number) => Result, 
-        successHandler?: (parserContext: ParserContext) => Result): Result {
+    execute(text: string, 
+        handler: ExecuteHandlerType<MultiplexContext>, 
+        successHandler?: SuccessHandlerType): Result {
         if (this.context.input.kind !== CommandInput.Kind.Api) {
             throw new Error(`${this.itemsDescription} command requires api source`);
         }
@@ -34,7 +37,7 @@ export abstract class Multiplex<MultiplexContext> {
         let index = 0;
         let events: Set<Result.Event> = new Set<Result.Event>();
         for (let multiplexContext of multiplex) {
-            result = handler(multiplexContext, line, this.context, index);
+            result = handler(multiplexContext, text, this.context, index);
             this.mergeEvents(events, result.events, 'saving');
             // now interpret result
             switch (result.kind) {

@@ -64,8 +64,6 @@ export class ShowCommand extends RenderCommand {
         dialog.addEditControl('Maximum Level', 'module current level maximum', module.level.maximum, link);
         dialog.addEditControl('Target APL', 'module current target apl', module.target.apl, link);
         dialog.addSeparator();
-        dialog.addEditControl('Advancement/hr', 'module current hourly advancement', module.hourly.advancement, link);
-        dialog.addEditControl('Treasure/hr', 'module current hourly treasure', module.hourly.treasure, link);
         dialog.addEditControl('Maximum Duration', 'module current duration', module.duration, link);
         dialog.addEditControl('Start Time', 'start', module.start, link);
         dialog.addEditControl('End Time', 'module current stop', module.stop, link);
@@ -73,10 +71,6 @@ export class ShowCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.addSubTitle('Objectives and Unlocks');
         dialog.beginControlGroup();
-        for (let objective of module.objectives.current) {
-            const label = `${objective.name.value()} (${objective.advancement.value()} ACP, ${objective.treasure.value()} TCP)`;
-            dialog.addEditControl(label, `module current objective ${objective.id} awarded`, objective.awarded, link);
-        }
         for (let item of module.unlocks.current) {
             dialog.addEditControl(`Unlocked ${item.displayName()}`, `module current unlock ${item.id} awarded`, item.awarded, link);
             if (item.awarded.value()) {
@@ -117,22 +111,6 @@ export class ShowCommand extends RenderCommand {
             dialog.addTextLine(`${count} Player Character${count!==1?'s':''} at ${this.party.apl.value()} APL`);
         } else {
             dialog.addTextLine('No Player Characters');
-        }
-        if (module.hasTierRewardsDifference()) {
-            // if hardcover, double treasure award for Tier 3+ characters
-            dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP for Tier 1 & 2 Characters`);
-            const explicitAwards = module.objectives.current.some(objective => {
-                return objective.awarded.value();
-            });
-            if (explicitAwards) {
-                // there should not be explicit check point awards in a hardcover, because the rules assume
-                // time-based awards, so make the DM figure this out if the rules allow this in the future
-                dialog.addTextLine(`You must manually calculate the treasure award for Tier 3 & 4 Characters`);
-            } else {
-                dialog.addTextLine(`${module.advancementAward()} ACP, ${2 * module.treasureAward()} TCP for Tier 3 & 4 Characters`);
-            }
-        } else {
-            dialog.addTextLine(`${module.advancementAward()} ACP, ${module.treasureAward()} TCP`);
         }
         dialog.endControlGroup();
         dialog.addSeparator();

@@ -25,9 +25,10 @@ export class AdventurersLeagueLog {
     }
 }
 
+// eslint-disable-next-line no-redeclare
 export namespace AdventurersLeagueLog {
     // these must match the actual query parameters in Rails application
-    // tslint:disable:variable-name
+    /* eslint-disable @typescript-eslint/naming-convention,no-underscore-dangle,id-blacklist,id-match */
     export class MagicItem {
         location_found: string;
         name: string;
@@ -52,10 +53,12 @@ export namespace AdventurersLeagueLog {
         renown_gained: number;
         magic_items_attributes: MagicItem[];
     }
-    // tslint:enable:variable-name
+    /* eslint-enable @typescript-eslint/naming-convention,no-underscore-dangle,id-blacklist,id-match */
 
     // mapping from values of ddal/league_module:Rarity to A.L.L. enum
-    export const Rarity: Record<string, string> = {
+    export const rarity: Record<string, string> = {
+        // this is a lookup table of literals in our CLI
+        /* eslint-disable @typescript-eslint/naming-convention */
         Common: 'common',
         Uncommon: 'uncommon',
         Rare: 'rare',
@@ -63,5 +66,7 @@ export namespace AdventurersLeagueLog {
         Legendary: 'legendary',
         Artifact: 'unique',
         Unique: 'unique'
-    };
+        /* eslint-enable @typescript-eslint/naming-convention */
+    }
 }
+

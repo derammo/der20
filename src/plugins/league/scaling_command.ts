@@ -85,10 +85,10 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
         return new Success('updated token scaling for party level');
     }
 
-    parse(line: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Result {
         if (context.input.kind === CommandInput.Kind.Token) {
             // command is in gmnotes of the target token
-            return this.configureFromToken(line, context, <NotesInput>context.input);
+            return this.configureFromToken(text, context, <NotesInput>context.input);
         }
         return new Failure(new Error('XXX unimplemented'));
     }

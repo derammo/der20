@@ -1,6 +1,7 @@
 import { Der20Meta, PropertyDecoratorFunction, Validator } from './meta';
 import { Result } from 'der20/interfaces/result';
 import { Success, Failure } from './result';
+import { Tokenizer } from './tokenizer';
 
 // this validator checks the entire remaining input, use TokenRegexValidator to only validate the next token
 export class RegexValidator extends Validator {
@@ -9,8 +10,8 @@ export class RegexValidator extends Validator {
         // generated
     }
 
-    validate(line: string): Result {
-        if (line.match(this.regularExpression)) {
+    validate(text: string): Result {
+        if (text.match(this.regularExpression)) {
             return new Success('validated by matching regular expression');
         }
         return new Failure(new Error(this.humanReadable));
@@ -18,17 +19,8 @@ export class RegexValidator extends Validator {
 }
 
 export class TokenRegexValidator extends RegexValidator {
-    // XXX move to common base shared with ConfigurationParser
-    static tokenizeFirst(line: string) {
-        let clean = line.trim();
-        let space = clean.indexOf(' ');
-        if (space < 0) {
-            return [clean, ''];
-        }
-        return [clean.substr(0, space), clean.substr(space + 1)];
-    }
     validate(line: string): Result {
-        const tokens = TokenRegexValidator.tokenizeFirst(line);
+        const tokens = Tokenizer.tokenizeFirst(line);
         if (tokens[0].match(this.regularExpression)) {
             return new Success('validated by matching regular expression');
         }

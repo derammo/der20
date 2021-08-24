@@ -15,10 +15,18 @@ export interface ParserFrame {
  */
 export interface ParserContext {
     asyncVariables: Record<string, any>;
+
     input: CommandInput;
+
     command: string;
+    
+    /**
+     * the currently processed command line, not including the !command that was matched
+     */
     rest: string;
+
     dialog: DialogFactory;
+
     frames: ParserFrame[];
 }
 
@@ -38,7 +46,13 @@ export interface ExportContext {
  * Classes that handle their own parsing implement this.
  */
 export interface ConfigurationParsing {
-    parse(line: string, context: ParserContext): Result;
+    /**
+     * attempt to parse the input
+     * 
+     * @param text the input to be parsed, including tokens for this configuration step and any subsequent steps, to the end of the input line
+     * @param context 
+     */
+    parse(text: string, context: ParserContext): Result;
     export(context: ExportContext): void;
 }
 

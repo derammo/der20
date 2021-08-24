@@ -1,4 +1,4 @@
-import { ConfigurationArray, ConfigurationBoolean, ConfigurationChangeHandling, ConfigurationDate, ConfigurationFloat, ConfigurationInteger, ConfigurationIntermediateNode, ConfigurationString, ConfigurationTermination, ConfigurationValue, DialogResult, ParserContext, Result, Success, clone, data } from 'der20/library';
+import { ConfigurationArray, ConfigurationBoolean, ConfigurationChangeHandling, ConfigurationDate, ConfigurationFloat, ConfigurationInteger, ConfigurationIntermediateNode, ConfigurationString, ConfigurationTermination, ConfigurationValue, DialogResult, ParserContext, Result, Success, clone, data, ConfigurationEnumerated } from 'der20/library';
 import { Objective } from './objective';
 import { Unlock, UnlockDefinition } from './unlock';
 
@@ -17,11 +17,10 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
     objectives: ConfigurationArray<Objective> = new ConfigurationArray<Objective>('objective', Objective);
     unlocks: ConfigurationArray<UnlockDefinition> = new ConfigurationArray<UnlockDefinition>('unlock', UnlockDefinition);
     tier: ConfigurationInteger = new ConfigurationInteger(0);
-    season: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);
+    season: ConfigurationEnumerated = new ConfigurationEnumerated("Historical", [ "Historical", "Masters", "Season 10" ]);
     hardcover: ConfigurationBoolean = new ConfigurationBoolean(false);
     level: LeagueModule.Level = new LeagueModule.Level();
     duration: ConfigurationFloat = new ConfigurationFloat(4);
-    hourly: LeagueModule.Hourly = new LeagueModule.Hourly();
     target: TargetConfiguration = new TargetConfiguration();
 
     minimumLevelForTier(): number {
@@ -54,21 +53,6 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         }
     }
 
-    hourlyAdvancement(): number {
-        if ((this.season.value() < 8) || (this.hardcover.value())) {
-            return 1;
-        }
-        return 0;
-    }
-
-    hourlyTreasure(): number {
-        let multiplier = 1;
-        if ((this.tier.value() > 2) && (!this.hasTierRewardsDifference())) {
-            multiplier = 2;
-        }
-        return multiplier * this.hourlyAdvancement();
-    }
-
     defaultDuration(): number {
         if (this.hardcover.value()) {
             return 0;
@@ -86,18 +70,13 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
             case 'tier':
                 this.level.minimum.default = this.minimumLevelForTier();
                 this.level.maximum.default = this.maximumLevelForTier();
-            // tslint:disable-next-line:no-switch-case-fall-through
+            // eslint-disable-next-line no-fallthrough
             case 'level':
                 this.target.apl.default = Math.round((this.level.minimum.value() + this.level.maximum.value()) / 2);
-                this.hourly.treasure.default =  this.hourlyTreasure();
                 break;
             case 'season':
-                this.hourly.advancement.default = this.hourlyAdvancement();
-                this.hourly.treasure.default = this.hourlyTreasure();
                 break;
             case 'hardcover':
-                this.hourly.advancement.default = this.hourlyAdvancement();
-                this.hourly.treasure.default = this.hourlyTreasure();
                 this.duration.default = this.defaultDuration();
                 break;
             default:
@@ -126,15 +105,16 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         dialog.addEditControl('Maximum Level', 'level maximum', this.level.maximum, link);
         dialog.addEditControl('Target APL', 'target apl', this.target.apl, link);
         dialog.addSeparator();
-        dialog.addEditControl('Advancement/hr', 'hourly advancement', this.hourly.advancement, link);
-        dialog.addEditControl('Treasure/hr', 'hourly treasure', this.hourly.treasure, link);
-        dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
-        dialog.addSeparator();
+        // XXX pending DDAL rules
+        // dialog.addEditControl('Maximum Duration', 'duration', this.duration, link);
+        // dialog.addSeparator();
         dialog.addTableControl('Unlocks', 'unlock', this.unlocks.value(), link);
-        if ((this.objectives.value().length > 0) || ((!this.hardcover.value()) && (this.season.value() >= 8))) {
+
+        if ((this.objectives.value().length > 0) || (!this.hardcover.value())) {
             dialog.addSeparator();
-            dialog.addTableControl('Objectives', 'objective', this.objectives.value(), link);
+            dialog.addTableControl('Story Awards', 'objective', this.objectives.value(), link);
         }
+
         dialog.endControlGroup();
         return new DialogResult(DialogResult.Destination.Caller, dialog.render());
     }
@@ -154,55 +134,7 @@ export class LeagueModule extends LeagueModuleDefinition {
     session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
     stop: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
- 
-    treasureAward(): number {
-        // sum all awarded treasure from objectives
-        let treasure = this.objectives.current.map((objective) => {
-            if (objective.awarded.value()) {
-                return objective.treasure.value();
-            } else {
-                return 0;
-            }
-        }).reduce((previous, current) => {
-            return previous + current;
-        }, 0);
-
-        let hours = this.hoursAward();
-        if (hours <= 0.0) {
-            // start and stop may not be configured
-            return treasure;
-        }
-
-        // add any hourly treasure, which should be mutually exclusive with objectives
-        // but there may be modules in the future that change this
-        treasure += this.hourly.treasure.value() * hours;
-        return treasure;
-    }
-
-    advancementAward(): number {
-        // sum all awarded advancement from objectives
-        let advancement = this.objectives.current.map((objective) => {
-            if (objective.awarded.value()) {
-                return objective.advancement.value();
-            } else {
-                return 0;
-            }
-        }).reduce((previous, current) => {
-            return previous + current;
-        }, 0);
-
-        let hours = this.hoursAward();
-        if (hours <= 0.0) {
-            // start and stop may not be configured
-            return advancement;
-        }
    
-        // add any hourly advancement, which should be mutually exclusive with objectives
-        // but there may be modules in the future that change this
-        advancement += this.hourly.advancement.value() * hours;
-        return advancement;
-    }
-
     hoursAward(): number {
         let hours = (this.stop.value() - this.start.value()) / (60 * 60 * 1000);
         if (Number.isNaN(hours)) {
@@ -234,8 +166,6 @@ export class LeagueModule extends LeagueModuleDefinition {
             tier = 2;
         }
         this.tier.default = tier;
-        // NOTE: do not fire 'tier' change event, because we don't want to update level ranges and APL targets
-        this.hourly.treasure.default =  this.hourlyTreasure();
     }
 
     handleChange(keyword: string) {
@@ -273,14 +203,6 @@ export namespace LeagueModule {
 
         clone(): Level {
             return clone(LeagueModule.Level, this);
-        }
-    }
-    export class Hourly extends ConfigurationIntermediateNode {
-        advancement: ConfigurationFloat = new ConfigurationFloat(0);
-        treasure: ConfigurationFloat = new ConfigurationFloat(0);
-
-        clone(): Hourly {
-            return clone(LeagueModule.Hourly, this);
         }
     }
 }
