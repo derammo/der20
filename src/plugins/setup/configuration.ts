@@ -1,4 +1,4 @@
-import { data, ConfigurationAlias } from 'der20/library';
+import { data, ConfigurationAlias, format } from 'der20/library';
 import { PluginWithOptions } from 'der20/library';
 import { ConfigurationIntermediateNode } from 'der20/library';
 import { StatCommand } from './stat';
@@ -18,7 +18,10 @@ import { DeadCommand } from './dead';
 class TokenConfiguration extends ConfigurationIntermediateNode {
     stat: StatCommand = new StatCommand();
     reset: TokenResetCommand = new TokenResetCommand();
+
+    @format("[BRIGHT_DISTANCE [dim DIM_EXTRA_DISTANCE]]")
     light: LightCommand = new LightCommand();
+    
     darkvision: DarkvisionCommand = new DarkvisionCommand();
     dead: DeadCommand = new DeadCommand();
 }

@@ -1,6 +1,4 @@
-import { ConfigurationInteger, ConfigurationParser, Der20Token, noconfig, SelectedTokensCommand, Success } from 'der20/library';
-import { ParserContext } from 'der20/library';
-import { Result } from 'der20/library';
+import { ConfigurationInteger, ConfigurationParser, Der20Token, noconfig, ParserContext, Result, SelectedTokensCommand, Success } from 'der20/library';
 
 export class LightCommand extends SelectedTokensCommand {
     handleTokenCommand(token: Der20Token, text: string, parserContext: ParserContext, tokenIndex: number): Result {
