@@ -330,7 +330,9 @@ class PluginImplementation<T> implements CommandSink {
     handleErrorThrown(error: Error, context?: PluginParserContext) {
         let frames = error.stack;
         let bodyText = [];
-        if (frames !== undefined) {
+        if (frames === undefined) {
+            console.log(`caught error without any stack frames:\n${error}`);
+        } else {
             // search for symbols
             let symbols: { line: number; name: string }[] = [];
             for (let loaded of der20ScriptModules()) {

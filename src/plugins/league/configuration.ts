@@ -1,11 +1,12 @@
-import { ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationValue, Result, ParserContext, ConfigurationPopulateCommand, format } from 'der20/library';
+import { ClearCommand as ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationPopulateCommand, format } from 'der20/library';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 import { PartyState } from './ddal/party_state';
 import { Rules } from './rules';
 import { TokenScalingCommand } from './scaling_command';
 import { SendCommand } from './send_command';
-import { ShowCommand } from './show_command';
+import { SessionShowCommand } from './session_show';
+import { SessionStartCommand } from './session_start';
 
 // add handouts and tokens support to basic options
 class RewardsOptions extends Options implements HandoutsSupport {
@@ -45,23 +46,6 @@ class PopulateCommands {
     }
 }
 
-class StartCommand extends ConfigurationAlias {
-    constructor(target: ConfigurationValue<LeagueModule>, private party: PartyState) {
-        super(target, 'current start');
-        // generated code
-    }
-
-    parse(text:string, context: ParserContext): Result {
-        const result = super.parse(text, context);
-        if (result.isSuccess()) {
-            // do a scan now and update from it
-            this.party.pcs.scan();
-            this.party.handleChange('pc');        
-        }
-        return result;
-    }
-}
-
 // XXX instead of all of these links, let parser and loader contexts carry the call stack of <any> ancestors, which we need to build anyway for 'show running'
 // XXX something with an instanceof check?  are those reliable in our hierarchy?
 class SessionConfiguration extends ConfigurationIntermediateNode implements ConfigurationChangeHandling {
@@ -73,20 +57,20 @@ class SessionConfiguration extends ConfigurationIntermediateNode implements Conf
     party: PartyState;
 
     // commands
-    start: StartCommand;
+    start: SessionStartCommand;
     stop: ConfigurationAlias;
     clear: ClearCommand;
-    show: ShowCommand;
+    show: SessionShowCommand;
 
     constructor(define: Definitions, scaling: TokenScalingCommand) {
         super();
         this.dm = new ConfigurationChooser(define.dms, 'session dm');
         this.module = new ConfigurationFromTemplate(define.modules, 'session module', LeagueModule);
         this.party = new PartyState(this.module, scaling);
-        this.start = new StartCommand(this.module, this.party);
+        this.start = new SessionStartCommand(this.module, this.party);
         this.stop = new ConfigurationAlias(this.module, 'current stop');
         this.clear = new ClearCommand([this.dm, this.module, this.party], 'cleared current session data and item selection');
-        this.show = new ShowCommand(this.dm, this.module, this.party);
+        this.show = new SessionShowCommand(this.dm, this.module, this.party);
     }
 
     handleChange(changedKeyword: string): void {

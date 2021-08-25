@@ -31,12 +31,14 @@ export class SetCommand extends SelectedTokensSimpleCommand {
             if (!wtype.exists) {
                 // need to create attribute, because it is not present by default
                 wtype = Der20Attribute.create(character, "wtype");
+                wtype.raw.set('max', '');
             }
             wtype.raw.setWithWorker("current", "/w gm");
         }
 
         // if no image is configured, just do the name part
         if (defaultToken === undefined) {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             token.raw.set({ name: anonymousName, showname: true, showplayers_name: true });
             return new Success(`token for '${character.name}' changed to show only creature type; anonymous character to use as icon is not configured`);
         }
@@ -45,6 +47,7 @@ export class SetCommand extends SelectedTokensSimpleCommand {
         let cacheDefeat = this.calculateCacheDefeat();
         let anonymousIcon = `${defaultToken}?${cacheDefeat}`;
         debug.log(`setting token to: ${anonymousIcon}`);
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         token.raw.set({ imgsrc: anonymousIcon, name: anonymousName, showname: true, showplayers_name: true });
 
         // setting validates if this image is allowed

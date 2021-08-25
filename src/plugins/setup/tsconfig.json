@@ -1,1 +1,1 @@
-{ "extends": "../tsconfig_plugins.json", "compilerOptions": { "outFile": "../../../build/setup.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts" ] }
+{ "extends": "../tsconfig_plugins.json", "compilerOptions": { "outFile": "../../../build/setup.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts", "../league/session_restore.ts" ] }

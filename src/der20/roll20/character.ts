@@ -168,6 +168,14 @@ export class Der20Character {
             });
         });  
     }
+
+    static fetch(id: string): Der20Character {
+        let token = getObj('character', id);
+        if (token === undefined) {
+            return undefined;
+        }
+        return new Der20Character(token);
+    }
 }
 
 class MissingAttribute extends Der20Attribute {

@@ -30,6 +30,13 @@ export function noconfig(prototype: any, propertyName: string): void {
     Der20Meta.getOrCreateProperty(prototype, propertyName).ephemeral = true;
 }
 
+/**
+ * decorator: if set, the target property is not saved or restored but does support configuration commands
+ */
+ export function ephemeral(prototype: any, propertyName: string): void {
+    Der20Meta.getOrCreateProperty(prototype, propertyName).ephemeral = true;
+}
+
 export class ConfigurationParser extends Tokenizer {
     static parse(text: string, configuration: any, context: ParserContext): Result {
         // REVISIT this is far too expensive to serialize even when we are not debugging, we need to be able to check the global debug flag to guard this

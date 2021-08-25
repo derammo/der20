@@ -7,7 +7,7 @@ import { Result } from 'der20/interfaces/result';
 import { DialogResult } from 'der20/config/result';
 
 /**
- *  decorator: format information such as STRING, INTEGER, etc.
+ * decorator: format information such as STRING, INTEGER, etc.
  */
 export function format(formatText: string): PropertyDecoratorFunction {
     return function(prototype: any, propertyName: string): void {
@@ -16,7 +16,7 @@ export function format(formatText: string): PropertyDecoratorFunction {
 }
 
 /**
- *  decorator: merge documentation for common commands under the given name
+ * decorator: merge documentation for common commands under the given name
  */
  export function common(pluginName: string): PropertyDecoratorFunction {
     return function(prototype: any, propertyName: string): void {
@@ -134,7 +134,7 @@ export class HelpCommand extends ConfigurationSimpleCommand {
             dialog.beginControlGroup();
             let label = `!${item.plugin} ${item.command}`
             if (item.format) {
-                label = `!${item.plugin} ${item.command} [${item.format}]`;
+                label = `!${item.plugin} ${item.command} ${item.format}`;
             }
             const plugin = item.common || item.plugin;
             const href = `https://derammo.github.io/der20/#${plugin}/${item.command.replace(/\[.*?\]/g, 'x').replace(/ /g, '_')}`;

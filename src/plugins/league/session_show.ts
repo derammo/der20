@@ -27,7 +27,7 @@ export abstract class RenderCommand extends ConfigurationSimpleCommand {
     }
 }
 
-export class ShowCommand extends RenderCommand {
+export class SessionShowCommand extends RenderCommand {
     toJSON(): any {
         return undefined;
     }

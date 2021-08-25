@@ -5,7 +5,7 @@ import { PositionData } from './data';
 import { ConfigurationSimpleCommand } from 'der20/library';
 import { TokenResetCommand } from './reset';
 
-export class SessionRestoreCommand extends ConfigurationSimpleCommand {
+export class RestoreAllCommand extends ConfigurationSimpleCommand {
     constructor(private data: PositionData) {
         super();
         // generated code

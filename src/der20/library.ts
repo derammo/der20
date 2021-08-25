@@ -9,7 +9,7 @@ export { ConfigurationEnumerated } from 'der20/config/enum';
 export { format } from 'der20/config/help';
 export { ConfigurationIntermediateNode } from 'der20/config/intermediate';
 export { LargeTableItem } from 'der20/config/largetableitem';
-export { ConfigurationParser, data, keyword, noconfig } from 'der20/config/parser';
+export { ConfigurationParser, data, keyword, noconfig, ephemeral } from 'der20/config/parser';
 export { ConfigurationPopulateCommand } from 'der20/config/populate';
 export { Asynchronous, Change, DialogResult, Failure, Success } from 'der20/config/result';
 export { ConfigurationString } from 'der20/config/string';

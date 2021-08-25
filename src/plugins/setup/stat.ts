@@ -1,8 +1,17 @@
-import { SelectedTokensSimpleCommand, Der20Token, Asynchronous, RollQuery, Tokenizer } from 'der20/library';
-import { ParserContext } from 'der20/library';
-import { Result, Success } from 'der20/library';
+import { Asynchronous, CommandInput, ConfigurationEnumerated, ConfigurationInteger, data, Der20Token, DialogResult, ParserContext, Result, RollQuery, SelectedTokensSimpleCommand, Success, Tokenizer } from 'der20/library';
+import { DarkvisionCommand } from './darkvision';
+import { LightCommand } from './light';
 
 export class StatCommand extends SelectedTokensSimpleCommand {
+    // WARNING: this doesn't actually get persisted, but let's tag it data anyway in case it gets moved 
+    // somehwere else where it would
+    @data
+    knownCharacters: Map<string, boolean> = new Map<string, boolean>();
+
+    constructor(private hpRollingOption: ConfigurationEnumerated) {
+        super();
+    }
+
     handleToken(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
         const character = token.character;
         if (character === undefined) {
@@ -18,20 +27,38 @@ export class StatCommand extends SelectedTokensSimpleCommand {
     /* eslint-disable @typescript-eslint/naming-convention */
     private statPc(token: Der20Token, parserContext: ParserContext): Result {
         const character = token.character;
-        const result = new Success(`set up player character token for ${character.name}`);
+        var needsHp: boolean = false;
+        var needsPp: boolean = false;
+        var needsAc: boolean = false;
+
+        // we could have a default char sheet and still get numbers here (all 10s) so we really need to check
+        // if we previously ingested this character, so we can second guess any 10s 
+        const knownCharacter: boolean = this.knownCharacters.get(character.id) ?? false;
+
         const hp = character.attribute('hp');
-        if (hp.exists) {
-            token.raw.set({ bar1_link: hp.id, bar1_value: hp.value(0), bar1_max: hp.max(0), showplayers_bar1: true });
+        if (hp.value(0) > 0) {
+            token.raw.set({ bar1_link: hp.id, bar1_value: hp.value(0), bar1_max: hp.max(0) });
         } else {
-            token.raw.set({ showplayers_bar1: false });
-            result.messages.push(`player character ${character.name} has no 'hp' attribute`);
+            token.raw.set({ bar1_link: "", bar1_value: 0, bar1_max: 0 });
+            needsHp = true;
         }
+        
         const passiveWisdom = character.attribute('passive_wisdom');
-        if (passiveWisdom.exists) {
-            token.raw.set({ bar2_link: passiveWisdom.id, bar2_value: passiveWisdom.value(0), bar2_max: 30, showplayers_bar2: true });
+        const passiveWisdomValue = passiveWisdom.value(0);
+        if (passiveWisdomValue > 0  && (passiveWisdomValue !== 10 || knownCharacter)) {
+            token.raw.set({ bar2_link: passiveWisdom.id, bar2_value: passiveWisdomValue, bar2_max: "30 (PP)" });
         } else {
-            token.raw.set({ showplayers_bar2: false });
-            result.messages.push(`player character ${character.name} has no 'passive_wisdom' attribute`);
+            token.raw.set({ bar2_link: "", bar2_value: 0, bar2_max: 30 });
+            needsPp = true;
+        }
+
+        const armorClass = character.attribute('ac');
+        const armorClassValue = armorClass.value(0);
+        if (armorClassValue > 0 && (armorClassValue !== 10 || knownCharacter)) {
+            token.raw.set({ bar3_link: armorClass.id, bar3_value: armorClassValue, bar3_max: "30 (AC)" });
+        } else {
+            token.raw.set({ bar3_link: "", bar3_value: 0, bar3_max: 30 });
+            needsAc = true;
         }
 
         // default name from character, unless set on token already
@@ -42,15 +69,63 @@ export class StatCommand extends SelectedTokensSimpleCommand {
 
         // first name only
         name = Tokenizer.tokenize(name)[0];
+
+        // set up token for player
         token.raw.set({
             name: name,
             showname: true,
-            showplayers_name: true
+            showplayers_name: true,
+            showplayers_bar1: false,
+            showplayers_bar2: false,
+            showplayers_bar3: false,
+            playersedit_bar1: false,
+            playersedit_bar2: false,
+            playersedit_bar3: false,
+            bar_location: "overlap_bottom",
+            compact_bar: null
         });
 
-        return result;
+        // note we have seen this character now
+        this.knownCharacters.set(character.id, true);
+
+        // set sane defaults
+        LightCommand.setDefaultsNoLight(token);
+        DarkvisionCommand.setDefaultsNoDarkvision(token);
+
+        if (parserContext.input.kind === CommandInput.Kind.Api && (needsHp || needsPp || needsAc)) {
+            // interactive mode
+            var dialog = new parserContext.dialog();
+            const link = {
+                command: parserContext.command,
+                prefix: `character ${character.id}`
+            };
+            dialog.addTitle(`Complete missing info for: ${character.name}`);
+            dialog.beginControlGroup();
+            if (needsHp) {
+                dialog.addEditControl("Hit Points", "hp", new ConfigurationInteger(0), link);
+            }
+            if (needsAc) {
+                dialog.addEditControl("Armor Class", "ac", new ConfigurationInteger(armorClassValue), link);
+            }
+            if (needsPp) {
+                dialog.addEditControl("Passive Perception", "pp", new ConfigurationInteger(passiveWisdomValue), link);
+            }
+            dialog.endControlGroup();
+            return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+        } else {
+            const result = new Success(`set up player character token for ${character.name}`);
+            if (needsHp) {
+                result.messages.push(`player character ${character.name} has no 'hp' attribute`);
+            }
+            if (needsAc) {
+                result.messages.push(`player character ${character.name} has no 'ac' attribute`);
+            }
+            if (needsPp) {
+                result.messages.push(`player character ${character.name} has no 'passive_wisdom' attribute`);
+            }
+            return result;
+        }
     }
-    /* eslint-enable @typescript-eslint/naming-convention */
 
     private statNpc(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
         const character = token.character;
@@ -62,25 +137,24 @@ export class StatCommand extends SelectedTokensSimpleCommand {
         }
 
         // default to pre-rolled HP
-        const maxHp: number = character.attribute('hp').max(1);
-        let hp: number = maxHp;
+        const averageHp: number = character.attribute('hp').max(1);
+        let hp: number = averageHp;
 
         // initial HP calculation?
         const formula = character.attribute('npc_hpformula');
         if (formula.exists) {
             const key = `StatCommand.statNpc.hp${tokenIndex}`;
             if (parserContext.asyncVariables[key] === undefined) {
-                const roll: Promise<number> = new RollQuery(formula.value('1')).asyncRoll();
+                const roll: Promise<RollSummary> = new RollQuery(formula.value('1')).asyncVerboseRoll();
                 return new Asynchronous('rolling hit points for NPC', key, roll);
             } else {
-                hp = parserContext.asyncVariables[key];
-                token.raw.set({ bar1_link: '', bar1_value: hp, bar1_max: hp });
+                hp = this.processRoll(parserContext, key, token);
             }
         }
 
         // note passive perception
         const passiveWisdomAttribute = character.attribute('passive_wisdom');
-        token.raw.set({ bar2_link: passiveWisdomAttribute.id, bar2_value: passiveWisdomAttribute.value(0), bar2_max: 30 });
+        token.raw.set({ bar2_link: passiveWisdomAttribute.id, bar2_value: passiveWisdomAttribute.value(0), bar2_max: "30 (PP)" });
 
         // roll initial stealth
         let stealth = 0;
@@ -90,7 +164,7 @@ export class StatCommand extends SelectedTokensSimpleCommand {
             stealth = character.attribute('dexterity_mod').value(0);
         }
         const stealthCheck = Math.max(randomInteger(20) + stealth, 1);
-        token.raw.set({ bar3_link: '', bar3_value: stealthCheck, bar3_max: 30 });
+        token.raw.set({ bar3_link: '', bar3_value: stealthCheck, bar3_max: "30 (S)" });
 
         // set up name and vision
         token.raw.set({
@@ -100,13 +174,54 @@ export class StatCommand extends SelectedTokensSimpleCommand {
             showplayers_bar1: false,
             showplayers_bar2: false,
             showplayers_bar3: false,
-            light_radius: '',
-            light_dimradius: '',
-            light_hassight: false,
-            light_otherplayers: false,
-            adv_fow_view_distance: ''
+            playersedit_bar1: false,
+            playersedit_bar2: false,
+            playersedit_bar3: false,
+            bar_location: "overlap_bottom",
+            compact_bar: null
         });
 
-        return new Success(`NPC ${name}, ${formula.value('1')} (${maxHp}) = ${hp}, stealth (${stealth}) = ${stealthCheck}`);
+        return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = ${this.hpRollingOption.value()} ${hp}, stealth (${stealth}) = ${stealthCheck}`);
     }
+
+    private processRoll(parserContext: ParserContext, key: string, token: Der20Token) {
+        const summary = parserContext.asyncVariables[key] as RollSummary;
+        var hp = 0;
+        switch (this.hpRollingOption.value()) {
+            case "maximized": {
+                if (summary.resultType !== "sum") {
+                    throw new Error(`unsupported result type ${summary.resultType} in hit points formula; cannot maximize hp`);
+                }
+                summary.rolls.forEach(roll => {
+                    switch (roll.type) {
+                        case "V":
+                            throw new Error("unsupported type V roll in hit points formula; cannot maximize hp");
+                        case "G":
+                            throw new Error("unsupported type G roll in hit points formula; cannot maximize hp");
+                        case "M":
+                            hp += Number((roll as MathExpression).expr);
+                            break;
+                        case "R": {
+                            const basicRoll: BasicRoll = roll as BasicRoll;
+                            hp += basicRoll.dice * basicRoll.sides;
+                            break;
+                        }
+                        case "C":
+                            throw new Error("unsupported type G roll in hit points formula; cannot maximize hp");
+                        default:
+                            throw new Error(`unsupported roll type ${roll.type} in hit points formula; cannot maximize hp`);
+                    }
+                });
+                break;
+            }
+            case "rolled":
+            default:
+                hp = summary.total;
+                break;
+        }
+        token.raw.set({ bar1_link: '', bar1_value: hp, bar1_max: hp });
+        return hp;
+    }
+
+    /* eslint-enable @typescript-eslint/naming-convention */
 }

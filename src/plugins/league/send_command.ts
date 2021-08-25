@@ -3,7 +3,7 @@ import { AdventurersLeagueLog } from './adventurers_league_log';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 import { Rules } from './rules';
-import { RenderCommand } from './show_command';
+import { RenderCommand } from './session_show';
 import { PartyState } from './ddal/party_state';
 
 export class SendCommand extends RenderCommand {

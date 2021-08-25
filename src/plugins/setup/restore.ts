@@ -2,7 +2,6 @@ import { SelectedTokensSimpleCommand, Der20Token } from 'der20/library';
 import { ParserContext } from 'der20/library';
 import { Result, Success } from 'der20/library';
 import { PositionData } from './data';
-
 export class RestoreCommand extends SelectedTokensSimpleCommand {
     constructor(private data: PositionData) {
         super();

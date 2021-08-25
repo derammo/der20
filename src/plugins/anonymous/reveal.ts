@@ -35,6 +35,7 @@ export class RevealCommand extends SelectedTokensSimpleCommand {
         }
 
         // reset back to the original image
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         token.raw.set({ imgsrc: makeImageSourceURL(imageSource.url), name: character.name, showname: true, showplayers_name: true });
         return new Success(`setting token to show its default name and image from '${character.name}'`);
     }

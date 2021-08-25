@@ -27,8 +27,24 @@ export class LightCommand extends SelectedTokensCommand {
         }
 
         const brightRange = this.bright.value();
-        const totalRange = this.bright.value() + this.dim.value();
+        const totalRange = this.bright.value() + ((brightRange > 0 || this.dim.hasConfiguredValue()) ? this.dim.value() : 0);
         
+        if (totalRange > 0) {
+            LightCommand.setLight(token, brightRange, totalRange);
+        } else {
+            LightCommand.setDefaultsNoLight(token);
+        }
+
+        return new Success(`light ${token.name} ${brightRange} ft, dim to ${totalRange} ft`);
+    }
+
+    @noconfig
+    private bright: ConfigurationInteger = new ConfigurationInteger(20);
+
+    @noconfig
+    private dim: ConfigurationInteger = new ConfigurationInteger(20);
+
+    static setLight(token: Der20Token, brightRange: number, totalRange: number) {
         /* eslint-disable @typescript-eslint/naming-convention */
         token.raw.set({
             has_bright_light_vision: true,
@@ -41,13 +57,20 @@ export class LightCommand extends SelectedTokensCommand {
             lightColor: "transparent"
         });
         /* eslint-enable @typescript-eslint/naming-convention */
-
-        return new Success(`lamp ${token.name} ${brightRange} ft, dim to ${totalRange} ft`);
     }
 
-    @noconfig
-    private bright: ConfigurationInteger = new ConfigurationInteger(20);
-
-    @noconfig
-    private dim: ConfigurationInteger = new ConfigurationInteger(20);
+    static setDefaultsNoLight(token: Der20Token) {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        token.raw.set({
+            has_bright_light_vision: true,
+            emits_bright_light: false,
+            bright_light_distance: 0,
+            emits_low_light: false,
+            low_light_distance: 0,
+            light_otherplayers: true,
+            dim_light_opacity: "0.65",
+            lightColor: "transparent"
+        });
+        /* eslint-enable @typescript-eslint/naming-convention */
+    }
 }

@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!setup</span>
+<span class='command' id='setup/character'>character</span>
+<span class='format'>[CHARACTER_ID hp|ac|pp VALUE]</span>
+</div>
+<div class='description'></div>
