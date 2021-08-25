@@ -1,6 +1,6 @@
 import { Configuration } from 'plugins/league/configuration';
 import { HelpCommand } from 'der20/config/help';
-import { PluginParserContext } from 'der20/plugin/main';
+import { PluginParserContext } from "der20/plugin/parser_context";
 import { Options } from 'der20/plugin/options';
 import { DialogResult } from 'der20/config/result';
 import { CommandInputImpl } from 'der20/config/input';

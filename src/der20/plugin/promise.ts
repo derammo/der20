@@ -158,6 +158,7 @@ export class PromiseQueue {
     }
 }
 
+// eslint-disable-next-line no-redeclare
 export namespace PromiseQueue {
     export type Work<T> = () => Promise<T>;
     export type Handler<T> = (value: T) => void;

@@ -7,27 +7,30 @@ import { ConfigurationParser } from 'der20/config/parser';
 import { ConfigurationPersistence } from 'der20/config/persistence';
 import { Asynchronous, Change, DialogResult, Failure } from 'der20/config/result';
 import { CommandInputImpl } from 'der20/config/input';
-import { CommandInput, ConfigurationContext } from 'der20/interfaces/config';
-import { LoaderContext } from 'der20/interfaces/loader';
-import { ParserContext, ParserFrame } from 'der20/interfaces/parser';
+import { CommandInput } from 'der20/interfaces/config';
+import { ParserContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
-import { DialogFactory } from 'der20/interfaces/ui';
 import { BuiltinConfiguration } from 'der20/plugin/configuration';
 import { Options } from 'der20/plugin/options';
 import { PromiseQueue } from 'der20/plugin/promise';
-import { Der20ChatDialog } from 'der20/roll20/dialog';
 import { CommandSourceFactory, CommandSource, CommandSink } from 'der20/interfaces/source';
 import { ApiCommandInput, ChatCommandSource } from './chat';
 import { ConfigurationExportCommand } from './export';
+import { PluginLoaderContext } from './loader_context';
+import { PluginParserContext } from './parser_context';
+import { ErrorReporter } from './error_reporter';
+import { Dialog } from 'der20/interfaces/ui';
 
 // from our wrapper
 declare var der20ScriptMode: string | undefined;
-declare function der20ScriptModules(): any & { name: string; data: any };
 
 // if we add more events, we need to repeat declaration overrides here:
 // declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
 // declare function on(event: "ready", callback: () => void): void;
 
+/**
+ * the private implementation class that runs a plugin, without the plugin code being able to see it
+ */
 class PluginImplementation<T> implements CommandSink {
     // current configuration
     configurationRoot: T & BuiltinConfiguration;
@@ -326,76 +329,11 @@ class PluginImplementation<T> implements CommandSink {
         }
     }
 
-    // XXX call utility object in another source file
     handleErrorThrown(error: Error, context?: PluginParserContext) {
-        let frames = error.stack;
-        let bodyText = [];
-        if (frames === undefined) {
-            console.log(`caught error without any stack frames:\n${error}`);
-        } else {
-            // search for symbols
-            let symbols: { line: number; name: string }[] = [];
-            for (let loaded of der20ScriptModules()) {
-                let symbol = { name: `${loaded.name} ${loaded.data.version || ''}`, line: loaded.data.scriptOffset || 0 };
-                symbols.push(symbol);
-            }
-            symbols.sort((left, right) => {
-                return left.line - right.line;
-            });
-
-            // use to rewrite stack
-            console.log('stack trace (please include in filed bugs):');
-            const fileNameAndLine = /apiscript.js:(\d+)/;
-            for (let line of frames.split('\n')) {
-                let remapped = line;
-                const match = line.match(fileNameAndLine);
-                if (match && symbols.length > 0) {
-                    let name = match[0];
-                    let lineNumber = parseInt(match[1], 10);
-                    let offset = 0;
-                    for (let scan of symbols) {
-                        if (scan.line >= lineNumber) {
-                            // previous symbol contains it
-                            break;
-                        }
-                        name = scan.name;
-                        offset = scan.line;
-                    }
-                    remapped = line.replace(fileNameAndLine, `${name}:${lineNumber - offset}`);
-                }
-                console.log(remapped);
-                bodyText.push(remapped);
-            }
-        }
-        let dialog = new Der20ChatDialog();
-        let titleText = `[${this.name}] error: ${error.message}`;
-        dialog.addTitle(`Error from: ${this.name}`);
-        dialog.addSubTitle('Stack Trace:');
-        dialog.beginControlGroup();
-        for (let frame of bodyText) {
-            dialog.addTextLine(frame);
-        }
-        dialog.endControlGroup();
-        dialog.addSeparator();
-        if (context !== undefined) {
-            dialog.addSubTitle('Command Executed:');
-            dialog.beginControlGroup();
-            let line = `!${context.command} ${context.rest}`;
-            titleText = `[${this.name}] error: ${error.message} on: ${line}`;
-            bodyText.push(`command executed: ${line}`);
-            dialog.addTextLine(line);
-            for (let async of Object.keys(context.asyncVariables)) {
-                line = `${async}: ${context.asyncVariables[async]}`;
-                bodyText.push(line);
-                dialog.addTextLine(line);
-            }
-            dialog.endControlGroup();
-            dialog.addSeparator();
-        }
-        let title = encodeURIComponent(titleText);
-        let body = encodeURIComponent(bodyText.join('\n'));
-        // REVISIT: have build stamp actual repo used into the dialog generated
-        dialog.addExternalLinkButton('File Bug on Github.com', `https://github.com/derammo/der20/issues/new?title=${title}&body=${body}`);
+        // log and create a presentable dialog
+        const dialog: Dialog = ErrorReporter.reportError(error, context);
+        
+        // present to Roll20
         sendChat(this.name, `/w GM ${dialog.render()}`, null, { noarchive: true });
     }
 
@@ -505,6 +443,9 @@ class PluginImplementation<T> implements CommandSink {
     }
 }
 
+/**
+ * the plugin public interface that is instantiated in a plugin's main file
+ */
 export class Plugin<T> {
     // the plugin instance for this plugin
     private plugin: PluginImplementation<T>;
@@ -635,37 +576,3 @@ export class ResetCommand extends ConfigurationCommand {
     }
 }
 
-class ContextBase implements ConfigurationContext {
-    constructor(public options: Options) {
-        // generated code
-    }
-}
-
-export class PluginLoaderContext extends ContextBase implements LoaderContext {
-    messages: string[] = [];
-    commands: { input: CommandInput; line: string }[] = [];
-    asyncLoads: { promise: Promise<any>; handler: (value: any) => void }[] = [];
-
-    addMessage(message: string): void {
-        this.messages.push(message);
-    }
-
-    addCommand(input: CommandInput, command: string): void {
-        this.commands.push({ input: input, line: command });
-    }
-
-    addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void {
-        this.asyncLoads.push({ promise: promise, handler: whenDone });
-    }
-}
-
-export class PluginParserContext extends ContextBase implements ParserContext {
-    asyncVariables: Record<string, any> = {};
-    dialog: DialogFactory = Der20ChatDialog;
-    frames: ParserFrame[] = [];
-
-    constructor(options: Options, public input: CommandInput, public command: string, public rest: string) {
-        super(options);
-        // generated
-    }
-}
