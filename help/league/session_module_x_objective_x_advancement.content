@@ -1,6 +1,0 @@
-<div class='title'>
-<span class='plugin'>!league</span>
-<span class='command' id='league/session_module_x_objective_x_advancement'>session module [ID/current] objective [ID] advancement</span>
-<span class='format'>[INTEGER]</span>
-</div>
-<div class='description'>This setting is a per-session override for <a href='#league/define_module'>!league define module ...</a>.</div>
