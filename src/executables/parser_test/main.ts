@@ -23,12 +23,15 @@ import { DialogResult } from "der20/config/result";
 
 class MockContext implements LoaderContext, ParserContext {
 	command: string;
-	rest: string;
 	asyncVariables: Record<string, any> = {};
 	input: CommandInput = new CommandInputImpl.Base(CommandInput.Kind.Journal);
 	dialog: DialogFactory = Der20ChatDialog;
 	options: Options = new Options();
 	frames: ParserFrame[] = [];
+
+	constructor(public rest: string) {
+		this.command = 'mock';
+	}
 
 	addCommand(source: CommandInput, command: string): void {
 		throw new Error("Method not implemented.");
@@ -45,7 +48,7 @@ let configurationRoot: any = new Configuration();
 configurationRoot.help = new HelpCommand('parser_test', configurationRoot);
 let persistence = startPersistence('parser_test');
 let json = persistence.load();
-ConfigurationLoader.restore(json, configurationRoot, new MockContext());
+ConfigurationLoader.restore(json, configurationRoot, new MockContext(""));
 
 let test = `
 	reset all configuration
@@ -141,8 +144,8 @@ export function testRun(): string {
 	return dialog.render();
 }
 
-export function testDialog(command: string): string {
-	let result = ConfigurationParser.parse(command, configurationRoot, new MockContext());
+export function testDialog(rest: string): string {
+	let result = ConfigurationParser.parse(rest, configurationRoot, new MockContext(rest));
 	if (result.kind === Result.Kind.Dialog) {
 		return (<DialogResult>result).dialog;
 	}
@@ -173,8 +176,8 @@ function testParse(): void {
 	testParse3();
 }
 
-function testLine(line: string) {
-	let command = line.trim();
+function testLine(rest: string) {
+	let command = rest.trim();
 	// run including blank lines
 	debug.log(`testing: ${command}`);
 	if (command === 'reset all configuration') {
@@ -182,7 +185,7 @@ function testLine(line: string) {
 		configurationRoot = new Configuration();
 		return;
 	}
-	let result = ConfigurationParser.parse(command, configurationRoot, new MockContext());
+	let result = ConfigurationParser.parse(command, configurationRoot, new MockContext(rest));
 	handleResult(result);	
 }
 
@@ -220,5 +223,11 @@ function tidy(text: string): string {
 }
 
 testParse();
-process.stdout.write(JSON.stringify(configurationRoot, undefined, 2));
-process.stdout.write(tidy(testDialog('show')));
+
+if (typeof(require) === 'function') {
+	const process = require('process'); 
+	if (process !== undefined) {
+		process.stdout.write(JSON.stringify(configurationRoot, undefined, 2));
+		process.stdout.write(tidy(testDialog('session show')));
+	}
+}
