@@ -12,10 +12,8 @@ export class SendCommand extends RenderCommand {
         module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>,
         private rules: Rules,
         party: PartyState,
-        private preview: boolean
-    ) {
+        private preview: boolean) {
         super(dm, module, party);
-        // generated code
     }
 
     toJSON(): any {
@@ -28,13 +26,13 @@ export class SendCommand extends RenderCommand {
         let dialog = new context.dialog();
         let destination = DialogResult.Destination.Caller;
 
-        let module = this.module.current;
+        let module = this.module.currentValue;
         if (module === undefined) {
             return new Failure(new Error('no current module set; please select a module before calling this command'));
         }
 
-        const dm = this.dm.current.name.value();
-        const dci = this.dm.current.dci.value();
+        const dm = this.dm.currentValue.name.value();
+        const dci = this.dm.currentValue.dci.value();
 
         // XXX calculate hours played, downtime, renown
         // const downtime = this.rules.advancement.downtime.valueFrom(acp);
@@ -97,7 +95,7 @@ export class SendCommand extends RenderCommand {
         }
 
         // make sorted list of assigned consumables
-        const consumables = module.unlocks.current.filter(item => {
+        const consumables = module.unlocks.currentValue.filter(item => {
             return item.consumable.value() && item.awarded.value() && item.owner.hasConfiguredValue();
         });
         consumables.sort((left, right) => {
@@ -134,7 +132,7 @@ export class SendCommand extends RenderCommand {
             log.renown_gained = renown;
             log.treasure_tier = tier;
 
-            for (let item of module.unlocks.current) {
+            for (let item of module.unlocks.currentValue) {
                 if (!item.awarded.value()) {
                     continue;
                 }

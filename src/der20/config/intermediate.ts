@@ -17,13 +17,20 @@ export class ConfigurationIntermediateNode {
             if (typeof child.toJSON !== 'function') {
                 throw new Error(`intermediate node contains child '${key}' that does not define toJSON function`);
             }
-            if (meta !== undefined) {
-                const property = meta.properties[key];
-                if ((property !== undefined) && (property.ephemeral)) {
-                    // persistence disabled
-                    continue;
-                }
+            if (meta === undefined) {
+                continue;
+            }
+
+            const property = meta.properties[key];
+            if (property === undefined) {
+                continue;
             } 
+            
+            if (!property.data) {
+                // persistence disabled
+                continue;
+            } 
+
             let value: any = child.toJSON();
             if (value !== undefined) {
                 result[key] = value;

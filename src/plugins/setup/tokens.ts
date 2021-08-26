@@ -1,4 +1,4 @@
-import { ConfigurationEnumerated, ConfigurationIntermediateNode, format } from 'der20/library';
+import { ConfigurationEnumerated, ConfigurationIntermediateNode, format, config } from 'der20/library';
 import { DarkvisionCommand } from './darkvision';
 import { DeadCommand } from './dead';
 import { DumpCommand } from './dump';
@@ -10,19 +10,19 @@ import { StatCommand } from './stat';
  * token commands and associated options
  */
 export class TokensConfiguration extends ConfigurationIntermediateNode {
-    hp: ConfigurationEnumerated = new ConfigurationEnumerated("rolled", ["rolled", "maximized"]);
+    @config hp: ConfigurationEnumerated = new ConfigurationEnumerated("rolled", ["rolled", "maximized"]);
 
-    stat: StatCommand = new StatCommand(this.hp);
+    @config stat: StatCommand = new StatCommand(this.hp);
 
-    reset: TokenResetCommand = new TokenResetCommand();
+    @config reset: TokenResetCommand = new TokenResetCommand();
 
     @format("[BRIGHT_DISTANCE [dim DIM_EXTRA_DISTANCE]]")
-    light: LightCommand = new LightCommand();
+    @config light: LightCommand = new LightCommand();
 
     @format("[DISTANCE]")
-    darkvision: DarkvisionCommand = new DarkvisionCommand();
+    @config darkvision: DarkvisionCommand = new DarkvisionCommand();
 
-    dead: DeadCommand = new DeadCommand();
+    @config dead: DeadCommand = new DeadCommand();
 
-    dump: DumpCommand = new DumpCommand();
+    @config dump: DumpCommand = new DumpCommand();
 }

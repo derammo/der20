@@ -1,4 +1,4 @@
-import { ConfigurationBoolean, ConfigurationStep, Der20Character, Der20Player, ExportContext, Failure, ParserContext, Result, Tokenizer } from "der20/library";
+import { ConfigurationBoolean, ConfigurationValueBase, Der20Character, Der20Player, ExportContext, Failure, ParserContext, Result, Tokenizer } from "der20/library";
 
 class PlayerCharacter {
     // REVISIT: is it a problem that we hold references to these characters and players?  what happens if they are deleted in the GUI?
@@ -7,7 +7,7 @@ class PlayerCharacter {
     }
 }
 
-export class PlayerCharacters extends ConfigurationStep<PlayerCharacter[]> {
+export class PlayerCharacters extends ConfigurationValueBase<PlayerCharacter[]> {
     characters: PlayerCharacter[] = [];
 
     constructor() {

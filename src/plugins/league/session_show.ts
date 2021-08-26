@@ -6,18 +6,17 @@ import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 export abstract class RenderCommand extends ConfigurationSimpleCommand {
     constructor(protected dm: ConfigurationChooser<DungeonMaster>, protected module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>, protected party: PartyState) {
         super();
-        // generated code
     }
 
     protected tryLoad(context: ParserContext): Result {
         let result: Result = new Success('no configuration changed');
-        if (this.dm.current == null) {
+        if (this.dm.currentValue == null) {
             result = this.dm.handleCurrent('', context, [context.rest]);
             if (!result.isSuccess()) {
                 return result;
             }
         }
-        if (this.module.current == null) {
+        if (this.module.currentValue == null) {
             result = this.module.handleCurrent('', context, [context.rest]);
             if (!result.isSuccess()) {
                 return result;
@@ -48,13 +47,13 @@ export class SessionShowCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.addSubTitle('DM');
         dialog.beginControlGroup();
-        dialog.addEditControl('Name', 'dm current name', this.dm.current.name, link);
-        dialog.addEditControl('DCI', 'dm current dci', this.dm.current.dci, link);
+        dialog.addEditControl('Name', 'dm current name', this.dm.currentValue.name, link);
+        dialog.addEditControl('DCI', 'dm current dci', this.dm.currentValue.dci, link);
         dialog.endControlGroup();
         dialog.addSeparator();
         dialog.addSubTitle('Module');
         dialog.beginControlGroup();
-        let module = this.module.current;
+        let module = this.module.currentValue;
         dialog.addEditControl('Module Name', 'module current name', module.name, link);
         dialog.addEditControl('Season', 'module current season', module.season, link);
         dialog.addEditControl('Hardcover', 'module current hardcover', module.hardcover, link);
@@ -71,7 +70,7 @@ export class SessionShowCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.addSubTitle('Objectives and Unlocks');
         dialog.beginControlGroup();
-        for (let item of module.unlocks.current) {
+        for (let item of module.unlocks.currentValue) {
             dialog.addEditControl(`Unlocked ${item.displayName()}`, `module current unlock ${item.id} awarded`, item.awarded, link);
             if (item.awarded.value()) {
                 const choices = this.party.pcs.included();

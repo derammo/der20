@@ -121,7 +121,7 @@ export class RollCommand extends ConfigurationSimpleCommand {
                 const json = this.setInitiative(writes);
                 debug.log(`new initiative ${json}`);
 
-                if (parserContext.input.kind === CommandInput.Kind.Api) {
+                if (parserContext.input.kind === CommandInput.Kind.api) {
                     // return a dialog showing who got what and why
                     return new DialogResult(DialogResult.Destination.Caller, this.createDialog(parserContext, writes));
                 }

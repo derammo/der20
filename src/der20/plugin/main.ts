@@ -19,6 +19,7 @@ import { PluginLoaderContext } from './loader_context';
 import { PluginParserContext } from './parser_context';
 import { ErrorReporter } from './error_reporter';
 import { Dialog } from 'der20/interfaces/ui';
+import { config } from 'der20/config/decorators';
 
 // from our wrapper
 declare var der20ScriptMode: string | undefined;
@@ -129,6 +130,7 @@ class PluginImplementation<T> implements CommandSink {
         if (this.configurationRoot.dump === undefined) {
             this.configurationRoot.dump = new DumpCommand(this);
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'dump');
+            config(this.configurationRoot.constructor.prototype, 'dump');
         }
 
         // add change handling for debug flag, since we have to write it to execution context
@@ -147,12 +149,14 @@ class PluginImplementation<T> implements CommandSink {
         if (this.configurationRoot.reset === undefined) {
             this.configurationRoot.reset = resetCommand;
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'reset');
+            config(this.configurationRoot.constructor.prototype, 'reset');
         }
 
         // add export command
         if (this.configurationRoot.export === undefined) {
             this.configurationRoot.export = new ConfigurationExportCommand(this.configurationRoot);
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'export');
+            config(this.configurationRoot.constructor.prototype, 'export');
         }   
 
         // add help command
@@ -160,6 +164,7 @@ class PluginImplementation<T> implements CommandSink {
         if (this.configurationRoot.help === undefined) {
             this.configurationRoot.help = new HelpCommand(this.name, this.configurationRoot);
             common('PLUGIN')(this.configurationRoot.constructor.prototype, 'help');
+            config(this.configurationRoot.constructor.prototype, 'help');
         }
     }
 
@@ -194,7 +199,7 @@ class PluginImplementation<T> implements CommandSink {
         if (
             context.options.echo.value() &&
             result.kind !== Result.Kind.Asynchronous &&
-            context.input.kind === CommandInput.Kind.Api
+            context.input.kind === CommandInput.Kind.api
         ) {
             // NOTE: we don't actually use the contents of this dialog; it just provides the direct rendering of the command echo,
             // which is not shown in dialog style
@@ -206,7 +211,7 @@ class PluginImplementation<T> implements CommandSink {
         // send any messages to caller, regardless of result
         if (context.options.verbose.value()) {
             for (let message of result.messages) {
-                if (context.input.kind === CommandInput.Kind.Api) {
+                if (context.input.kind === CommandInput.Kind.api) {
                     let source = <ApiCommandInput>context.input;
                     sendChat(this.name, `/w "${source.player.get('_displayname')}" ${message}`, null, { noarchive: true });
                 } else {
@@ -224,7 +229,7 @@ class PluginImplementation<T> implements CommandSink {
                 }
                 break;
             case Result.Kind.Dialog:
-                if (context.input.kind !== CommandInput.Kind.Api) {
+                if (context.input.kind !== CommandInput.Kind.api) {
                     debug.log(`error: dialog generated for non-interactive configuration command '!${context.command} ${context.rest}; ignored`);
                     break;
                 }
@@ -531,7 +536,6 @@ export class Plugin<T> {
 export class DumpCommand extends ConfigurationSimpleCommand {
     constructor(private plugin: PluginImplementation<any>) {
         super();
-        // generated code
     }
 
     handleEndOfCommand(context: ParserContext): Result {
@@ -551,7 +555,6 @@ export class DumpCommand extends ConfigurationSimpleCommand {
 export class ResetCommand extends ConfigurationCommand {
     constructor(private parent: Plugin<any>) {
         super();
-        // generated code
     }
 
     parse(line: string, context: ParserContext): Result {

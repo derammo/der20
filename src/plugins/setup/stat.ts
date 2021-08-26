@@ -3,8 +3,6 @@ import { DarkvisionCommand } from './darkvision';
 import { LightCommand } from './light';
 
 export class StatCommand extends SelectedTokensSimpleCommand {
-    // WARNING: this doesn't actually get persisted, but let's tag it data anyway in case it gets moved 
-    // somehwere else where it would
     @data
     knownCharacters: Map<string, boolean> = new Map<string, boolean>();
 
@@ -92,7 +90,7 @@ export class StatCommand extends SelectedTokensSimpleCommand {
         LightCommand.setDefaultsNoLight(token);
         DarkvisionCommand.setDefaultsNoDarkvision(token);
 
-        if (parserContext.input.kind === CommandInput.Kind.Api && (needsHp || needsPp || needsAc)) {
+        if (parserContext.input.kind === CommandInput.Kind.api && (needsHp || needsPp || needsAc)) {
             // interactive mode
             var dialog = new parserContext.dialog();
             const link = {

@@ -8,7 +8,7 @@ export class ConfigurationLoader {
         }
         if (typeof to.load === 'function') {
             const loading = <ConfigurationLoading>to;
-            loading.load(from, context);
+            loading.fromJSON(from, context);
             return;
         }
         // iterate objects, recurse

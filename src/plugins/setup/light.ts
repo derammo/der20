@@ -1,4 +1,4 @@
-import { ConfigurationInteger, ConfigurationParser, Der20Token, noconfig, ParserContext, Result, SelectedTokensCommand, Success } from 'der20/library';
+import { ConfigurationInteger, ConfigurationParser, Der20Token, ParserContext, Result, SelectedTokensCommand, Success } from 'der20/library';
 
 export class LightCommand extends SelectedTokensCommand {
     handleTokenCommand(token: Der20Token, text: string, parserContext: ParserContext, tokenIndex: number): Result {
@@ -38,10 +38,8 @@ export class LightCommand extends SelectedTokensCommand {
         return new Success(`light ${token.name} ${brightRange} ft, dim to ${totalRange} ft`);
     }
 
-    @noconfig
     private bright: ConfigurationInteger = new ConfigurationInteger(20);
 
-    @noconfig
     private dim: ConfigurationInteger = new ConfigurationInteger(20);
 
     static setLight(token: Der20Token, brightRange: number, totalRange: number) {

@@ -48,7 +48,7 @@ export class TurnOrderAnnouncer implements CommandSource, CommandInput {
         // generated code
     }
 
-    kind: CommandInput.Kind = CommandInput.Kind.Restore;
+    kind: CommandInput.Kind = CommandInput.Kind.restore;
 
     authorize(rest: string): boolean {
         return true;

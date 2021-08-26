@@ -7,8 +7,7 @@ import { ConfigurationString } from './string';
 
 export class ConfigurationPopulateCommand extends ConfigurationCommand {
     constructor(private collection: Collection) {
-        super();
-        // generated code
+        super('ID');
     }
 
     private tryPopulate(item: any, from: Collection): boolean {

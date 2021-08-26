@@ -33,7 +33,6 @@ class ExportContextImpl implements ExportContext {
 export class ConfigurationExportCommand extends ConfigurationCommand {
     constructor(private configurationRoot: any) {
         super();
-        // generated
     }
 
     parse(text: string, context: ParserContext): Result {

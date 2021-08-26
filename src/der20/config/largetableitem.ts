@@ -5,6 +5,7 @@ import { CollectionItem, ConfigurationValue } from "der20/interfaces/config";
 import { Success, DialogResult } from "der20/config/result";
 import { ConfigurationArray } from "./array";
 import { ConfigurationString } from "./string";
+import { config } from "./decorators";
 
 /**
  * Collection item with complex configuration, which supports its own configuration
@@ -13,7 +14,8 @@ import { ConfigurationString } from "./string";
 export abstract class LargeTableItem implements DialogAware, CollectionItem, ConfigurationTermination {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
-    name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+
+    @config name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     
     abstract buildControls(dialog: Dialog, link: Dialog.Link): void;
     abstract itemTitle(): string;
@@ -37,7 +39,7 @@ export abstract class LargeTableItem implements DialogAware, CollectionItem, Con
             followUps: [ context.rest.replace(new RegExp(`[^ ]+ +${this.id}$`), '') ]
         };
         dialog.beginControlGroup();
-        dialog.addEditCommand(`<h4 style="display: inline-block">${this.itemTitle()}</h4>`, 'Delete', ConfigurationArray.DELETE_COMMAND_SUFFIX, deleteLink);
+        dialog.addEditCommand(`<h4 style="display: inline-block">${this.itemTitle()}</h4>`, 'Delete', ConfigurationArray.deleteCommandSuffix, deleteLink);
         this.buildControls(dialog, link);
         dialog.addEditCommand('Show Parent', 'Done', deleteLink.followUps[0], { command: context.command });
         dialog.endControlGroup();

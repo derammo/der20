@@ -1,11 +1,11 @@
-import { ConfigurationString, ConfigurationValue, ConfigurationTermination, DialogResult, ParserContext, Result, Success } from "der20/library";
+import { ConfigurationString, ConfigurationValue, ConfigurationTermination, DialogResult, ParserContext, Result, Success, config } from "der20/library";
 
 export class DungeonMaster implements ConfigurationTermination {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
     
-    name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-    dci: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config dci: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
 
     handleEndOfCommand(context: ParserContext): Result {
         if (!context.rest.startsWith('define ')) {

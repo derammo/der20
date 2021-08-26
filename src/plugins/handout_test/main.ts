@@ -1,19 +1,14 @@
 debug.log = console.log;
 
-import { Plugin } from 'der20/library';
-import { Options } from 'der20/library';
-
-// add handouts support to plugin
-import { HandoutsOptions } from 'der20/library';
-import { keyword } from 'der20/library';
+import { config, HandoutsOptions, keyword, Options, Plugin } from 'der20/library';
 
 class HandoutTestOptions extends Options {
-    handouts: HandoutsOptions = new HandoutsOptions();
+    @config handouts: HandoutsOptions = new HandoutsOptions();
 }
 
 class Configuration {
     @keyword('option')
-    options: HandoutTestOptions = new HandoutTestOptions();
+    @config options: HandoutTestOptions = new HandoutTestOptions();
 }
 
 let testObject = new Configuration();

@@ -3,28 +3,37 @@ import { ConfigurationLoading, LoaderContext } from "der20/interfaces/loader";
 import { Result } from "der20/interfaces/result";
 import { ConfigurationValue } from "der20/interfaces/config";
 
-export abstract class ConfigurationStep<T> implements ConfigurationParsing, ConfigurationLoading, ConfigurationValue<T> {
-    protected current: T = ConfigurationValue.UNSET;
-    default: T = ConfigurationValue.UNSET;
-    format: string;
 
-    constructor(defaultValue: T, format?: string) {
-        this.default = defaultValue;
-        this.format = format;
+export abstract class ConfigurationStep implements ConfigurationParsing, ConfigurationLoading {
+    constructor(protected format: string) {
+        // no code
+    }
+
+    abstract parse(text: string, context: ParserContext): Result;
+    abstract export(context: ExportContext): void;
+    abstract fromJSON(json: any, context: LoaderContext): void;
+    abstract toJSON(): any;
+}
+
+export abstract class ConfigurationValueBase<T> extends ConfigurationStep implements ConfigurationValue<T> {
+    protected currentValue: T = ConfigurationValue.UNSET;
+
+    constructor(public defaultValue: T, format?: string) {
+        super(format);
     }
 
     abstract parse(text: string, context: ParserContext): Result;
     abstract export(context: ExportContext): void;
 
-    load(json: any, context: LoaderContext) {
-        this.current = json;
+    fromJSON(json: any, context: LoaderContext) {
+        this.currentValue = json;
     }
 
     value(): T {
         if (!this.hasConfiguredValue()) {
-            return this.default;
+            return this.defaultValue;
         }
-        return this.current;
+        return this.currentValue;
     }
 
     // get value(): T {
@@ -39,7 +48,7 @@ export abstract class ConfigurationStep<T> implements ConfigurationParsing, Conf
     // }
 
     hasConfiguredValue(): boolean {
-        return this.current !== ConfigurationValue.UNSET;
+        return this.currentValue !== ConfigurationValue.UNSET;
     }
 
     hasValue(): boolean {
@@ -47,10 +56,10 @@ export abstract class ConfigurationStep<T> implements ConfigurationParsing, Conf
     }
     
     clear(): void {
-        this.current = ConfigurationValue.UNSET;
+        this.currentValue = ConfigurationValue.UNSET;
     }
 
     toJSON(): any {
-        return this.current;
+        return this.currentValue;
     }
 }

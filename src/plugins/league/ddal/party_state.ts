@@ -1,4 +1,4 @@
-import { Change, Clearable, ConfigurationChangeHandling, ConfigurationFloat, ConfigurationIntermediateNode, ConfigurationSimpleCommand, ConfigurationString, ConfigurationValue, ParserContext, Result, keyword, noconfig } from 'der20/library';
+import { Change, Clearable, ConfigurationChangeHandling, ConfigurationFloat, ConfigurationIntermediateNode, ConfigurationSimpleCommand, ConfigurationString, ConfigurationValue, ParserContext, Result, keyword, config } from 'der20/library';
 import { LeagueModule } from './league_module';
 import { PlayerCharacters } from './player_characters';
 
@@ -7,20 +7,17 @@ export interface ScalingChangeObserver {
 }
 
 export class PartyState extends ConfigurationIntermediateNode implements ConfigurationChangeHandling, Clearable {
-    @noconfig
     private module: ConfigurationValue<LeagueModule>;
-
-    @noconfig
     private scalingChanges: ScalingChangeObserver;
 
-    apl: ConfigurationFloat = new ConfigurationFloat(ConfigurationValue.UNSET);
+    @config apl: ConfigurationFloat = new ConfigurationFloat(ConfigurationValue.UNSET);
 
-    strength: ConfigurationString = new ConfigurationString('Average');
+    @config strength: ConfigurationString = new ConfigurationString('Average');
 
     @keyword('pc')
-    pcs: PlayerCharacters = new PlayerCharacters();
+    @config pcs: PlayerCharacters = new PlayerCharacters();
 
-    scan: ConfigurationSimpleCommand;
+    @config scan: ConfigurationSimpleCommand;
 
     constructor(module: ConfigurationValue<LeagueModule>, scalingChanges: ScalingChangeObserver) {
         super();
@@ -42,7 +39,7 @@ export class PartyState extends ConfigurationIntermediateNode implements Configu
         switch (changedKeyword) {
             case 'pc':
                 // based on pcs, update apl default
-                this.apl.default = this.pcs.averagePartyLevel();
+                this.apl.defaultValue = this.pcs.averagePartyLevel();
                 if (this.apl.hasConfiguredValue()) {
                     break;
                 }
@@ -62,7 +59,7 @@ export class PartyState extends ConfigurationIntermediateNode implements Configu
                     aplComparison = Math.sign(apl - aplTarget) + 1;
                 }
                 const previousValue = this.strength.value();
-                this.strength.default = PartyState.strengthTable[playerComparison][aplComparison];
+                this.strength.defaultValue = PartyState.strengthTable[playerComparison][aplComparison];
                 if (this.scalingChanges !== undefined && this.strength.value() !== previousValue) {
                     this.scalingChanges.handleStrengthChange(this.strength.value());
                 }
@@ -88,7 +85,6 @@ export class PartyState extends ConfigurationIntermediateNode implements Configu
 class PlayerScan extends ConfigurationSimpleCommand {
     constructor(private party: PartyState) {
         super();
-        // generated
     }
 
     handleEndOfCommand(context: ParserContext): Result {

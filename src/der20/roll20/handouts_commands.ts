@@ -1,11 +1,12 @@
 import { ConfigurationBoolean } from "der20/config/atoms";
+import { config } from "der20/config/decorators";
 import { ConfigurationChangeDelegator } from "der20/config/events";
 import { common } from "der20/config/help";
+import { CommandInput } from "der20/interfaces/config";
 import { LoaderContext } from "der20/interfaces/loader";
 import { CommandSink } from "der20/interfaces/source";
 import { Options } from "der20/plugin/options";
 import { CommandsFromNotes } from "./notes_commands";
-import { CommandInput } from "der20/interfaces/config";
 
 /**
  * interface to be supported by the plugin options object if plugin wants handouts support
@@ -16,9 +17,9 @@ export interface HandoutsSupport {
 
 export class HandoutsOptions extends ConfigurationChangeDelegator {
     @common('PLUGIN')
-    journal: ConfigurationBoolean = new ConfigurationBoolean(true);
+    @config journal: ConfigurationBoolean = new ConfigurationBoolean(true);
     @common('PLUGIN')
-    archived: ConfigurationBoolean = new ConfigurationBoolean(true);
+    @config archived: ConfigurationBoolean = new ConfigurationBoolean(true);
     
     clone(): HandoutsOptions {
         let clone = new HandoutsOptions();
@@ -41,8 +42,8 @@ export class HandoutsOptions extends ConfigurationChangeDelegator {
 
 export class CommandsFromHandouts extends CommandsFromNotes {
     // stable config from last update
-    journal: boolean;
-    archived: boolean;
+    private journal: boolean;
+    private archived: boolean;
 
     constructor(options: Options, plugin: CommandSink, subtrees: string[]) {
         super(plugin, subtrees);
@@ -178,7 +179,7 @@ export class CommandsFromHandouts extends CommandsFromNotes {
                 return;
             }
             // read text
-            this.dispatchLines(text, CommandInput.Kind.Journal, 'handout', handout.id);
+            this.dispatchLines(text, CommandInput.Kind.journal, 'handout', handout.id);
         };
         context.addAsynchronousLoad(promise, whenDone);
     }

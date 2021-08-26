@@ -13,5 +13,6 @@ export interface LoaderContext extends ConfigurationContext {
  * Classes that can be restored from JSON implement this.
  */
 export interface ConfigurationLoading {
-    load(json: any, context: LoaderContext): void;
+    fromJSON(json: any, context: LoaderContext): void;
+    toJSON(): any;
 }

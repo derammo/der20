@@ -1,9 +1,9 @@
-import { ConfigurationFloat } from "der20/library";
-import { ConfigurationIntermediateNode } from "der20/library";
+import { config, ConfigurationFloat, ConfigurationIntermediateNode } from "der20/library";
 
 export class Multiplied extends ConfigurationIntermediateNode {
-    multiplier: ConfigurationFloat;
-    unit: ConfigurationFloat;
+    @config multiplier: ConfigurationFloat;
+    @config unit: ConfigurationFloat;
+
     constructor(multiplier: number, unit: number) {
         super();
         this.multiplier = new ConfigurationFloat(multiplier);
@@ -18,10 +18,10 @@ export class Multiplied extends ConfigurationIntermediateNode {
 }
 
 class AdvancementRules extends ConfigurationIntermediateNode {
-    downtime: Multiplied = new Multiplied(2.5, 0.5);
-    renown: Multiplied = new Multiplied(0.25, 0.5);
+    @config downtime: Multiplied = new Multiplied(2.5, 0.5);
+    @config renown: Multiplied = new Multiplied(0.25, 0.5);
 }
 
 export class Rules extends ConfigurationIntermediateNode {
-    advancement: AdvancementRules = new AdvancementRules();
+    @config advancement: AdvancementRules = new AdvancementRules();
 }

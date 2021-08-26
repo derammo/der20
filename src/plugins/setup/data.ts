@@ -15,7 +15,7 @@ export class PositionData implements ConfigurationLoading, Clearable {
         return this.dictionary;
     }
 
-    load(json: any, context: LoaderContext) {
+    fromJSON(json: any, context: LoaderContext) {
         this.dictionary = json;
     }
 

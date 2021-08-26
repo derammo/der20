@@ -1,6 +1,6 @@
-import { ConfigurationInteger, ConfigurationStep, Der20Attribute, Der20Character, ExportContext, Failure, ParserContext, Result, Success, Tokenizer } from 'der20/library';
+import { ConfigurationInteger, ConfigurationValueBase, Der20Attribute, Der20Character, ExportContext, Failure, ParserContext, Result, Success, Tokenizer } from 'der20/library';
 
-export class CharacterConfiguration extends ConfigurationStep<string> {
+export class CharacterConfiguration extends ConfigurationValueBase<string> {
     constructor() {
         super('', 'CHARACTER_ID hp|ac|pp VALUE');
     }

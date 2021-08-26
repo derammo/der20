@@ -77,6 +77,6 @@ export class CommandsFromTokens extends CommandsFromNotes {
         }
 
         // read text
-        this.dispatchLines(text, CommandInput.Kind.Token, 'graphic', token.id);
+        this.dispatchLines(text, CommandInput.Kind.token, 'graphic', token.id);
     }
 }

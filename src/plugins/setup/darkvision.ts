@@ -1,4 +1,4 @@
-import { ConfigurationInteger, ConfigurationParser, Der20Token, noconfig, ParserContext, Result, SelectedTokensCommand, Success } from 'der20/library';
+import { ConfigurationInteger, ConfigurationParser, Der20Token, ParserContext, Result, SelectedTokensCommand, Success } from 'der20/library';
 
 export class DarkvisionCommand extends SelectedTokensCommand {
     handleTokenCommand(token: Der20Token, text: string, parserContext: ParserContext, tokenIndex: number): Result {
@@ -28,7 +28,6 @@ export class DarkvisionCommand extends SelectedTokensCommand {
         return new Success(`dark vision ${token.name} ${visionDistance} ft`);
     }
 
-    @noconfig
     private distance: ConfigurationInteger = new ConfigurationInteger(30);
 
     static setDarkvision(token: Der20Token, visionDistance: number) {

@@ -9,7 +9,7 @@ import { CommandInputImpl } from "der20/config/input";
  */
 export class ApiCommandInput extends CommandInputImpl.Base {
     constructor(public player: Player, public message: ApiChatEventData) {
-        super(CommandInput.Kind.Api);
+        super(CommandInput.Kind.api);
     }
 
     authorize(rest: string): boolean {

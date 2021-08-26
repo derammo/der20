@@ -22,7 +22,7 @@ export abstract class Multiplex<MultiplexContext> {
     execute(text: string, 
         handler: ExecuteHandlerType<MultiplexContext>, 
         successHandler?: SuccessHandlerType): Result {
-        if (this.context.input.kind !== CommandInput.Kind.Api) {
+        if (this.context.input.kind !== CommandInput.Kind.api) {
             throw new Error(`${this.itemsDescription} command requires api source`);
         }
         let source = <ApiCommandInput>this.context.input;

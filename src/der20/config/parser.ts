@@ -1,41 +1,9 @@
-import { PropertyDecoratorFunction, Der20Meta } from './meta';
+import { Der20Meta } from './meta';
 import { ParserContext, ConfigurationTermination, ConfigurationParsing, ExportContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
 import { Success, Failure } from 'der20/config/result';
 import { ConfigurationChangeHandling } from 'der20/interfaces/config';
 import { Tokenizer } from './tokenizer';
-
-/**
- * decorator: keyword to use for this property instead of its name, e.g. singular name for collections
- */
-export function keyword(keywordToken: string): PropertyDecoratorFunction {
-    return function(prototype: any, propertyName: string): void {
-        Der20Meta.getOrCreateProperty(prototype, propertyName).keyword = keywordToken;
-    };
-}
-
-/**
- * decorator: if set, the target property is considered data for save/restore but cannot be edited via parser commands
- */
-export function data(prototype: any, propertyName: string): void {
-    Der20Meta.getOrCreateProperty(prototype, propertyName).data = true;
-}
-
-/**
- * decorator: if set, the target property is not considered part of the configuration, so it cannot be edited via parser 
- * commands and is not saved or restored
- */
-export function noconfig(prototype: any, propertyName: string): void {
-    Der20Meta.getOrCreateProperty(prototype, propertyName).data = true;
-    Der20Meta.getOrCreateProperty(prototype, propertyName).ephemeral = true;
-}
-
-/**
- * decorator: if set, the target property is not saved or restored but does support configuration commands
- */
- export function ephemeral(prototype: any, propertyName: string): void {
-    Der20Meta.getOrCreateProperty(prototype, propertyName).ephemeral = true;
-}
 
 export class ConfigurationParser extends Tokenizer {
     static parse(text: string, configuration: any, context: ParserContext): Result {
@@ -199,11 +167,7 @@ export class ConfigurationParser extends Tokenizer {
             if (meta !== undefined) {
                 const property = meta.properties[key];
                 if (property !== undefined) {
-                    if (property.ephemeral) {
-                        debug.log(`${configuration.constructor.name} not exporting ephemeral key ${key}`);
-                        continue;
-                    }
-                    if (property.data) {
+                    if (!property.config) {
                         debug.log(`${configuration.constructor.name} not exporting data key ${key}`);
                         continue;
                     }

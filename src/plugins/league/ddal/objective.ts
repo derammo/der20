@@ -1,10 +1,10 @@
-import { ConfigurationBoolean, ConfigurationString, Dialog, LargeTableItem } from 'der20/library';
+import { config, ConfigurationBoolean, ConfigurationString, Dialog, LargeTableItem } from 'der20/library';
 
 export class Objective extends LargeTableItem {
-    dm: ConfigurationBoolean = new ConfigurationBoolean(true);
-    players: ConfigurationBoolean = new ConfigurationBoolean(true);
-    awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
-    story: ConfigurationString = new ConfigurationString("");
+    @config dm: ConfigurationBoolean = new ConfigurationBoolean(true);
+    @config players: ConfigurationBoolean = new ConfigurationBoolean(true);
+    @config awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
+    @config story: ConfigurationString = new ConfigurationString("");
 
     itemTitle(): string {
         return `Objective ${this.id}`;

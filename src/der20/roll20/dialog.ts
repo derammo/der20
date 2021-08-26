@@ -2,7 +2,7 @@ import { ConfigurationInteger, ConfigurationBoolean, ConfigurationDate, Configur
 import { Dialog, DialogAware } from 'der20/interfaces/ui';
 import { ConfigurationEnumerated } from 'der20/config/enum';
 import { Result } from 'der20/interfaces/result';
-import { ConfigurationStep } from 'der20/config/base';
+import { ConfigurationValueBase } from 'der20/config/base';
 import { ConfigurationString } from 'der20/config/string';
 import { CollectionItem, ConfigurationValue } from 'der20/interfaces/config';
 import { ConfigurationArray } from 'der20/config/array';
@@ -64,7 +64,7 @@ export class Der20ChatDialog implements Dialog {
         this.text.push(`<a style="${style}", href="${linkText}">${label}</a>`);
     }
 
-    addEditControl<T>(label: string, path: string, config: ConfigurationStep<T>, link: Dialog.Link) {
+    addEditControl<T>(label: string, path: string, config: ConfigurationValueBase<T>, link: Dialog.Link) {
         this.text.push(`<li style="${Der20ChatDialog.itemStyle}">`);
         this.text.push(`<span style="${Der20ChatDialog.labelStyle}">${label}</span>`);
         let text: string = '';
@@ -230,7 +230,7 @@ export class Der20ChatDialog implements Dialog {
                 sublink.prefix = `${path} ${item.id}`;
             }
             this.addSeparator();
-            this.addEditCommand(`<h4 style="display: inline-block">${item.id}</h4>`, 'Delete', ConfigurationArray.DELETE_COMMAND_SUFFIX, sublink);
+            this.addEditCommand(`<h4 style="display: inline-block">${item.id}</h4>`, 'Delete', ConfigurationArray.deleteCommandSuffix, sublink);
             item.buildControls(this, sublink);
         }
         this.text.push('</ul>');

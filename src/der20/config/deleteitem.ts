@@ -6,7 +6,6 @@ import { ItemRemoval } from 'der20/interfaces/config';
 export class ConfigurationDeleteItemCommand<T> extends ConfigurationCommand {
     constructor(private collection: ItemRemoval) {
         super();
-        // generated code
     }
 
     parse(text: string): Result {

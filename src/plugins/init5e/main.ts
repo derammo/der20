@@ -1,4 +1,4 @@
-import { ConfigurationIntermediateNode, Plugin, PluginWithOptions, TurnOrderAnnouncer } from 'der20/library';
+import { config, ConfigurationIntermediateNode, Plugin, PluginWithOptions, TurnOrderAnnouncer } from 'der20/library';
 import { RollCommand } from './roll';
 import { ClearCommand } from './clear';
 import { SortCommand } from './sort';
@@ -11,14 +11,19 @@ class ActionsConfiguration extends ConfigurationIntermediateNode {
         this.announce = new NewTurnCommand(autoFeatures);
     }
     
-    announce: NewTurnCommand;
+    @config announce: NewTurnCommand;
 }
+
 class Configuration extends PluginWithOptions {
-    automatic: AutomaticFeaturesConfiguration = new AutomaticFeaturesConfiguration();
-    clear: ClearCommand = new ClearCommand();
-    sort: SortCommand = new SortCommand();
-    roll: RollCommand = new RollCommand(this.automatic);
-    actions: ActionsConfiguration = new ActionsConfiguration(this.automatic);
+    @config automatic: AutomaticFeaturesConfiguration = new AutomaticFeaturesConfiguration();
+
+    @config clear: ClearCommand = new ClearCommand();
+
+    @config sort: SortCommand = new SortCommand();
+
+    @config roll: RollCommand = new RollCommand(this.automatic);
+
+    @config actions: ActionsConfiguration = new ActionsConfiguration(this.automatic);
 }
 
 const plugin = new Plugin('init5e', Configuration);

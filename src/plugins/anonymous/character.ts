@@ -33,8 +33,8 @@ export class CharacterConfiguration extends ConfigurationString implements Confi
         return new Asynchronous('loading default token', imageKey, source.imageLoad());
     }
 
-    load(json: any, context: LoaderContext) {
-        super.load(json, context);
+    fromJSON(json: any, context: LoaderContext) {
+        super.fromJSON(json, context);
         let source = Der20Character.byName(this.value());
         if (source === undefined) {
             context.addMessage(`plugin requires a character named '${this.value()}' to provide default token`);

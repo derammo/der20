@@ -9,7 +9,7 @@ import { CommandInput } from 'der20/interfaces/config';
 export function testDialog() {
     let configuration = new Configuration();
     let help = new HelpCommand('rewards', configuration);
-    let result = help.handleEndOfCommand(new PluginParserContext(new Options(), new CommandInputImpl.Base(CommandInput.Kind.Journal), 'help', ''));
+    let result = help.handleEndOfCommand(new PluginParserContext(new Options(), new CommandInputImpl.Base(CommandInput.Kind.journal), 'help', ''));
     return (<DialogResult>result).dialog;
 }
 

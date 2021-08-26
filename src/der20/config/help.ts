@@ -81,7 +81,7 @@ export class HelpCommand extends ConfigurationSimpleCommand {
             if (Der20Meta.hasProperty(object.constructor.prototype, key)) {
                 // consult meta info
                 let meta = Der20Meta.getOrCreateProperty(object.constructor.prototype, key);
-                if (meta.data) {
+                if (!meta.config) {
                     // no help generation
                     continue;
                 }
@@ -89,6 +89,9 @@ export class HelpCommand extends ConfigurationSimpleCommand {
                 keyword = meta.keyword || keyword;
                 validation = meta.validation;
                 commonPlugin = meta.common;
+            } else {
+                // no help generation
+                continue;
             }
 
             let command = `${prefix}${keyword}`;
@@ -112,6 +115,11 @@ export class HelpCommand extends ConfigurationSimpleCommand {
                 if (sampleConstructor !== undefined && sampleConstructor !== String) {
                     // collection that has editable paths
                     this.enumerate(`${command} [${dataFormat}] `, new sampleConstructor());
+                }
+                else
+                {
+                    // enumerate rest
+                    this.enumerate(`${command} `, child);
                 }
             } else if (typeof child.handleEndOfCommand === 'function') {
                 // ConfigurationTermination handler

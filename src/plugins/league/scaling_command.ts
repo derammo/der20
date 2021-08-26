@@ -86,7 +86,7 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
     }
 
     parse(text: string, context: ParserContext): Result {
-        if (context.input.kind === CommandInput.Kind.Token) {
+        if (context.input.kind === CommandInput.Kind.token) {
             // command is in gmnotes of the target token
             return this.configureFromToken(text, context, <NotesInput>context.input);
         }

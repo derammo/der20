@@ -16,7 +16,7 @@ export namespace CommandInputImpl {
      */
     export class Restore extends Base {
         constructor() {
-            super(CommandInput.Kind.Restore);
+            super(CommandInput.Kind.restore);
         }
     }
 }

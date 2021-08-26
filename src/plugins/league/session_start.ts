@@ -5,7 +5,6 @@ import { PartyState } from './ddal/party_state';
 export class SessionStartCommand extends ConfigurationAlias {
     constructor(target: ConfigurationValue<LeagueModule>, private party: PartyState) {
         super(target, 'current start');
-        // generated code
     }
 
     parse(text: string, context: ParserContext): Result {

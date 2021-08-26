@@ -1,4 +1,4 @@
-import { ConfigurationBoolean, ConfigurationEnumerated, ConfigurationInteger, ConfigurationString, ConfigurationValue, Dialog, LargeTableItem, format } from 'der20/library';
+import { ConfigurationBoolean, ConfigurationEnumerated, ConfigurationInteger, ConfigurationString, ConfigurationValue, Dialog, LargeTableItem, format, config } from 'der20/library';
 
 // can't use enum type in generic, so we use a list of possible values instead
 export const Rarity: string[] = [ "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique" ];
@@ -8,34 +8,34 @@ export class UnlockDefinition extends LargeTableItem {
     id: string = null;
 
     // name of item
-    name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
 
     // is this a consumable? i.e., may this be kept at the end of the adventure?
-    consumable: ConfigurationBoolean = new ConfigurationBoolean(false);
+    @config consumable: ConfigurationBoolean = new ConfigurationBoolean(false);
 
     // item description including flavor text
-    description: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config description: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
 
     // location in the module where it was found, to differentiate multiple copies of same item
-    location: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config location: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
 
     // rarity value, capitalized 
-    rarity: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationValue.UNSET, Rarity);
+    @config rarity: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationValue.UNSET, Rarity);
 
     // tier restriction for item
-    tier: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);
+    @config tier: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);
 
     // item is considered to be from this table for trading purposes
-    table: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config table: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
 
     // can unlock be awarded to players?
-    players: ConfigurationBoolean = new ConfigurationBoolean(true);
+    @config players: ConfigurationBoolean = new ConfigurationBoolean(true);
 
     // can unlock be awarded to DM?
-    dm: ConfigurationBoolean = new ConfigurationBoolean(false);
+    @config dm: ConfigurationBoolean = new ConfigurationBoolean(false);
 
     // actually awarded?
-    awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
+    @config awarded: ConfigurationBoolean = new ConfigurationBoolean(false);
 
     // inline dialog elements
     buildControls(dialog: Dialog, link: Dialog.Link): void {
@@ -74,6 +74,6 @@ export class UnlockDefinition extends LargeTableItem {
 export class Unlock extends UnlockDefinition {
     // name of player character who picked up the item, will be changed to allow selection from characters at run time
     @format('STRING')
-    owner: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationValue.UNSET, ['']);
+    @config owner: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationValue.UNSET, ['']);
 }
 

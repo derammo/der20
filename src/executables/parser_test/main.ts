@@ -24,7 +24,7 @@ import { DialogResult } from "der20/config/result";
 class MockContext implements LoaderContext, ParserContext {
 	command: string;
 	asyncVariables: Record<string, any> = {};
-	input: CommandInput = new CommandInputImpl.Base(CommandInput.Kind.Journal);
+	input: CommandInput = new CommandInputImpl.Base(CommandInput.Kind.journal);
 	dialog: DialogFactory = Der20ChatDialog;
 	options: Options = new Options();
 	frames: ParserFrame[] = [];

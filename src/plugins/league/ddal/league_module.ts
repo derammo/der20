@@ -1,4 +1,4 @@
-import { ConfigurationArray, ConfigurationBoolean, ConfigurationChangeHandling, ConfigurationDate, ConfigurationFloat, ConfigurationInteger, ConfigurationIntermediateNode, ConfigurationString, ConfigurationTermination, ConfigurationValue, DialogResult, ParserContext, Result, Success, clone, data, ConfigurationEnumerated } from 'der20/library';
+import { ConfigurationArray, ConfigurationBoolean, ConfigurationChangeHandling, ConfigurationDate, ConfigurationFloat, ConfigurationInteger, ConfigurationIntermediateNode, ConfigurationString, ConfigurationTermination, ConfigurationValue, DialogResult, ParserContext, Result, Success, clone, data, ConfigurationEnumerated, config } from 'der20/library';
 import { Objective } from './objective';
 import { Unlock, UnlockDefinition } from './unlock';
 
@@ -6,22 +6,22 @@ class TargetConfiguration extends ConfigurationIntermediateNode {
     /**
      * the target APL of the module
      */
-    apl: ConfigurationInteger = new ConfigurationInteger(1);
+     @config apl: ConfigurationInteger = new ConfigurationInteger(1);
 }
 
 export class LeagueModuleDefinition implements ConfigurationChangeHandling, ConfigurationTermination {
     // can't be undefined, because we need to detect that we can load it
     id: string = null;
 
-    name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-    objectives: ConfigurationArray<Objective> = new ConfigurationArray<Objective>('objective', Objective);
-    unlocks: ConfigurationArray<UnlockDefinition> = new ConfigurationArray<UnlockDefinition>('unlock', UnlockDefinition);
-    tier: ConfigurationInteger = new ConfigurationInteger(0);
-    season: ConfigurationEnumerated = new ConfigurationEnumerated("Historical", [ "Historical", "Masters", "Season 10" ]);
-    hardcover: ConfigurationBoolean = new ConfigurationBoolean(false);
-    level: LeagueModule.Level = new LeagueModule.Level();
-    duration: ConfigurationFloat = new ConfigurationFloat(4);
-    target: TargetConfiguration = new TargetConfiguration();
+    @config name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config objectives: ConfigurationArray<Objective> = new ConfigurationArray<Objective>('objective', Objective);
+    @config unlocks: ConfigurationArray<UnlockDefinition> = new ConfigurationArray<UnlockDefinition>('unlock', UnlockDefinition);
+    @config tier: ConfigurationInteger = new ConfigurationInteger(0);
+    @config season: ConfigurationEnumerated = new ConfigurationEnumerated("Historical", [ "Historical", "Masters", "10" ]);
+    @config hardcover: ConfigurationBoolean = new ConfigurationBoolean(false);
+    @config level: LeagueModule.Level = new LeagueModule.Level();
+    @config duration: ConfigurationFloat = new ConfigurationFloat(4);
+    @config target: TargetConfiguration = new TargetConfiguration();
 
     minimumLevelForTier(): number {
         switch (this.tier.value()) {
@@ -68,16 +68,16 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
     handleChange(keyword: string) {
         switch (keyword) {
             case 'tier':
-                this.level.minimum.default = this.minimumLevelForTier();
-                this.level.maximum.default = this.maximumLevelForTier();
+                this.level.minimum.defaultValue = this.minimumLevelForTier();
+                this.level.maximum.defaultValue = this.maximumLevelForTier();
             // eslint-disable-next-line no-fallthrough
             case 'level':
-                this.target.apl.default = Math.round((this.level.minimum.value() + this.level.maximum.value()) / 2);
+                this.target.apl.defaultValue = Math.round((this.level.minimum.value() + this.level.maximum.value()) / 2);
                 break;
             case 'season':
                 break;
             case 'hardcover':
-                this.duration.default = this.defaultDuration();
+                this.duration.defaultValue = this.defaultDuration();
                 break;
             default:
                 // ignore
@@ -129,11 +129,11 @@ export class LeagueModule extends LeagueModuleDefinition {
 
     // NOTE: this upgrades the type of a property from the base class, which works correctly
     // because ConfigurationArray implements 'cloneFrom(...)' in such a way as to upgrade the items to 'Unlock' on copy
-    unlocks: ConfigurationArray<Unlock> = new ConfigurationArray<Unlock>('unlock', Unlock);
+    @config unlocks: ConfigurationArray<Unlock> = new ConfigurationArray<Unlock>('unlock', Unlock);
 
-    session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
-    start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
-    stop: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
+    @config session: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
+    @config start: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
+    @config stop: ConfigurationDate = new ConfigurationDate(ConfigurationValue.UNSET);
    
     hoursAward(): number {
         let hours = (this.stop.value() - this.start.value()) / (60 * 60 * 1000);
@@ -165,7 +165,7 @@ export class LeagueModule extends LeagueModuleDefinition {
         } else if (this.apl >= 4.5) {
             tier = 2;
         }
-        this.tier.default = tier;
+        this.tier.defaultValue = tier;
     }
 
     handleChange(keyword: string) {
@@ -180,7 +180,7 @@ export class LeagueModule extends LeagueModuleDefinition {
 
     uniqueUnlocks(): UniqueUnlock[] {
         let uniqueUnlocks: Map<string, UniqueUnlock> = new Map();
-        for (let item of this.unlocks.current) {
+        for (let item of this.unlocks.currentValue) {
             if (!item.awarded.value()) {
                 continue;
             }
@@ -196,10 +196,11 @@ export class LeagueModule extends LeagueModuleDefinition {
     }
 } 
 
+// eslint-disable-next-line no-redeclare
 export namespace LeagueModule {
     export class Level extends ConfigurationIntermediateNode {
-        minimum: ConfigurationInteger = new ConfigurationInteger(1);
-        maximum: ConfigurationInteger = new ConfigurationInteger(20);
+        @config minimum: ConfigurationInteger = new ConfigurationInteger(1);
+        @config maximum: ConfigurationInteger = new ConfigurationInteger(20);
 
         clone(): Level {
             return clone(LeagueModule.Level, this);

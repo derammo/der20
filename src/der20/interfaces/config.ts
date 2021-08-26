@@ -18,15 +18,18 @@ export interface CommandInput {
      */
     authorize(rest: string): boolean;
 }
+
+// eslint-disable-next-line no-redeclare
 export namespace CommandInput {
     /**
      * Supported configuration sources
      */
+    // eslint-disable-next-line no-shadow
     export enum Kind {
-        Api = 1,
-        Journal,
-        Restore,
-        Token
+        api = 1,
+        journal,
+        restore,
+        token
     }
 }
 
@@ -34,10 +37,12 @@ export namespace CommandInput {
  * Classes that represent a configurable value and its default implement this.
  */
 export interface ConfigurationValue<T> {
-    default: T;
+    defaultValue: T;
     value(): T;
     hasConfiguredValue(): boolean;
 }
+
+// eslint-disable-next-line no-redeclare
 export namespace ConfigurationValue {
     // this is the value we use for unpopulated data
     export const UNSET: undefined = undefined;

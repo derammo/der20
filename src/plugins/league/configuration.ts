@@ -1,4 +1,4 @@
-import { ClearCommand as ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationPopulateCommand, format } from 'der20/library';
+import { ClearCommand as ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationPopulateCommand, format, config } from 'der20/library';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 import { PartyState } from './ddal/party_state';
@@ -10,18 +10,18 @@ import { SessionStartCommand } from './session_start';
 
 // add handouts and tokens support to basic options
 class RewardsOptions extends Options implements HandoutsSupport {
-    handouts: HandoutsOptions = new HandoutsOptions();
+    @config handouts: HandoutsOptions = new HandoutsOptions();
 }
 
 class Definitions extends ConfigurationIntermediateNode {
-    rules: Rules = new Rules();
-    modules: ConfigurationArray<LeagueModuleDefinition> = new ConfigurationArray<LeagueModuleDefinition>('module', LeagueModuleDefinition);
-    dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>('dm', DungeonMaster);
+    @config rules: Rules = new Rules();
+    @config modules: ConfigurationArray<LeagueModuleDefinition> = new ConfigurationArray<LeagueModuleDefinition>('module', LeagueModuleDefinition);
+    @config dms: ConfigurationArray<DungeonMaster> = new ConfigurationArray<DungeonMaster>('dm', DungeonMaster);
 }
 
 class DeleteCommands {
-    module: ConfigurationDeleteItemCommand<LeagueModule>;
-    dm: ConfigurationDeleteItemCommand<DungeonMaster>;
+    @config module: ConfigurationDeleteItemCommand<LeagueModule>;
+    @config dm: ConfigurationDeleteItemCommand<DungeonMaster>;
 
     constructor(definitions: Definitions, options: RewardsOptions) {
         this.module = new ConfigurationDeleteItemCommand(definitions.modules);
@@ -35,7 +35,7 @@ class DeleteCommands {
 
 class PopulateCommands {
     @format('ID] unlock [ID')
-    module: ConfigurationPopulateCommand;
+    @config module: ConfigurationPopulateCommand;
 
     constructor(definitions: Definitions) {
         this.module = new ConfigurationPopulateCommand(definitions.modules);
@@ -50,17 +50,18 @@ class PopulateCommands {
 // XXX something with an instanceof check?  are those reliable in our hierarchy?
 class SessionConfiguration extends ConfigurationIntermediateNode implements ConfigurationChangeHandling {
     // current session objects initialized from from definitions
-    dm: ConfigurationChooser<DungeonMaster>;
-    module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>;
+    @config dm: ConfigurationChooser<DungeonMaster>;
+
+    @config module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>;
 
     // current party composition
-    party: PartyState;
+    @config party: PartyState;
 
     // commands
-    start: SessionStartCommand;
-    stop: ConfigurationAlias;
-    clear: ClearCommand;
-    show: SessionShowCommand;
+    @config start: SessionStartCommand;
+    @config stop: ConfigurationAlias;
+    @config clear: ClearCommand;
+    @config show: SessionShowCommand;
 
     constructor(define: Definitions, scaling: TokenScalingCommand) {
         super();
@@ -78,17 +79,17 @@ class SessionConfiguration extends ConfigurationIntermediateNode implements Conf
             case 'party':
                 // may include apl update
                 if (this.module.hasConfiguredValue()) {
-                    this.module.current.apl = this.party.apl.value();
-                    this.module.current.handleChange('apl');
+                    this.module.currentValue.apl = this.party.apl.value();
+                    this.module.currentValue.handleChange('apl');
                 }
                 break;
             case 'module':
                 if (this.module.hasConfiguredValue()) {
                     // we don't currently have a good way for transient objects to navigate the configuration, so we
                     // push this value down into each module as it is loaded                    
-                    if (this.module.current.apl === undefined) {
-                        this.module.current.apl = this.party.apl.value();
-                        this.module.current.handleChange('apl');
+                    if (this.module.currentValue.apl === undefined) {
+                        this.module.currentValue.apl = this.party.apl.value();
+                        this.module.currentValue.handleChange('apl');
                     }
                     // if the module is changed, we also need to update the party strength (we really need bubbling events here or an observer interface)
                     this.party.handleChange('apl');
@@ -101,8 +102,8 @@ class SessionConfiguration extends ConfigurationIntermediateNode implements Conf
 }
 
 class RewardsConfiguration extends ConfigurationIntermediateNode {
-    preview: SendCommand;
-    send: SendCommand;
+    @config preview: SendCommand;
+    @config send: SendCommand;
 
     constructor(session: SessionConfiguration, define: Definitions) {
         super();
@@ -114,17 +115,17 @@ class RewardsConfiguration extends ConfigurationIntermediateNode {
 export class Configuration {
     // static configuration
     @keyword('option')
-    options: RewardsOptions = new RewardsOptions();
-    define: Definitions = new Definitions();
-    delete: DeleteCommands = new DeleteCommands(this.define, this.options);
-    populate: PopulateCommands = new PopulateCommands(this.define);
+    @config options: RewardsOptions = new RewardsOptions();
+    @config define: Definitions = new Definitions();
+    @config delete: DeleteCommands = new DeleteCommands(this.define, this.options);
+    @config populate: PopulateCommands = new PopulateCommands(this.define);
 
     // tokens added/removed based on scaling according to APL
-    scaling: TokenScalingCommand = new TokenScalingCommand();
+    @config scaling: TokenScalingCommand = new TokenScalingCommand();
 
     // current game session
-    session: SessionConfiguration = new SessionConfiguration(this.define, this.scaling);
+    @config session: SessionConfiguration = new SessionConfiguration(this.define, this.scaling);
 
     // rewards awarded from current session
-    rewards: RewardsConfiguration = new RewardsConfiguration(this.session, this.define);
+    @config rewards: RewardsConfiguration = new RewardsConfiguration(this.session, this.define);
 }

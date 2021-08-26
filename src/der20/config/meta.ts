@@ -54,9 +54,15 @@ export class Der20Meta {
     }
 }
 
+// eslint-disable-next-line no-redeclare
 export namespace Der20Meta {
     export class Property {
         /**
+         * if set, is part of the configuration tree and will be explored 
+         * for parsing and help generation
+         */
+         config: boolean;
+         /**
          * if set, validator class to call before setting value
          */
         validation: Validator;
@@ -76,10 +82,6 @@ export namespace Der20Meta {
          * if set, cannot edit via commands
          */
         data: boolean;
-        /**
-         * if set, do not persist or restore
-         */
-        ephemeral: boolean;
     }
 }
 
