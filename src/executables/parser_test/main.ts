@@ -33,12 +33,10 @@ class MockContext implements LoaderContext, ParserContext {
 		this.command = 'mock';
 	}
 
-	addCommand(source: CommandInput, command: string): void {
-		throw new Error("Method not implemented.");
-	}
 	addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void {
 		throw new Error("Method not implemented.");
 	}
+	
 	addMessage(message: string): void {
 		debug.log(message);
 	}

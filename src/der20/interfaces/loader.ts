@@ -1,11 +1,10 @@
-import { CommandInput, ConfigurationContext } from 'der20/interfaces/config';
+import { ConfigurationContext } from 'der20/interfaces/config';
 
 
 /**
  * Context passed to functions during a specific load from JSON, which usually is the entire configuration being restored.
  */
 export interface LoaderContext extends ConfigurationContext {
-    addCommand(input: CommandInput, command: string): void;
     addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void;
     addMessage(message: string): void;
 }

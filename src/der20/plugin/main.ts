@@ -6,7 +6,6 @@ import { ConfigurationLoader } from 'der20/config/loader';
 import { ConfigurationParser } from 'der20/config/parser';
 import { ConfigurationPersistence } from 'der20/config/persistence';
 import { Asynchronous, Change, DialogResult, Failure } from 'der20/config/result';
-import { CommandInputImpl } from 'der20/config/input';
 import { CommandInput } from 'der20/interfaces/config';
 import { ParserContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
@@ -296,17 +295,6 @@ class PluginImplementation<T> implements CommandSink {
             this.work.trackPromise(this.levels.config, task.promise, task.handler);
         }
 
-        // schedule any commands that are ready, but at configparse level
-        for (let command of context.commands) {
-            followUpWork = true;
-            this.work.scheduleWork(this.levels.configparse, () => {
-                let parsing = new PluginParserContext(context.options, new CommandInputImpl.Restore(), `!${this.name}`, command.line);
-                parsing.input = command.input;
-                this.dispatchCommand(parsing);
-                return Promise.resolve();
-            });
-        }
-
         // Unlike parser work, we don't retry loader work.  Therefore, we have to
         // check if any of our async follow-up work created more async follow-up work.
         // For example, this happens when we read configuration from an asynchronous
@@ -318,7 +306,6 @@ class PluginImplementation<T> implements CommandSink {
             // don't repeat these messages / work lists
             context.messages = [];
             context.asyncLoads = [];
-            context.commands = [];
 
             // after async work is completed, check for new requests
             this.work.scheduleWork(this.levels.followups, () => {
