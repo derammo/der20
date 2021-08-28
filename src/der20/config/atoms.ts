@@ -1,9 +1,8 @@
 import { ConfigurationStep, ConfigurationValueBase } from 'der20/config/base';
-import { ParserContext, ConfigurationTermination, ExportContext } from 'der20/interfaces/parser';
+import { ConfigurationTermination, ExportContext, ParserContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
-import { Change, Failure } from 'der20/config/result';
+import { Change, Failure, Success } from 'der20/config/result';
 import { ConfigurationValue } from 'der20/interfaces/config';
-import { LoaderContext } from 'der20/interfaces/loader';
 
 // no actual data, subclassed by steps that just take an action in code but do parse additional tokens
 export abstract class ConfigurationCommand extends ConfigurationStep {
@@ -15,22 +14,23 @@ export abstract class ConfigurationCommand extends ConfigurationStep {
         return undefined;
     }
 
-    export(context: ExportContext): void {
+    export(_context: ExportContext): void {
         // do not export
     }
 
-    fromJSON(_json: any, _context: LoaderContext): void {
+    fromJSON(_json: any) {
         // nothing to restore
+        return Promise.resolve();
     }
 }
 
 // no actual data, subclassed by steps that just take an action without additional tokens
 export abstract class ConfigurationSimpleCommand extends ConfigurationCommand implements ConfigurationTermination {
-    abstract handleEndOfCommand(context: ParserContext): Result;
+    abstract handleEndOfCommand(context: ParserContext): Promise<Result>;
 
-    parse(text: string, context: ParserContext): Result {
-        // nothing to be done
-        return undefined;
+    parse(_text: string, _context: ParserContext): Promise<Result> {
+        // should be just empty string
+        return new Success("parsed nothing").resolve(); 
     }
 }
 
@@ -39,17 +39,17 @@ export class ConfigurationInteger extends ConfigurationValueBase<number> {
         super(defaultValue, 'INTEGER');
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         if (text.length === 0) {
             this.currentValue = ConfigurationValue.UNSET;
         } else {
             const parsed = parseInt(text, 10);
             if (isNaN(parsed)) {
-                return new Failure(new Error(`${text} is not a valid integer`));
+                return new Failure(new Error(`${text} is not a valid integer`)).resolve();
             }
             this.currentValue = parsed;
         }
-        return new Change(`set integer value ${this.currentValue}`);
+        return new Change(`set integer value ${this.currentValue}`).resolve();
     }
 
     export(context: ExportContext): void {
@@ -69,13 +69,13 @@ export class ConfigurationFloat extends ConfigurationValueBase<number> {
         super(defaultValue, 'NUMBER');
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         if (text.length === 0) {
             this.currentValue = ConfigurationValue.UNSET;
         } else {
             this.currentValue = parseFloat(text);
         }
-        return new Change(`set float value ${this.currentValue}`);
+        return new Change(`set float value ${this.currentValue}`).resolve();
     }
 
     export(context: ExportContext): void {
@@ -95,7 +95,7 @@ export class ConfigurationDate extends ConfigurationValueBase<number> {
         super(defaultValue, 'DATE/HOURS/BLANK');
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         if (text.length === 0) {
             this.currentValue = Date.now();
         } else if (text.match(/^-?[0-9]*\.?[0-9]+$/)) {
@@ -103,7 +103,7 @@ export class ConfigurationDate extends ConfigurationValueBase<number> {
         } else {
             this.currentValue = Date.parse(text);
         }
-        return new Change(`set date value ${new Date(this.currentValue).toUTCString()}`);
+        return new Change(`set date value ${new Date(this.currentValue).toUTCString()}`).resolve();
     }
 
     export(context: ExportContext): void {
@@ -125,13 +125,13 @@ export class ConfigurationBoolean extends ConfigurationValueBase<boolean> {
         super(defaultValue, 'TRUE/FALSE');
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         if (text.length === 0) {
             this.currentValue = ConfigurationValue.UNSET;
         } else {
             this.currentValue = ConfigurationBoolean.trueValues.has(text);
         }
-        return new Change(`set boolean value ${this.currentValue}`);
+        return new Change(`set boolean value ${this.currentValue}`).resolve();
     }
 
     export(context: ExportContext): void {

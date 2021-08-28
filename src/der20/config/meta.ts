@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { Result } from "der20/interfaces/result";
 
 // avoid circular dependency by placing this here

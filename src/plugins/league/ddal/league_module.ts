@@ -65,7 +65,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         return (this.hardcover.value() && (this.level.maximum.value() > 10) && (this.level.minimum.value() < 11));
     }
 
-    handleChange(keyword: string) {
+    handleChange(keyword: string): Promise<void> {
         switch (keyword) {
             case 'tier':
                 this.level.minimum.defaultValue = this.minimumLevelForTier();
@@ -82,11 +82,12 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
             default:
                 // ignore
         }
+        return Promise.resolve();
     }
 
-    handleEndOfCommand(context: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         if (!context.rest.startsWith('define ')) {
-            return new Success('no configuration changed');
+            return new Success('no configuration changed').resolve();
         }
         let dialog = new context.dialog();
         const link = { 
@@ -116,7 +117,7 @@ export class LeagueModuleDefinition implements ConfigurationChangeHandling, Conf
         }
 
         dialog.endControlGroup();
-        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+        return new DialogResult(DialogResult.Destination.caller, dialog.render()).resolve();
     }
 }
 
@@ -168,19 +169,19 @@ export class LeagueModule extends LeagueModuleDefinition {
         this.tier.defaultValue = tier;
     }
 
-    handleChange(keyword: string) {
+    handleChange(keyword: string): Promise<void> {
         switch (keyword) {
             case 'apl':
                 this.updateTierFromAPL();
-                break;
+                return Promise.resolve();
             default:
-                super.handleChange(keyword);
+                return super.handleChange(keyword);
         }
     }
 
     uniqueUnlocks(): UniqueUnlock[] {
         let uniqueUnlocks: Map<string, UniqueUnlock> = new Map();
-        for (let item of this.unlocks.currentValue) {
+        for (let item of this.unlocks.value()) {
             if (!item.awarded.value()) {
                 continue;
             }

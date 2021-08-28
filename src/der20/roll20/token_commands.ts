@@ -10,7 +10,7 @@ export class CommandsFromTokens extends CommandsFromNotes {
     }
 
     // creates async command work
-    restore(context: LoaderContext) {
+    restore(context: LoaderContext): Promise<void> {
         const start = Date.now();
         for (let token of this.getTokens()) {
             this.readToken(token, context);
@@ -19,22 +19,25 @@ export class CommandsFromTokens extends CommandsFromNotes {
         // register for changes
         // NOTE: previous is a dictionary saved via toJSON, while current is the actual Graphic object
         on('change:graphic', (current: Graphic, previous: any) => {
-            this.plugin.swapIn();
+            this.sink.swapIn();
             if (current.get('gmnotes') !== previous.gmnotes) {
-                this.plugin.queryCommandSource(this, current);
+                this.sink.queryCommandSource(this, current);
             }
         });
+
+        return Promise.resolve();
     }        
     
     // creates async command work in response to callback
-    query(context: LoaderContext, opaque: any) {
+    query(context: LoaderContext, opaque: any): Promise<void> {
         if (opaque === undefined) {
             for (let token of this.getTokens()) {
                 this.readToken(token, context);
             }
-            return;
+            return Promise.resolve();
         }
         this.readToken(<Graphic>opaque, context);
+        return Promise.resolve();
     }
 
     private getTokens(): Graphic[] {
@@ -48,13 +51,13 @@ export class CommandsFromTokens extends CommandsFromNotes {
         });
     }
 
-    readToken(token: Graphic, context: LoaderContext) {
+    readToken(token: Graphic, _context: LoaderContext): void {
         // check ownership of token to make sure it is not editable by player, who could be sending us commands via import
         let controllers = token.get('controlledby');
         let name = token.get('name');
         if (controllers !== undefined) {
             if (controllers.length > 0) {
-                context.addMessage(`token ${name} is controlled by ${controllers} and may therefore not be used for configuration`);
+                debug.log(`token ${name} is controlled by ${controllers} and may therefore not be used for configuration`);
                 return;
             }
         }

@@ -35,7 +35,7 @@ export class PartyState extends ConfigurationIntermediateNode implements Configu
         ['Average', 'Strong', 'Very Strong']
     ];
 
-    handleChange(changedKeyword: string): void {
+    handleChange(changedKeyword: string): Promise<void> {
         switch (changedKeyword) {
             case 'pc':
                 // based on pcs, update apl default
@@ -73,6 +73,7 @@ export class PartyState extends ConfigurationIntermediateNode implements Configu
             default:
             // ignore
         }
+        return Promise.resolve();
     }
 
     clear(): void {
@@ -87,7 +88,7 @@ class PlayerScan extends ConfigurationSimpleCommand {
         super();
     }
 
-    handleEndOfCommand(context: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         // reserved word to use to rescan list of currently loaded characters
         this.party.pcs.scan();
 
@@ -95,6 +96,6 @@ class PlayerScan extends ConfigurationSimpleCommand {
         this.party.handleChange('pc');        
 
         // this is a change event to trigger event change listeners above
-        return new Change('scanned players currently in session');
+        return new Change('scanned players currently in session').resolve();
     }
 }

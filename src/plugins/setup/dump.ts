@@ -1,7 +1,7 @@
-import { Der20Token, ParserContext, Result, SelectedTokensSimpleCommand, Success } from "der20/library"
+import { Der20Token, ParserContext, Result, SelectedTokensCommand, Success } from "der20/library"
 
-export class DumpCommand extends SelectedTokensSimpleCommand {
-    handleToken(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
+export class DumpCommand extends SelectedTokensCommand {
+    handleTokenCommand(_message: ApiChatEventData, token: Der20Token, _text: string, _parserContext: ParserContext, _tokenIndex: number): Promise<Result> {
         console.log(`token dump:\n${JSON.stringify(token.raw, null, 2)}`);
         if (token.character !== undefined) {
             console.log(`character dump:\n${JSON.stringify(token.character.raw, null, 2)}`);
@@ -12,6 +12,6 @@ export class DumpCommand extends SelectedTokensSimpleCommand {
                 console.log(`  ${attribute.get('name')} = ${typeof(value)} '${value}' out of '${attribute.get('max')}'`)
             });
         }
-        return new Success("printed token properties to console");
+        return new Success("printed token properties to console").resolve();
     }
 }

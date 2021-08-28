@@ -26,8 +26,8 @@ export class TurnOrder {
     }
 
     static load(): TurnOrderRecord[] {
-        var turnsText = Campaign().get('turnorder');
-        if (turnsText == undefined || turnsText.length < 1) {
+        let turnsText = Campaign().get('turnorder');
+        if (turnsText === undefined || turnsText.length < 1) {
             // this will happen in a fresh room
             return [];
         } else {
@@ -44,7 +44,7 @@ export class TurnOrder {
 }
 
 export class TurnOrderAnnouncer implements CommandSource, CommandInput {
-    constructor(options: any, private plugin: CommandSink) {
+    constructor(options: any, private sink: CommandSink) {
         // generated code
     }
 
@@ -56,10 +56,10 @@ export class TurnOrderAnnouncer implements CommandSource, CommandInput {
 
     private firstId: RegExp = /["']id["'] *: *["']([^"']+)["']/;
 
-    restore(_context: LoaderContext): void {
+    restore(_context: LoaderContext): Promise<void> {
         on('change:campaign:turnorder', (campaign, previous) => {
             try {
-                this.plugin.swapIn();
+                this.sink.swapIn();
 
                 // ignore any change that does not change whose turn it is
                 // NOTE: let's not parse it just to check one attribute so we just regex out the first id
@@ -73,20 +73,23 @@ export class TurnOrderAnnouncer implements CommandSource, CommandInput {
 
                 if (first != null && 
                     previousFirst != null &&
-                    first[1] == previousFirst[1]) {
+                    first[1] === previousFirst[1]) {
                     debug.log("ignoring change to initiative tracker because it did not change who is next");
-                    return; 
+                    return;
                 }
 
                 // XXX design flaw: how can a source be configured for a particular plugin? we need to know what to send
-                this.plugin.dispatchCommands(this, "!init5e actions announce");
+                this.sink.dispatchCommands(this, "!init5e actions announce");
+                return;
             } catch (error) {
-                this.plugin.handleErrorThrown(error);
+                this.sink.handleErrorThrown(error);
             }
         });
+        return Promise.resolve();
     }
 
-    query(context: LoaderContext, opaque: any): void {
+    query(_context: LoaderContext, _opaque: any): Promise<void> {
         // no code
+        return Promise.resolve();
     }
 }

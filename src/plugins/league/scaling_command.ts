@@ -85,12 +85,12 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
         return new Success('updated token scaling for party level');
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         if (context.input.kind === CommandInput.Kind.token) {
             // command is in gmnotes of the target token
-            return this.configureFromToken(text, context, <NotesInput>context.input);
+            return this.configureFromToken(text, context, <NotesInput>context.input).resolve();
         }
-        return new Failure(new Error('XXX unimplemented'));
+        return new Failure(new Error('XXX unimplemented')).resolve();
     }
 
     handleStrengthChange(strength: string): void {
@@ -108,6 +108,7 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
         }
     }
 
+    /* eslint-disable @typescript-eslint/naming-convention */
     private updateGraphic(token: Der20Token, scaling: TokenScaling) {
         debug.log(`token '${token.name}' is present at ${JSON.stringify(scaling.present)}`);
         if (scaling.present[this.strength]) {
@@ -119,4 +120,5 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
             token.raw.set({ aura2_color: '#FF0000', aura2_radius: '0.4', showplayers_aura2: false });
         }
     }
+    /* eslint-enable @typescript-eslint/naming-convention */
 }

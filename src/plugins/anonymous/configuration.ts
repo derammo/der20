@@ -24,9 +24,10 @@ export class Configuration implements ConfigurationChangeHandling {
     @config reveal: RevealCommand = new RevealCommand(this.whisper);
 
     // on reset (built in command provided by plugin), clear global state
-    handleChange(token: string): void {
+    handleChange(token: string): Promise<void> {
         if (token === 'reset') {
             setDefaultToken(undefined);
         }
+        return Promise.resolve();
     }
 }

@@ -1,6 +1,6 @@
 import { parseCommaSeparatedList } from "./format";
 
-class CharacterImage {
+export class Der20CharacterImage {
     constructor(private imageSource: string) {
         // generated source
     }
@@ -160,11 +160,11 @@ export class Der20Character {
         return new Der20Attribute(<Attribute>attributes[0]);
     }
 
-    imageLoad(): Promise<CharacterImage> {
+    imageLoad(): Promise<Der20CharacterImage> {
         return new Promise((resolve, reject) => {
             this.raw.get('_defaulttoken', (text: string) => {
                 let data = JSON.parse(text);
-                resolve (new CharacterImage(data.imgsrc));
+                resolve (new Der20CharacterImage(data.imgsrc));
             });
         });  
     }

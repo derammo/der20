@@ -1,26 +1,25 @@
-import { ConfigurationInteger, ConfigurationValueBase, Der20Attribute, Der20Character, ExportContext, Failure, ParserContext, Result, Success, Tokenizer } from 'der20/library';
+import { ConfigurationValueBase, Der20Attribute, Der20Character, ExportContext, Failure, ParserContext, Result, Success, Tokenizer } from 'der20/library';
 
 export class CharacterConfiguration extends ConfigurationValueBase<string> {
     constructor() {
         super('', 'CHARACTER_ID hp|ac|pp VALUE');
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         const tokens = Tokenizer.tokenize(text);
         if (tokens.length < 3) {
-            return new Failure(new Error(`character attribute change command requires arguments: ${this.format}`));
+            return new Failure(new Error(`character attribute change command requires arguments: ${this.format}`)).resolve();
         }
         const character = Der20Character.fetch(tokens[0]);
         if (character === undefined) {
-            return new Failure(new Error(`character with id "${tokens[0]}" not found`));
+            return new Failure(new Error(`character with id "${tokens[0]}" not found`)).resolve();
         }
-        const integerValue = new ConfigurationInteger(0);
-        const parseResult = integerValue.parse(tokens[2], context);
-        if (!parseResult.isSuccess()) {
-            return parseResult;
+        const integerValue = parseInt(tokens[2], 10);
+        if (isNaN(integerValue)) {
+            return new Failure(new Error(`${tokens[2]} is not a valid integer`)).resolve();
         }
-        var attributeName = undefined;
-        var copyToMax: boolean = false;
+        let attributeName = undefined;
+        let copyToMax: boolean = false;
         switch (tokens[1]) {
             case 'hp':
                 attributeName = 'hp';
@@ -33,18 +32,18 @@ export class CharacterConfiguration extends ConfigurationValueBase<string> {
                 attributeName = 'passive_wisdom';
                 break;
             default:
-                return new Failure(new Error(`character attribute change command only supports: ${this.format}`));
+                return new Failure(new Error(`character attribute change command only supports: ${this.format}`)).resolve();
         }
-        var attribute = character.attribute(attributeName);
+        let attribute = character.attribute(attributeName);
         if (!attribute.exists) {
             attribute = Der20Attribute.create(character, attributeName);
             attribute.raw.set('max', '');
         }
         if (copyToMax) {
-            attribute.raw.setWithWorker('max', integerValue.value());
+            attribute.raw.setWithWorker('max', integerValue);
         }
-        attribute.raw.setWithWorker('current', integerValue.value());
-        return new Success(`set character ${character.name} ${attributeName} to ${integerValue.value()}`);
+        attribute.raw.setWithWorker('current', integerValue);
+        return new Success(`set character ${character.name} ${attributeName} to ${integerValue}`).resolve();
     }
 
     export(context: ExportContext): void {

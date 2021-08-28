@@ -7,13 +7,16 @@ export class SessionStartCommand extends ConfigurationAlias {
         super(target, 'current start');
     }
 
-    parse(text: string, context: ParserContext): Result {
-        const result = super.parse(text, context);
-        if (result.isSuccess()) {
-            // do a scan now and update from it
-            this.party.pcs.scan();
-            this.party.handleChange('pc');
-        }
-        return result;
+    parse(text: string, context: ParserContext): Promise<Result> {
+        return super.parse(text, context) 
+        .then((result: Result) => {
+            context.swapIn();
+            if (result.isSuccess()) {
+                // do a scan now and update from it
+                this.party.pcs.scan();
+                this.party.handleChange('pc');
+            }
+            return result;
+        });
     }
 }

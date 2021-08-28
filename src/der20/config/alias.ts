@@ -1,6 +1,6 @@
+import { ParserContext } from 'der20/interfaces/parser';
 import { ConfigurationCommand } from './atoms';
 import { ConfigurationParser } from './parser';
-import { ParserContext } from 'der20/interfaces/parser';
 
 export class ConfigurationAlias extends ConfigurationCommand {
     private root: any;

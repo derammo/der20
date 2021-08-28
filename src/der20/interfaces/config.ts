@@ -2,7 +2,14 @@
  * Base context passed to all parsing or configuration loading functions, represents the execution of
  * one command or one load from JSON.
  */
-export interface ConfigurationContext {}
+export interface ConfigurationContext {
+    /** 
+     * Swap in specific global handlers whenever work is asynchronously resumed.
+     * It is specifically used to debug log based on the plugin, even if the 
+     * code executing is in the library.
+     */
+    swapIn(): void;
+}
 
 /**
  * A source of a configuration command, available in parser context
@@ -75,13 +82,27 @@ export interface Collection extends ItemRemoval {
  * Classes that handle change events from parsing implement this, to be called by parser after command execution.
  */
 export interface ConfigurationChangeHandling {
-    handleChange(changedKeyword: string): void;
+    handleChange(changedKeyword: string): Promise<void>;
+}
+
+// eslint-disable-next-line no-redeclare
+export namespace ConfigurationChangeHandling {
+    export function query(target: any) {
+        return interfaceQuery<ConfigurationChangeHandling>(target, ['handleChange']);
+    } 
 }
 
 /**
  * Classes that support registration of an external change event handler implement this.
  */
 export interface ConfigurationChangeDelegation {
-    onChangeEvent(handler: (changedKeyword: string) => void): void;
+    onChangeEvent(handler: (changedKeyword: string) => Promise<void>): void;
 }
 
+export function interfaceQuery<InterfaceType>(target: any, functionNames: string[]): { supported: boolean, interface: InterfaceType|undefined } {
+    if (functionNames.some(name => typeof target[name] !== 'function')) {
+        return { supported: false, interface: undefined };
+    } else {
+        return { supported: true, interface: <InterfaceType>target };
+    }
+}

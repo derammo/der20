@@ -37,6 +37,8 @@ export interface Dialog {
      */
     renderCommandEcho(line: string, resultType: Result.Kind): string;
 }
+
+// eslint-disable-next-line no-redeclare
 export namespace Dialog {
     export interface Link {
         command: string;

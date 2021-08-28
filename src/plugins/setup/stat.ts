@@ -1,8 +1,8 @@
-import { Asynchronous, CommandInput, ConfigurationEnumerated, ConfigurationInteger, data, Der20Token, DialogResult, ParserContext, Result, RollQuery, SelectedTokensSimpleCommand, Success, Tokenizer } from 'der20/library';
+import { CommandInput, ConfigurationEnumerated, ConfigurationInteger, data, Der20Token, DialogResult, Failure, ParserContext, Result, RollQuery, SelectedTokensCommand, Success, Tokenizer } from 'der20/library';
 import { DarkvisionCommand } from './darkvision';
 import { LightCommand } from './light';
 
-export class StatCommand extends SelectedTokensSimpleCommand {
+export class StatCommand extends SelectedTokensCommand {
     @data
     knownCharacters: Map<string, boolean> = new Map<string, boolean>();
 
@@ -10,24 +10,24 @@ export class StatCommand extends SelectedTokensSimpleCommand {
         super();
     }
 
-    handleToken(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
+    handleTokenCommand(_message: ApiChatEventData, token: Der20Token, _text: string, parserContext: ParserContext, tokenIndex: number): Promise<Result> {
         const character = token.character;
         if (character === undefined) {
-            return new Success('ignoring token that is not linked to character');
+            return new Success('ignoring token that is not linked to character').resolve();
         }
         if (character.isNpc()) {
             return this.statNpc(token, parserContext, tokenIndex);
         } else {
-            return this.statPc(token, parserContext);
+            return this.statPc(token, parserContext).resolve();
         }
     }
 
     /* eslint-disable @typescript-eslint/naming-convention */
     private statPc(token: Der20Token, parserContext: ParserContext): Result {
         const character = token.character;
-        var needsHp: boolean = false;
-        var needsPp: boolean = false;
-        var needsAc: boolean = false;
+        let needsHp: boolean = false;
+        let needsPp: boolean = false;
+        let needsAc: boolean = false;
 
         // we could have a default char sheet and still get numbers here (all 10s) so we really need to check
         // if we previously ingested this character, so we can second guess any 10s 
@@ -92,7 +92,7 @@ export class StatCommand extends SelectedTokensSimpleCommand {
 
         if (parserContext.input.kind === CommandInput.Kind.api && (needsHp || needsPp || needsAc)) {
             // interactive mode
-            var dialog = new parserContext.dialog();
+            let dialog = new parserContext.dialog();
             const link = {
                 command: parserContext.command,
                 prefix: `character ${character.id}`
@@ -109,7 +109,7 @@ export class StatCommand extends SelectedTokensSimpleCommand {
                 dialog.addEditControl("Passive Perception", "pp", new ConfigurationInteger(passiveWisdomValue), link);
             }
             dialog.endControlGroup();
-            return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+            return new DialogResult(DialogResult.Destination.caller, dialog.render());
         } else {
             const result = new Success(`set up player character token for ${character.name}`);
             if (needsHp) {
@@ -125,29 +125,13 @@ export class StatCommand extends SelectedTokensSimpleCommand {
         }
     }
 
-    private statNpc(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
+    private statNpc(token: Der20Token, _parserContext: ParserContext, _tokenIndex: number): Promise<Result> {
         const character = token.character;
         let name = character.name;
 
         // for NPC, allow custom name that does not get over written
         if (token.name > '') {
             name = token.name;
-        }
-
-        // default to pre-rolled HP
-        const averageHp: number = character.attribute('hp').max(1);
-        let hp: number = averageHp;
-
-        // initial HP calculation?
-        const formula = character.attribute('npc_hpformula');
-        if (formula.exists) {
-            const key = `StatCommand.statNpc.hp${tokenIndex}`;
-            if (parserContext.asyncVariables[key] === undefined) {
-                const roll: Promise<RollSummary> = new RollQuery(formula.value('1')).asyncVerboseRoll();
-                return new Asynchronous('rolling hit points for NPC', key, roll);
-            } else {
-                hp = this.processRoll(parserContext, key, token);
-            }
         }
 
         // note passive perception
@@ -179,12 +163,28 @@ export class StatCommand extends SelectedTokensSimpleCommand {
             compact_bar: null
         });
 
-        return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = ${this.hpRollingOption.value()} ${hp}, stealth (${stealth}) = ${stealthCheck}`);
+        // default to pre-rolled HP
+        const averageHp: number = character.attribute('hp').max(1);
+        let hp: number = averageHp;
+
+        // initial HP calculation?
+        const formula = character.attribute('npc_hpformula');
+        if (formula.exists) {
+            return new RollQuery(formula.value('1'))
+                .asyncVerboseRoll()
+                .then((value: RollSummary) => {
+                    hp = this.processRoll(value, token);
+                    return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = ${this.hpRollingOption.value()} ${hp}, stealth (${stealth}) = ${stealthCheck}`);
+                }, (reason: any) => {
+                    return new Failure(new Error(reason));
+                });
+        }
+                
+        return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = average ${hp}, stealth (${stealth}) = ${stealthCheck}`).resolve();
     }
 
-    private processRoll(parserContext: ParserContext, key: string, token: Der20Token) {
-        const summary = parserContext.asyncVariables[key] as RollSummary;
-        var hp = 0;
+    private processRoll(summary: RollSummary, token: Der20Token) {
+        let hp = 0;
         switch (this.hpRollingOption.value()) {
             case "maximized": {
                 if (summary.resultType !== "sum") {

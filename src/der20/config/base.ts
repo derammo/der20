@@ -9,9 +9,9 @@ export abstract class ConfigurationStep implements ConfigurationParsing, Configu
         // no code
     }
 
-    abstract parse(text: string, context: ParserContext): Result;
+    abstract parse(text: string, context: ParserContext): Promise<Result>;
     abstract export(context: ExportContext): void;
-    abstract fromJSON(json: any, context: LoaderContext): void;
+    abstract fromJSON(json: any, context: LoaderContext): Promise<void>;
     abstract toJSON(): any;
 }
 
@@ -22,11 +22,12 @@ export abstract class ConfigurationValueBase<T> extends ConfigurationStep implem
         super(format);
     }
 
-    abstract parse(text: string, context: ParserContext): Result;
+    abstract parse(text: string, context: ParserContext): Promise<Result>;
     abstract export(context: ExportContext): void;
 
-    fromJSON(json: any, context: LoaderContext) {
+    fromJSON(json: any, _context: LoaderContext): Promise<void> {
         this.currentValue = json;
+        return Promise.resolve();
     }
 
     value(): T {
@@ -40,11 +41,11 @@ export abstract class ConfigurationValueBase<T> extends ConfigurationStep implem
     //     if (!this.hasConfiguredValue()) {
     //         return this.default;
     //     }
-    //     return this.current;
+    //     return this.currentValue;
     // }
 
     // set value(newValue: T) {
-    //     this.current = newValue;
+    //     this.currentValue = newValue;
     // }
 
     hasConfiguredValue(): boolean {

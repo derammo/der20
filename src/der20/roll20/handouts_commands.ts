@@ -1,6 +1,6 @@
 import { ConfigurationBoolean } from "der20/config/atoms";
 import { config } from "der20/config/decorators";
-import { ConfigurationChangeDelegator } from "der20/config/events";
+import { ConfigurationChangeDelegator } from "der20/config/change_delegator";
 import { common } from "der20/config/help";
 import { CommandInput } from "der20/interfaces/config";
 import { LoaderContext } from "der20/interfaces/loader";
@@ -65,16 +65,17 @@ export class CommandsFromHandouts extends CommandsFromNotes {
 
         // sign up for handouts options reconfigurations
         // REVISIT use keyof somehow to always get the right token here
-        handoutsOptions.onChangeEvent((keyword) => {
+        handoutsOptions.onChangeEvent((keyword: string) => {
             switch (keyword) {
                 case 'archived':
                 case 'journal':
                     this.configure(handoutsOptions);
-                    this.plugin.queryCommandSource(this, undefined);
+                    this.sink.queryCommandSource(this, undefined);
                     break;
                 default:
                     // ignore
             }
+            return Promise.resolve();
         });        
     }
 
@@ -85,29 +86,33 @@ export class CommandsFromHandouts extends CommandsFromNotes {
     }
 
     // creates async configuration work
-    restore(context: LoaderContext) {
-        for (let handout of this.getHandouts()) {
-            this.readHandout(handout, context);
-        }
-        // register for changes
-        on('change:handout', (current: any, previous: any) => {
-            this.plugin.swapIn();
-            this.handoutChanged(current, previous);
-        });
+    restore(context: LoaderContext): Promise<void> {
+        return Promise.all(this.getHandouts().map(handout => this.readHandout(context, handout)))
+            .then((_results: void[]) => {
+                context.swapIn();
+                // register for changes
+                on('change:handout', this.handoutChanged);
+                return;
+            });
     }        
     
     // creates async configuration work in response to callback
-    query(context: LoaderContext, opaque: any) {
+    query(context: LoaderContext, opaque: any): Promise<void> {
         if (opaque === undefined) {
-            for (let handout of this.getHandouts()) {
-                this.readHandout(handout, context);
-            }
-            return;
+            // read all
+            return Promise.all(this.getHandouts().map(handout => this.readHandout(context, handout)))
+                .then((_results: void[]) => {
+                    // convert to single result
+                    return;
+                });
+        } else {
+            // read specific handout
+            return this.readHandout(context, opaque);
         }
-        this.readHandout(opaque, context);
     }
 
-    handoutChanged(current: Handout, previous: Handout): void {
+    handoutChanged(current: Handout, _previous: HandoutImmutableSynchronousGetProperties & HandoutMutableSynchronousGetProperties): void {
+        this.sink.swapIn();
         let archived = current.get('archived');
         if (archived === undefined) {
             debug.log('object received in handout change handler was not a handout');
@@ -115,11 +120,11 @@ export class CommandsFromHandouts extends CommandsFromNotes {
         }
         if (archived) {
             if (this.archived) {
-                this.plugin.queryCommandSource(this, current);
+                this.sink.queryCommandSource(this, current);
             }
         } else {
             if (this.journal) {
-                this.plugin.queryCommandSource(this, current);
+                this.sink.queryCommandSource(this, current);
             }
         }
     }
@@ -155,32 +160,36 @@ export class CommandsFromHandouts extends CommandsFromNotes {
     }
 
     // WARNING: the Handout type in api.d.ts is incorrectly claiming gmnotes is a synchronous read property, so we can't use the type here
-    readHandout(handout: any, context: LoaderContext) {
+    readHandout(context: LoaderContext, handout: any): Promise<void> {
         // check ownership of handout to make sure it is not editable by player, who could be sending us commands
         let controllers = handout.get('controlledby');
         let name = handout.get('name');
         if (controllers !== undefined) {
             if (controllers.length > 0) {
-                context.addMessage(`handout ${name} is controlled by ${controllers} and may therefore not be used for configuration`);
-                return;
+                debug.log(`handout ${name} is controlled by ${controllers} and may therefore not be used for configuration`);
+                return Promise.resolve();
             }
         }
-        let promise = new Promise<string>((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
             handout.get('gmnotes', (text: string) => {
                 resolve(text);
             });
-        });
-        let whenDone = (text: string) => {
+        })
+        .then(text => {
+            context.swapIn();
             debug.log(`scanning handout '${name}'`);
-            if (!text.match(/^(<[a-z0-9]+( style="[^"]*")?>)*"?!/g)) {
-                // as long as some plugin command is the first line, we invest the time to read through
-                debug.log('ignoring handout that does not have a command in the first line of GM Notes');
-                debug.log(`ignored GM Notes start with '${text.substring(0,10)}...'`)
-                return;
-            }
-            // read text
-            this.dispatchLines(text, CommandInput.Kind.journal, 'handout', handout.id);
-        };
-        context.addAsynchronousLoad(promise, whenDone);
+            this.sendHandout(context, handout, text);
+        });
+    }
+    
+    private sendHandout(context: LoaderContext, handout: any, text: string): void {
+        if (!text.match(/^(<[a-z0-9]+( style="[^"]*")?>)*"?!/g)) {
+            // as long as some plugin command is the first line, we invest the time to read through
+            debug.log('ignoring handout that does not have a command in the first line of GM Notes');
+            debug.log(`ignored GM Notes start with '${text.substring(0,10)}...'`)
+            return;
+        }
+        // send as commands
+        this.dispatchLines(text, CommandInput.Kind.journal, 'handout', handout.id);
     }
 }

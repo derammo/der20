@@ -14,7 +14,7 @@ export class ConfigurationTemp extends ConfigurationPersistence {
         return {};
     }
 
-    save(configuration: object) {
+    save(_configuration: object) {
         // ignore
     }
 }

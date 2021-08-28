@@ -1,18 +1,21 @@
-import { ConfigurationContext } from 'der20/interfaces/config';
+import { ConfigurationContext, interfaceQuery } from "./config";
 
-
-/**
- * Context passed to functions during a specific load from JSON, which usually is the entire configuration being restored.
- */
 export interface LoaderContext extends ConfigurationContext {
-    addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void;
-    addMessage(message: string): void;
+    // nothing additional for now
 }
 
 /**
  * Classes that can be restored from JSON implement this.
  */
 export interface ConfigurationLoading {
-    fromJSON(json: any, context: LoaderContext): void;
+    fromJSON(json: any, context: LoaderContext): Promise<void>;
     toJSON(): any;
 }
+
+// eslint-disable-next-line no-redeclare
+export namespace ConfigurationLoading {
+    export function query(target: any) {
+        return interfaceQuery<ConfigurationLoading>(target, ['fromJSON', 'toJSON']);
+    } 
+}
+

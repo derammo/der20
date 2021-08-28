@@ -1,5 +1,8 @@
 PLUGINS := league anonymous setup init5e
-EXECUTABLES := parser_test help_test
+EXECUTABLES := parser_test 
+
+# XXX needs porting
+# help_test
 
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 DEFAULT := $(word 1,$(EXECUTABLES))
@@ -146,12 +149,12 @@ dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.
 merged/build/der20/%_plugin.js: merged/compile/der20/%_plugin.js Makefile
 	@echo translating $< to $@
 	@mkdir -p merged/build/der20
+	@cat src/sys/plugin_loader.js > $@
 	@sed \
 		-e 's/^define(.*$$/    let exports = {};/' \
 		-e 's/\([[:space:]\[(]\)library_[0-9]*\./\1der20_library./g' \
 		-e 's/^});//' \
-		$< > $@
-	@cat src/sys/plugin_loader.js >> $@
+		$< >> $@
 merged/compile/der20/%_plugin.js: merged/src/der20/%_plugin.ts merged/compile/der20/library.js src/sys/plugin_loader.js merged/tsconfig_%_plugin.json Makefile
 	@touch -r merged/compile/der20/library.js merged/compile/library.stamp
 	$(TSC) -p merged/tsconfig_$*_plugin.json

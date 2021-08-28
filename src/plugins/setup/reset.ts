@@ -1,17 +1,17 @@
-import { SelectedTokensSimpleCommand, Der20Token } from 'der20/library';
+import { SelectedTokensCommand, Der20Token } from 'der20/library';
 import { ParserContext } from 'der20/library';
 import { Result, Success } from 'der20/library';
 import { DarkvisionCommand } from './darkvision';
 import { LightCommand } from './light';
 
-export class TokenResetCommand extends SelectedTokensSimpleCommand {
-    static execute(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
+export class TokenResetCommand extends SelectedTokensCommand {
+    static execute(token: Der20Token): Promise<Result> {
         const character = token.character;
         if (character === undefined) {
-            return new Success('ignoring token that is not linked to character');
+            return new Success('ignoring token that is not linked to character').resolve();
         }
         if (!character.isNpc()) {
-            return new Success('reset ignoring token that is not an NPC/Monster');
+            return new Success('reset ignoring token that is not an NPC/Monster').resolve();
         }
         /* eslint-disable @typescript-eslint/naming-convention */
         token.raw.set({
@@ -30,10 +30,10 @@ export class TokenResetCommand extends SelectedTokensSimpleCommand {
         DarkvisionCommand.setDefaultsNoDarkvision(token);
 
         /* eslint-enable @typescript-eslint/naming-convention */
-        return new Success('reset character token');
+        return new Success('reset character token').resolve();
     }
 
-    handleToken(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result {
-        return TokenResetCommand.execute(token, parserContext, tokenIndex);
+    handleTokenCommand(_message: ApiChatEventData, token: Der20Token, _text: string, _parserContext: ParserContext, _tokenIndex: number): Promise<Result> {
+        return TokenResetCommand.execute(token);
     }
 }

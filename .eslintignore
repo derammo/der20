@@ -2,3 +2,5 @@
 /src/types/api.d.ts
 /types-roll20
 /scripts
+.eslintrc.js
+/sys/*.js

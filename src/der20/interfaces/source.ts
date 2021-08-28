@@ -1,17 +1,17 @@
 import { CommandInput } from "der20/interfaces/config";
 import { Options } from "der20/plugin/options";
-import { LoaderContext } from "./loader";
+import { LoaderContext } from "der20/interfaces/loader";
 
 export interface CommandSource {
     /**
      * read all commands from the source and subscribe to changes
      */
-    restore(context: LoaderContext): void;
+    restore(context: LoaderContext): Promise<void>;
 
     /**
      * selectively read in response to a call to CommandSink.queryCommandSource with the specified opaque context
      */
-    query(context: LoaderContext, opaque: any): void;
+    query(context: LoaderContext, opaque: any): Promise<void>;
 }
 
 export interface CommandSink {

@@ -12,9 +12,9 @@ export class ConfigurationEnumerated extends ConfigurationString {
         this.format = Array.from(this.valid.values()).join('|');
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         if ((text.length !== 0) && (!this.valid.has(text))) {
-            return new Failure(new Error(`'${text}' is not a valid value of enumeration '${Array.from(this.valid.values())}'`))
+            return new Failure(new Error(`'${text}' is not a valid value of enumeration '${Array.from(this.valid.values())}'`)).resolve();
         }
         return super.parse(text, context);
     }

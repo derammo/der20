@@ -71,11 +71,6 @@ export class ErrorReporter {
             titleText = `[${this.name}] error: ${error.message} on: ${line}`;
             bodyText.push(`command executed: ${line}`);
             dialog.addTextLine(line);
-            for (let async of Object.keys(context.asyncVariables)) {
-                line = `${async}: ${context.asyncVariables[async]}`;
-                bodyText.push(line);
-                dialog.addTextLine(line);
-            }
             dialog.endControlGroup();
             dialog.addSeparator();
         }

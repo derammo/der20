@@ -2,7 +2,7 @@ import { ConfigurationSimpleCommand } from './atoms';
 import { Der20Meta, PropertyDecoratorFunction, Validator } from './meta';
 import { DefaultConstructed } from 'der20/common/utility';
 import { ConfigurationStep } from 'der20/config/base';
-import { ParserContext } from 'der20/interfaces/parser';
+import { ParserContext } from "der20/interfaces/parser";
 import { Result } from 'der20/interfaces/result';
 import { DialogResult } from 'der20/config/result';
 
@@ -136,7 +136,7 @@ export class HelpCommand extends ConfigurationSimpleCommand {
         }
     }
 
-    handleEndOfCommand(context: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         let dialog = new context.dialog();
         for (let item of this.helpItems) {
             dialog.beginControlGroup();
@@ -151,6 +151,6 @@ export class HelpCommand extends ConfigurationSimpleCommand {
             dialog.endControlGroup();
             dialog.addSeparator();
         }
-        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+        return new DialogResult(DialogResult.Destination.caller, dialog.render()).resolve();
     }
 }

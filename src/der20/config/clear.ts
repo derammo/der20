@@ -15,11 +15,11 @@ export class ClearCommand extends ConfigurationSimpleCommand {
         this.targets = targets;
     }
 
-    handleEndOfCommand(context: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         // REVISIT: could support selectively clearing by keyword
         for (let target of this.targets) {
             target.clear();
         }
-        return new Change(this.message);
+        return new Change(this.message).resolve();
     }
 }

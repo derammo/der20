@@ -1,6 +1,6 @@
 import { common, format } from 'der20/config/help';
 import { ConfigurationBoolean } from 'der20/config/atoms';
-import { ConfigurationChangeDelegator } from 'der20/config/events';
+import { ConfigurationChangeDelegator } from 'der20/config/change_delegator';
 import { ConfigurationDeleteItemCommand } from 'der20/config/deleteitem';
 import { ConfigurationIntermediateNode } from 'der20/config/intermediate';
 import { ConfigurationSet } from 'der20/config/set';

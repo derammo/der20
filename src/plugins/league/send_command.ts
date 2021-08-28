@@ -20,19 +20,18 @@ export class SendCommand extends RenderCommand {
         return undefined;
     }
 
-    handleEndOfCommand(context: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         this.tryLoad(context);
 
         let dialog = new context.dialog();
-        let destination = DialogResult.Destination.Caller;
+        let destination = DialogResult.Destination.caller;
 
-        let module = this.module.currentValue;
-        if (module === undefined) {
-            return new Failure(new Error('no current module set; please select a module before calling this command'));
+        if (!this.module.hasConfiguredValue()) {
+            return new Failure(new Error('no current module set; please select a module before calling this command')).resolve();
         }
-
-        const dm = this.dm.currentValue.name.value();
-        const dci = this.dm.currentValue.dci.value();
+        let module = this.module.value();
+        const dm = this.dm.value().name.value();
+        const dci = this.dm.value().dci.value();
 
         // XXX calculate hours played, downtime, renown
         // const downtime = this.rules.advancement.downtime.valueFrom(acp);
@@ -95,7 +94,7 @@ export class SendCommand extends RenderCommand {
         }
 
         // make sorted list of assigned consumables
-        const consumables = module.unlocks.currentValue.filter(item => {
+        const consumables = module.unlocks.value().filter(item => {
             return item.consumable.value() && item.awarded.value() && item.owner.hasConfiguredValue();
         });
         consumables.sort((left, right) => {
@@ -121,7 +120,7 @@ export class SendCommand extends RenderCommand {
         } else {
             // XXX add hours played to notes
             // XXX add levels gained if 1, otherwise players have to figure it out based on hours banked (rules unclear)
-            destination = DialogResult.Destination.All;
+            destination = DialogResult.Destination.all;
             let log = new AdventurersLeagueLog.LogEntry();
             log.adventure_title = moduleName;
             log.dm_dci_number = dci;
@@ -132,7 +131,7 @@ export class SendCommand extends RenderCommand {
             log.renown_gained = renown;
             log.treasure_tier = tier;
 
-            for (let item of module.unlocks.currentValue) {
+            for (let item of module.unlocks.value()) {
                 if (!item.awarded.value()) {
                     continue;
                 }
@@ -157,6 +156,6 @@ export class SendCommand extends RenderCommand {
             // dialog.addExternalLinkButton('Import to adventurersleaguelog.com', importQuery);
         }
 
-        return new DialogResult(destination, dialog.render());
+        return new DialogResult(destination, dialog.render()).resolve();
     }
 }

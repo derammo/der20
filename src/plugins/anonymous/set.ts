@@ -1,25 +1,25 @@
-import { Der20Character, Der20Token, SelectedTokensSimpleCommand } from 'der20/library';
+import { Der20Character, Der20Token, SelectedTokensCommand } from 'der20/library';
 import { Result, Success, Failure } from 'der20/library';
 import { Der20Attribute } from 'der20/library';
 import { WhisperConfiguration } from './whisper';
 
-var defaultToken: string;
+let defaultToken: string;
 
 export function setDefaultToken(token: string) {
     defaultToken = token;
 }
-export class SetCommand extends SelectedTokensSimpleCommand {
+export class SetCommand extends SelectedTokensCommand {
     constructor(private whisper: WhisperConfiguration) {
         super();
     }
     
-    handleToken(token: Der20Token, parserContext: any, tokenIndex: number): Result {
+    handleTokenCommand(_message: ApiChatEventData, token: Der20Token, _text: string, _parserContext: any, _tokenIndex: number): Promise<Result> {
         let character = token.character;
         if (character === undefined) {
-            return new Success(`selected token does not represent any journal entry and won't be changed`);
+            return new Success(`selected token does not represent any journal entry and won't be changed`).resolve();
         }
         if (!character.isNpc()) {
-            return new Success(`'${character.name}' is not an NPC/Monster and won't be changed`);
+            return new Success(`'${character.name}' is not an NPC/Monster and won't be changed`).resolve();
         }
         
         // figure out an anonymous description to use instead of a name
@@ -27,7 +27,7 @@ export class SetCommand extends SelectedTokensSimpleCommand {
 
         if (this.whisper.set.value()) {
             debug.log(`setting ${character.name} to always whisper rolls`);
-            var wtype: Der20Attribute = character.attribute("wtype");
+            let wtype: Der20Attribute = character.attribute("wtype");
             if (!wtype.exists) {
                 // need to create attribute, because it is not present by default
                 wtype = Der20Attribute.create(character, "wtype");
@@ -40,7 +40,7 @@ export class SetCommand extends SelectedTokensSimpleCommand {
         if (defaultToken === undefined) {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             token.raw.set({ name: anonymousName, showname: true, showplayers_name: true });
-            return new Success(`token for '${character.name}' changed to show only creature type; anonymous character to use as icon is not configured`);
+            return new Success(`token for '${character.name}' changed to show only creature type; anonymous character to use as icon is not configured`).resolve();
         }
 
         // set a cacheable icon as the graphic image
@@ -53,10 +53,10 @@ export class SetCommand extends SelectedTokensSimpleCommand {
         // setting validates if this image is allowed
         debug.log(`result after set: ${token.image.url}`);
         if (anonymousIcon !== token.image.url) {
-            return new Failure(new Error(`token for '${character.name}' could not change image; the anonymous character has a marketplace image or otherwise restricted image`));
+            return new Failure(new Error(`token for '${character.name}' could not change image; the anonymous character has a marketplace image or otherwise restricted image`)).resolve();
         }
 
-        return new Success(`token for '${character.name}' changed to show only creature type and anonymous icon`);
+        return new Success(`token for '${character.name}' changed to show only creature type and anonymous icon`).resolve();
     }
 
     private calculateCacheDefeat() {

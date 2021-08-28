@@ -1,76 +1,69 @@
-import { Success, Failure, Asynchronous } from 'der20/config/result';
-import { ParserContext } from 'der20/interfaces/parser';
+import { Failure, ResultBuilder } from 'der20/config/result';
+import { ParserContext } from "der20/interfaces/parser";
 import { Result } from 'der20/interfaces/result';
 import { CommandInput } from 'der20/interfaces/config';
-import { ApiCommandInput } from 'der20/plugin/chat';
 
-type ExecuteHandlerType<MultiplexContext> = (multiplexContext: MultiplexContext, text: string, parserContext: ParserContext, multiplexIndex: number) => Result;
-type SuccessHandlerType = (parserContext: ParserContext) => Result;
+export type ExecuteHandlerType<MultiplexContext, MultiplexItem> = (multiplexContext: MultiplexContext, multiplexItem: MultiplexItem, text: string, parserContext: ParserContext, multiplexIndex: number) => Promise<Result>;
+export type SuccessHandlerType<MultiplexContext> = (multiplexContext: MultiplexContext, parserContext: ParserContext) => Promise<Result>;
 
-export abstract class Multiplex<MultiplexContext> {
-    constructor(protected context: ParserContext) {
+export abstract class Multiplex<MultiplexContext, MultiplexItem> {
+    constructor(protected parserContext: ParserContext) {
         // no code
     }
 
-    private mergeEvents(to: Set<Result.Event>, from: Set<Result.Event>, commentVerb: string) {
+    private mergeEvents(to: Set<Result.Event>, from: Set<Result.Event>, comment: string) {
         for (let event of from) {
-            debug.log(`${commentVerb} event ${event} received from ${this.itemsDescription} operation`);
+            debug.log(`${comment} event ${event} received from ${this.itemsDescription} operation`);
             to.add(event);
         }
     }
 
-    execute(text: string, 
-        handler: ExecuteHandlerType<MultiplexContext>, 
-        successHandler?: SuccessHandlerType): Result {
-        if (this.context.input.kind !== CommandInput.Kind.api) {
+    execute(inputText: string,
+        multiplexContext: MultiplexContext, 
+        handler: ExecuteHandlerType<MultiplexContext, MultiplexItem>, 
+        successHandler?: SuccessHandlerType<MultiplexContext>): Promise<Result> {
+        if (this.parserContext.input.kind !== CommandInput.Kind.api) {
             throw new Error(`${this.itemsDescription} command requires api source`);
         }
-        let source = <ApiCommandInput>this.context.input;
-        let message = <ApiChatEventData>source.message;
-        let multiplex: MultiplexContext[] = this.createMultiplex(message);
+
+        const multiplex: MultiplexItem[] = this.createMultiplex(multiplexContext);
         if (multiplex.length < 1) {
-            return new Failure(new Error(`no valid ${this.itemsDescription} found for current command`));
+            return new Failure(new Error(`no valid ${this.itemsDescription} found for current command`)).resolve();
         }
-        let messages: string[] = [];
-        let asyncResult: Asynchronous;
-        let result: Result;
+
+        debug.log(`multiplexing '${inputText}' for ${multiplex.length} ${this.itemsDescription}`);
+        const messages: string[] = [];
+        let promises: Promise<Result>[] = [];
         let index = 0;
-        let events: Set<Result.Event> = new Set<Result.Event>();
-        for (let multiplexContext of multiplex) {
-            result = handler(multiplexContext, text, this.context, index);
-            this.mergeEvents(events, result.events, 'saving');
-            // now interpret result
-            switch (result.kind) {
-                case Result.Kind.Asynchronous:
-                    asyncResult = asyncResult || new Asynchronous(`asynchronous resources required by one or more ${this.itemsDescription} operations`);
-                    Object.assign(asyncResult.promises, (<Asynchronous>result).promises);
-                    messages = messages.concat(result.messages);
-                    break;
-                case Result.Kind.Success:
-                    // generic success, accumulate messages
-                    messages = messages.concat(result.messages);
-                    break;
-                default:
-                    // prepend any collected messages and add any collected events, then abort iteration
-                    result.messages = messages.concat(result.messages);
-                    this.mergeEvents(result.events, events, 'restoring');
-                    return result;
-            }
+        const events: Set<Result.Event> = new Set<Result.Event>();
+        for (const multiplexItem of multiplex) {
+            promises.push(handler(multiplexContext, multiplexItem, inputText, this.parserContext, index));
             index++;
         }
-        if (asyncResult !== undefined) {
-            result = asyncResult;
-        } else if (successHandler !== undefined) {
-            result = successHandler(this.context);
-        } else {
-            result = new Success(`command executed against ${multiplex.length} ${this.itemsDescription}`);
-        }
-        result.messages = result.messages.concat(messages);
-        this.mergeEvents(result.events, events, 'restoring');
-        return result;
+
+        // now they are all conceptually running, so reap them all and process results
+        return Promise.all(promises)
+            .then(ResultBuilder.combined)
+            .then((combinedResult: Result) => {
+                if (!combinedResult.isSuccess) {
+                    return combinedResult;
+                }
+                if (successHandler !== undefined) {
+                    return successHandler(multiplexContext, this.parserContext)
+                        .then((result: Result) => {
+                            // also add the parent result to the combined result
+                            this.mergeEvents(result.events, events, "item");
+                            result.messages = messages.concat(result.messages);
+                            return ResultBuilder.combined([result, combinedResult]);;
+                        });
+                } else {
+                    // no parent handling of success
+                    return combinedResult;
+                }
+            });
     }
 
     protected abstract itemsDescription: string;
-    protected abstract createMultiplex(message: ApiChatEventData): MultiplexContext[];
+    protected abstract createMultiplex(multiplexContext: MultiplexContext): MultiplexItem[];
 }
 

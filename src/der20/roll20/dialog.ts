@@ -83,18 +83,7 @@ export class Der20ChatDialog implements Dialog {
             defaultedStyle = Der20ChatDialog.defaultedCheckboxStyle;
         } else if (config instanceof ConfigurationEnumerated) {
             text = this.getStringText((<ConfigurationEnumerated>config).value());
-            let choices = (<ConfigurationEnumerated>config)
-                .choices()
-                .map(value => {
-                    return value.replace(';', '\\;');
-                })
-                .map(value => {
-                    if (value.length < 1) {
-                        return `${Der20ChatDialog.undefinedLabel}, `;
-                    }
-                    return `${value},${value}`;
-                })
-                .join('|');
+            let choices = this.buildEnumerationChoices(<ConfigurationEnumerated>config);
             extendedPath = `${path} ?{${label}|${choices}}`;
         } else if (config instanceof ConfigurationString) {
             // already a string, but need to assert type
@@ -118,6 +107,21 @@ export class Der20ChatDialog implements Dialog {
             this.addButton(defaultedStyle, text, extendedPath, link);
         }
         this.text.push('</li>');
+    }
+
+    private buildEnumerationChoices(config: ConfigurationEnumerated): string {
+        return config
+            .choices()
+            .map(value => {
+                return value.replace(';', '\\;');
+            })
+            .map(value => {
+                if (value.length < 1) {
+                    return `${Der20ChatDialog.undefinedLabel}, `;
+                }
+                return `${value},${value}`;
+            })
+            .join('|');
     }
 
     addEditCommand(label: string, buttonLabel: string, path: string, link: Dialog.Link) {
@@ -269,7 +273,7 @@ export class Der20ChatDialog implements Dialog {
     
     renderCommandEcho(line: string, resultType: Result.Kind): string {
         let style = Der20ChatDialog.commandEchoStyle;
-        if (resultType === Result.Kind.Failure) {
+        if (resultType === Result.Kind.failure) {
             style = Der20ChatDialog.commandEchoFailedStyle;
         }
         return `<div style="${style}">${line}</div>`;

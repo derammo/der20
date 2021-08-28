@@ -1,4 +1,4 @@
-import { ClearCommand as ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationPopulateCommand, format, config } from 'der20/library';
+import { ClearCommand as ClearCommand, ConfigurationAlias, ConfigurationArray, ConfigurationChangeHandling, ConfigurationChooser, ConfigurationDeleteItemCommand, ConfigurationFromTemplate, ConfigurationIntermediateNode, HandoutsOptions, HandoutsSupport, Options, keyword, ConfigurationPopulateCommand, format, config, ephemeral } from 'der20/library';
 import { DungeonMaster } from './ddal/dungeon_master';
 import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
 import { PartyState } from './ddal/party_state';
@@ -9,7 +9,7 @@ import { SessionShowCommand } from './session_show';
 import { SessionStartCommand } from './session_start';
 
 // add handouts and tokens support to basic options
-class RewardsOptions extends Options implements HandoutsSupport {
+class LeagueOptions extends Options implements HandoutsSupport {
     @config handouts: HandoutsOptions = new HandoutsOptions();
 }
 
@@ -23,7 +23,7 @@ class DeleteCommands {
     @config module: ConfigurationDeleteItemCommand<LeagueModule>;
     @config dm: ConfigurationDeleteItemCommand<DungeonMaster>;
 
-    constructor(definitions: Definitions, options: RewardsOptions) {
+    constructor(definitions: Definitions, options: LeagueOptions) {
         this.module = new ConfigurationDeleteItemCommand(definitions.modules);
         this.dm = new ConfigurationDeleteItemCommand(definitions.dms);
     }
@@ -74,22 +74,22 @@ class SessionConfiguration extends ConfigurationIntermediateNode implements Conf
         this.show = new SessionShowCommand(this.dm, this.module, this.party);
     }
 
-    handleChange(changedKeyword: string): void {
+    handleChange(changedKeyword: string): Promise<void> {
         switch (changedKeyword) {
             case 'party':
                 // may include apl update
                 if (this.module.hasConfiguredValue()) {
-                    this.module.currentValue.apl = this.party.apl.value();
-                    this.module.currentValue.handleChange('apl');
+                    this.module.value().apl = this.party.apl.value();
+                    this.module.value().handleChange('apl');
                 }
                 break;
             case 'module':
                 if (this.module.hasConfiguredValue()) {
                     // we don't currently have a good way for transient objects to navigate the configuration, so we
                     // push this value down into each module as it is loaded                    
-                    if (this.module.currentValue.apl === undefined) {
-                        this.module.currentValue.apl = this.party.apl.value();
-                        this.module.currentValue.handleChange('apl');
+                    if (this.module.value().apl === undefined) {
+                        this.module.value().apl = this.party.apl.value();
+                        this.module.value().handleChange('apl');
                     }
                     // if the module is changed, we also need to update the party strength (we really need bubbling events here or an observer interface)
                     this.party.handleChange('apl');
@@ -98,6 +98,7 @@ class SessionConfiguration extends ConfigurationIntermediateNode implements Conf
             default:
             // ignore
         }
+        return Promise.resolve();
     }
 }
 
@@ -115,10 +116,10 @@ class RewardsConfiguration extends ConfigurationIntermediateNode {
 export class Configuration {
     // static configuration
     @keyword('option')
-    @config options: RewardsOptions = new RewardsOptions();
+    @config options: LeagueOptions = new LeagueOptions();
     @config define: Definitions = new Definitions();
-    @config delete: DeleteCommands = new DeleteCommands(this.define, this.options);
-    @config populate: PopulateCommands = new PopulateCommands(this.define);
+    @ephemeral delete: DeleteCommands = new DeleteCommands(this.define, this.options);
+    @ephemeral populate: PopulateCommands = new PopulateCommands(this.define);
 
     // tokens added/removed based on scaling according to APL
     @config scaling: TokenScalingCommand = new TokenScalingCommand();

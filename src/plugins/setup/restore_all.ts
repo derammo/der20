@@ -11,8 +11,9 @@ export class RestoreAllCommand extends ConfigurationSimpleCommand {
         // generated code
     }
 
-    handleEndOfCommand(parserContext: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         let changes = false;
+        let tokens: Promise<Result>[] = [];
         for (let record of Object.keys(this.data.dictionary)) {
             let token = Der20Token.fetch(record);
             if (token === undefined) {
@@ -23,12 +24,18 @@ export class RestoreAllCommand extends ConfigurationSimpleCommand {
             }
             token.raw.set(this.data.dictionary[record]);
 
-            // NOTE: ignoring result
-            TokenResetCommand.execute(token, parserContext, 0);
+            tokens.push(TokenResetCommand.execute(token));
         }
-        if (changes) {
-            return new Change('tokens reset, positions restored, and orphaned saved positions removed');
-        }
-        return new Success('tokens reset and positions restored');
+
+        // reap
+        return Promise.all(tokens)
+            .then((_results: Result[]) => {
+                context.swapIn();
+                // NOTE: ignoring reset results, this is best effort
+                if (changes) {
+                    return new Change('tokens reset, positions restored, and orphaned saved positions removed').resolve();
+                }
+                return new Success('tokens reset and positions restored').resolve();
+            })
     }
 }

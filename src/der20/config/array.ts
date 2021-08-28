@@ -3,14 +3,12 @@ import { DefaultConstructed, cloneExcept } from 'der20/common/utility';
 import { DialogResult, Change, Failure, Success } from './result';
 import { ConfigurationLoader } from './loader';
 import { ConfigurationValueBase } from 'der20/config/base';
-import { LoaderContext } from 'der20/interfaces/loader';
-import { ParserContext, ExportContext } from 'der20/interfaces/parser';
+import { ExportContext, ParserContext } from 'der20/interfaces/parser';
 import { Result } from 'der20/interfaces/result';
 import { CollectionItem, Collection, ConfigurationValue } from 'der20/interfaces/config';
+import { LoaderContext } from 'der20/interfaces/loader';
 
 export class ConfigurationArray<T extends CollectionItem> extends ConfigurationValueBase<T[]> implements Collection {
-    currentValue: T[] = [];
-    
     private idToIndex: { [index: string]: number } = {};
     classType: DefaultConstructed<T>;
     keyword: string;
@@ -20,17 +18,18 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationV
     static readonly deleteCommandSuffix: string = '--delete';
 
     constructor(singularName: string, itemClass: DefaultConstructed<T>) {
-        super([], 'ID');
+        super(undefined, 'ID');
+        this.currentValue = [];
         this.classType = itemClass;
         this.keyword = singularName;
     }
 
     toJSON(): any {
         // don't persist if empty
-        if (this.currentValue.length === 0) {
+        if (this.value().length === 0) {
             return undefined;
         }
-        return this.currentValue;
+        return this.value();
     }
 
     clear() {
@@ -38,29 +37,38 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationV
         this.idToIndex = {};
     }
 
-    fromJSON(json: any, context: LoaderContext) {
+    fromJSON(json: any, context: LoaderContext): Promise<void> {
         this.clear();
         if (!Array.isArray(json)) {
             // ignore, might be schema change we can survive
-            context.addMessage('ignoring non-array JSON in saved state; configuration array reset');
-            return;
+            debug.log('ignoring non-array JSON in saved state; configuration array reset');
+            return Promise.resolve();
         }
+        let childRestoreOperations: Promise<void>[] = [];
         // eslint-disable-next-line guard-for-in
         for (let jsonItem of json) {
             let item = new this.classType();
-            ConfigurationLoader.restore(jsonItem, item, context);
-            if (this.findItem(item.id) !== undefined) {
-                console.log(`error: id '${item.id}' is already in collection and cannot be restored`);
-                continue;
-            }
-            this.addItem(item.id, item);
+            childRestoreOperations.push(
+                ConfigurationLoader.restore(jsonItem, item, context)
+                .then(() => {
+                    context.swapIn();
+                    if (this.findItem(item.id) !== undefined) {
+                        console.log(`error: id '${item.id}' is already in collection and cannot be restored`);
+                        return;
+                    }
+                    this.addItem(item.id, item);
+                }));
         }
+        return Promise.all(childRestoreOperations)
+            .then((_results: void[]) => {
+                return Promise.resolve();
+            })
     }
 
     addItem(id: string, item: T) {
         item.id = id;
-        let index = this.currentValue.length;
-        this.currentValue.push(item);
+        let index = this.value().length;
+        this.value().push(item);
         this.idToIndex[id] = index;
         return index;
     }
@@ -71,15 +79,15 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationV
             return false;
         }
         delete this.idToIndex[id];
-        let removed = this.currentValue.splice(index, 1);
+        let removed = this.value().splice(index, 1);
         // recreate index for moved items
-        for (let i=index; i<this.currentValue.length; i++) {
-            this.idToIndex[this.currentValue[i].id] = i;
+        for (let i=index; i<this.value().length; i++) {
+            this.idToIndex[this.value()[i].id] = i;
         }
         if (removed[0].id !== id) {
             throw new Error('broken implementation: item removed was not one selected');
         }
-        debug.log(`collection after remove: ${this.currentValue.map((item) => { return item.id })}`);
+        debug.log(`collection after remove: ${this.value().map((item) => { return item.id })}`);
         return true;
     }
 
@@ -92,44 +100,47 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationV
         if (index === undefined) {
             return undefined;
         }
-        return this.currentValue[index];
+        return this.value()[index];
     }
 
     [Symbol.iterator](): Iterator<T> {
-        return this.currentValue[Symbol.iterator]();
+        return this.value()[Symbol.iterator]();
     }    
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         let tokens = ConfigurationParser.tokenizeFirst(text);
         let id: string = tokens[0];
         if (id.length < 1) {
             return this.createItemChoiceDialog(context);
         }
         if (id === ConfigurationArrayReference.magicCurrentId) {
-            return new Failure(new Error(`${id} is a reserved word referring to a currently selected item and cannot be used as an ID`));
+            return new Failure(new Error(`${id} is a reserved word referring to a currently selected item and cannot be used as an ID`)).resolve();
         }
         if (tokens[1] === ConfigurationArray.deleteCommandSuffix) {
             if (this.removeItem(id)) {
-                return new Change(`removed item ${id}`);
+                return new Change(`removed item ${id}`).resolve();
             } else {
                 // this is ok, we might just be cleaning up before reconfiguring
-                return new Success(`item ${id} does not exist in collection`);
+                return new Success(`item ${id} does not exist in collection`).resolve();
             }
         }
         let index = this.findItem(id);
         if (index !== undefined) {
-            return ConfigurationParser.parse(tokens[1], this.currentValue[index], context);
+            return ConfigurationParser.parse(tokens[1], this.value()[index], context);
         } else {
             index = this.addItem(id, new this.classType());
-            let result = ConfigurationParser.parse(tokens[1], this.currentValue[index], context);
-            result.messages.unshift(`created item ${id}`);
-            result.events.add(Result.Event.Change);
-            return result;
+            return ConfigurationParser.parse(tokens[1], this.value()[index], context)
+            .then((result: Result) => {
+                context.swapIn();
+                result.messages.unshift(`created item ${id}`);
+                result.events.add(Result.Event.change);
+                return result;
+            })
         }
     }
 
     export(context: ExportContext): void {
-        for (let item of this.currentValue) {
+        for (let item of this.value()) {
             context.push(item.id);
             ConfigurationParser.export(item, context);
             context.pop();
@@ -142,8 +153,8 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationV
 
     clone(): ConfigurationArray<T> {
         let copied = new ConfigurationArray<T>(this.keyword, this.classType);
-        for (let index = 0; index < this.currentValue.length; index++) {
-            copied.addItem(this.currentValue[index].id, cloneExcept(this.classType, this.currentValue[index], ['id']));
+        for (let index = 0; index < this.value().length; index++) {
+            copied.addItem(this.value()[index].id, cloneExcept(this.classType, this.value()[index], ['id']));
         }
         return copied;
     }
@@ -157,15 +168,15 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationV
         if (source === undefined) {
             throw new Error('undefined property used as source of cloning operation; logic error');
         }
-        if (source.current === undefined) {
+        if (source.currentValue === undefined) {
             // this could happen if we call this function with the wrong sort of object
             throw new Error('undefined current value as source of cloning operation; logic error');
         }
-        if (!Array.isArray(source.current)) {
+        if (!Array.isArray(source.currentValue)) {
             // this could happen if we call this function with the wrong sort of object
             throw new Error('non-array current value used as source of cloning operation; logic error');
         }
-        for (let item of source.current) {
+        for (let item of source.currentValue) {
             if (item.id === undefined) {
                 throw new Error('attempt to clone an array of items that are not of type CollectionItem; logic error');
             }
@@ -173,23 +184,20 @@ export class ConfigurationArray<T extends CollectionItem> extends ConfigurationV
         }
     }
 
-    private createItemChoiceDialog(context: ParserContext): DialogResult {
+    private createItemChoiceDialog(context: ParserContext): Promise<DialogResult> {
         let dialog = new context.dialog();
         dialog.addTitle(`Selection for '${this.keyword}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:');
         const link = { command: context.command }
-        dialog.addChoiceControlGroup(this.keyword, context.rest, this.currentValue, link);
-        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+        dialog.addChoiceControlGroup(this.keyword, context.rest, this.value(), link);
+        return Promise.resolve(new DialogResult(DialogResult.Destination.caller, dialog.render()));
     }
 }
 
 class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> extends ConfigurationValueBase<TO> {
     // this id can be used to refer to the most recently selected item
     static readonly magicCurrentId: string = 'current';
-
-    currentValue: TO = ConfigurationValue.UNSET;
-    
     selectedId: string;
 
     constructor(public array: ConfigurationArray<FROM>, public path: string, public classType: DefaultConstructed<TO>) {
@@ -210,7 +218,7 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
         // shallow copy so we can overwrite id (must not be changed)
         let result: any = {};
         if (this.hasConfiguredValue()) {
-            let source: any = this.currentValue;
+            let source: any = this.value();
             if (typeof source.toJSON === 'function') {
                 source = source.toJSON();
             }
@@ -220,49 +228,52 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
         return result;
     }
 
-
-    fromJSON(json: any, context: LoaderContext): Result {
+    fromJSON(json: any, context: LoaderContext): Promise<void> {
         this.selectedId = json.id;
         // now we wait until this object is used, because the array may not have loaded yet
         // NOTE: any per-session overrides are now lost
-        return new Change('restored selection from array');
+        debug.log('restored selection from array');
+        return Promise.resolve();
     }
 
-    createChooserDialog(rest: string, context: ParserContext, followUps?: string[]): DialogResult {
+    createChooserDialog(rest: string, context: ParserContext, followUps?: string[]): Promise<DialogResult> {
         // we don't know what command word was used to call us, so we let the caller fix it up
         let dialog = new context.dialog();
         const link = { command: context.command, followUps: followUps, suffix: rest };
         dialog.addTitle(`Selection for '${this.path}'`);
         dialog.addSeparator();
         dialog.addSubTitle('Please choose an item:');
-        dialog.addChoiceControlGroup(this.array.keyword, this.path, this.array.currentValue, link);
-        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+        dialog.addChoiceControlGroup(this.array.keyword, this.path, this.array.value(), link);
+        return Promise.resolve(new DialogResult(DialogResult.Destination.caller, dialog.render()));
     }
 
-    handleCurrent(rest: string, context: ParserContext, followUps?: string[]): Result {
+    handleCurrent(rest: string, context: ParserContext, followUps?: string[]): Promise<Result> {
         if (this.selectedId !== undefined) {
-            if (this.currentValue === ConfigurationValue.UNSET) {
+            if (!this.hasConfiguredValue()) {
                 // right after restoring from JSON, the item data has not been loaded yet
                 return this.loadItem(this.selectedId, rest, context);
             }
             return ConfigurationParser.parse(rest, this.currentValue, context);
         }
-        if (this.array.currentValue.length > 1) {
+        if (this.array.value().length > 1) {
             // present interactive chooser
             return this.createChooserDialog(rest, context, followUps);
         }
-        if (this.array.currentValue.length === 1) {
+        if (this.array.value().length === 1) {
             // auto select only defined item, if any
-            let id = this.array.currentValue[0].id;
-            let result = this.loadItem(id, rest, context);
-            result.messages.unshift(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
-            return result;
+            let id = this.array.value()[0].id;
+            return this.loadItem(id, rest, context)
+            .then((result: Result) => {
+                context.swapIn();
+                result.messages.unshift(`${this.array.keyword} ${id} was automatically selected, because it is the only one defined`);
+                return result;
+            });
         }
         // remaining case is no items in collection
-        return new Failure(new Error(`${this.array.keyword} could not be selected, because none are defined`));
+        return new Failure(new Error(`${this.array.keyword} could not be selected, because none are defined`)).resolve();
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         let tokens = ConfigurationParser.tokenizeFirst(text);
         let id = tokens[0];
 
@@ -277,7 +288,7 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
 
         if (this.array.findItem(id) === undefined) {
             this.clear();
-            return new Failure(new Error(`item "${id}" is not defined`));
+            return new Failure(new Error(`item "${id}" is not defined`)).resolve();
         }
 
         return this.loadItem(id, tokens[1], context);
@@ -290,19 +301,19 @@ class ConfigurationArrayReference<FROM extends CollectionItem, TO extends FROM> 
         }
     }
     
-    private loadItem(id: string, rest: string, context: ParserContext): Result {
+    private loadItem(id: string, rest: string, context: ParserContext): Promise<Result> {
         let index = this.array.findItem(id);
-        this.currentValue = cloneExcept(this.classType, this.array.currentValue[index], ['id']);
+        this.currentValue = cloneExcept(this.classType, this.array.value()[index], ['id']);
         this.selectedId = id;
         if (rest.length < 1) {
-            return new Change(`selected item ${this.currentValue.name.value() || id}`);
+            return new Change(`selected item ${this.value().name.value() || id}`).resolve();
         }
-        return ConfigurationParser.parse(rest, this.currentValue, context);
+        return ConfigurationParser.parse(rest, this.value(), context);
     }
 
     clear() {
         this.selectedId = undefined;
-        this.currentValue = ConfigurationValue.UNSET;
+        super.clear();
     }
 }
 

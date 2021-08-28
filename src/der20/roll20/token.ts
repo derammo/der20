@@ -1,8 +1,9 @@
 import { Der20Character } from './character';
-import { ConfigurationCommand, ConfigurationSimpleCommand } from 'der20/config/atoms';
-import { ParserContext } from 'der20/interfaces/parser';
+import { ConfigurationCommand } from 'der20/config/atoms';
 import { Result } from 'der20/interfaces/result';
-import { Multiplex } from './multiplex';
+import { ExecuteHandlerType, Multiplex, SuccessHandlerType } from './multiplex';
+import { ApiCommandInput } from 'der20/plugin/chat';
+import { ParserContext } from 'der20/interfaces/parser';
 
 class TokenImage {
     constructor(private token: Graphic) {
@@ -88,44 +89,35 @@ export class Der20Token {
     }
 }
 
-class SelectedTokensMultiplex extends Multiplex<Der20Token> {
+class SelectedTokensMultiplex extends Multiplex<ApiChatEventData, Der20Token> {
     protected itemsDescription: string = "selected tokens";
 
-    constructor(context: ParserContext) {
-        super(context);
+    constructor(parserContext: ParserContext) {
+        super(parserContext);
     }
 
-    protected createMultiplex(message: ApiChatEventData) : any[] {
+    protected createMultiplex(message: ApiChatEventData) : Der20Token[] {
         return Der20Token.selected(message).filter((item: Der20Token | undefined) => {
             return item !== undefined;
         });
     }
+
+    public executeForSelectedTokens(text: string, handler: ExecuteHandlerType<ApiChatEventData, Der20Token>, successHandler?: SuccessHandlerType<ApiChatEventData>): Promise<Result> {
+        const source = <ApiCommandInput>(this.parserContext.input);
+        const message = <ApiChatEventData>source.message;
+        return this.execute(text, message, handler, successHandler);
+    }
 }
 
 export abstract class SelectedTokensCommand extends ConfigurationCommand {
-    parse(text: string, context: ParserContext): Result {
-        const multiplex = new SelectedTokensMultiplex(context);
-        return multiplex.execute(
-            text, 
-            (token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number) => {
-                return this.handleTokenCommand(token, rest, parserContext, tokenIndex);
+    parse(inputText: string, context: ParserContext): Promise<Result> {
+        return new SelectedTokensMultiplex(context).executeForSelectedTokens(
+            inputText, 
+            (message: ApiChatEventData, token: Der20Token, text: string, parserContext: ParserContext, tokenIndex: number) => {
+                return this.handleTokenCommand(message, token, text, parserContext, tokenIndex);
             });    
     }
 
-    // tokenIndex is the index of the token in the selected tokens array, which remains the same during async retries
-    abstract handleTokenCommand(token: Der20Token, rest: string, parserContext: ParserContext, tokenIndex: number): Result;
-}
-
-export abstract class SelectedTokensSimpleCommand extends ConfigurationSimpleCommand {
-    handleEndOfCommand(context: ParserContext): Result {
-        const multiplex = new SelectedTokensMultiplex(context);
-        return multiplex.execute(
-            '', 
-            (token: Der20Token, _rest: string, parserContext: ParserContext, tokenIndex: number) => {
-                return this.handleToken(token, parserContext, tokenIndex);
-            });
-    }
-
-    // tokenIndex is the index of the token in the selected tokens array, which remains the same during async retries
-    abstract handleToken(token: Der20Token, parserContext: ParserContext, tokenIndex: number): Result;
+    // tokenIndex is the index of the token in the selected tokens array
+    abstract handleTokenCommand(message: ApiChatEventData, token: Der20Token, text: string, parserContext: ParserContext, tokenIndex: number): Promise<Result>;
 }

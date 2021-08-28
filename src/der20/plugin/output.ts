@@ -1,9 +1,9 @@
-// redirected output from plugin
+// this is where log messages go when no plugin is active
 export function consoleOutput(message: string) {
-    console.log(message);
+    log(message);
 }
 
-// redirected output from plugin
+// this is where log messages go when no plugin is active
 export function debugOutput(message: string) {
-    debug.log(message);
+    log(message);
 }

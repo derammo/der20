@@ -1,25 +1,25 @@
 debug.log = console.log;
 
-// application under test
-import { Configuration } from "plugins/league/configuration";
-
 // OS
 import { exec, ExecException } from 'child_process';
 
 // libs
 import { startPersistence } from "der20/common/persistence";
-import { Result } from "der20/interfaces/result";
-import { Options } from "der20/plugin/options";
-import { ConfigurationParser } from "der20/config/parser";
-import { ConfigurationLoader } from "der20/config/loader";
 import { HelpCommand } from "der20/config/help";
-import { Der20ChatDialog } from "der20/roll20/dialog";
-import { DialogFactory } from "der20/interfaces/ui";
+import { CommandInputImpl } from "der20/config/input";
+import { ConfigurationLoader } from "der20/config/loader";
+import { ConfigurationParser } from "der20/config/parser";
+import { DialogResult, Success } from "der20/config/result";
+import { CommandInput } from "der20/interfaces/config";
 import { LoaderContext } from "der20/interfaces/loader";
 import { ParserContext, ParserFrame } from "der20/interfaces/parser";
-import { CommandInput } from "der20/interfaces/config";
-import { CommandInputImpl } from "der20/config/input";
-import { DialogResult } from "der20/config/result";
+import { Result } from "der20/interfaces/result";
+import { DialogFactory } from "der20/interfaces/ui";
+import { Options } from "der20/plugin/options";
+import { Der20ChatDialog } from "der20/roll20/dialog";
+
+// application under test
+import { Configuration } from "plugins/league/configuration";
 
 class MockContext implements LoaderContext, ParserContext {
 	command: string;
@@ -31,6 +31,10 @@ class MockContext implements LoaderContext, ParserContext {
 
 	constructor(public rest: string) {
 		this.command = 'mock';
+	}
+
+	swapIn(): void {
+		// do nothing
 	}
 
 	addAsynchronousLoad<T>(promise: Promise<T>, whenDone: (value: T) => void): void {
@@ -50,8 +54,8 @@ ConfigurationLoader.restore(json, configurationRoot, new MockContext(""));
 
 let test = `
 	reset all configuration
-	${Options.pluginOptionsKey} handouts journal true
-	${Options.pluginOptionsKey} handouts archived false
+	option handouts journal true
+	option handouts archived false
 	show
 	send
 	define rules advancement downtime multiplier 2.5
@@ -106,14 +110,14 @@ let test = `
 	rewards send
 `;
 
-let test2 = `option command hi
+let test2 = `delete module ddal08-74
+option command hello
 option command hello there
 option command hello,
 option delete command hello there
 `;
 
-let test3 = `
-reset all configuration
+let test3 = `reset all configuration
 delete module ddal08-74
 define module ddal08-74 name DDAL08-74 The Killing of Grobs
 define module ddal08-74 season 8
@@ -142,82 +146,89 @@ export function testRun(): string {
 	return dialog.render();
 }
 
-export function testDialog(rest: string): string {
-	let result = ConfigurationParser.parse(rest, configurationRoot, new MockContext(rest));
-	if (result.kind === Result.Kind.Dialog) {
-		return (<DialogResult>result).dialog;
-	}
-	return '';
+export function testDialog(rest: string): Promise<string> {
+	return ConfigurationParser.parse(rest, configurationRoot, new MockContext(rest))
+		.then((result: Result) => {
+			if (result.kind === Result.Kind.dialog) {
+				return (<DialogResult>result).dialogs.join('\n');
+			}
+			return '';
+		})
 }
 
-function handleResult(result: Result) {
-	if (result.events.has(Result.Event.Change)) {
+function handleResult(result: Result): Result {
+	if (result.events.has(Result.Event.change)) {
 		debug.log('	change event received from parse; writing configuration');
 		let text = JSON.stringify(configurationRoot);
 		// now that everything is clean, convert back to a dictionary
 		let cleaned = JSON.parse(text);
 		persistence.save(cleaned);
 	}
-	if (result.kind !== Result.Kind.Success) {
-		debug.log(`	result of parse: ${JSON.stringify(result).substr(0,119)}`)
-	}
+
+
+	// if (result.kind !== Result.Kind.success) {
+		debug.log(`result of parse:\n${JSON.stringify(result, null, 2).substr(0,119)}\n`)
+	// }
+	return result;
 }
 
 console.debug = ((message: any) => { /* ignore */ });
 
 function testParse(): void {
-	testParse1();
+	if (true) {
+		testParse1();
+	}
 
 	// separate tests for breakpointing
-	testParse2();
+	if (true) {
+		testParse2();
+	}
 
-	testParse3();
-}
+	if (false) {
+		testParse3();
+	}
+} 
 
-function testLine(rest: string) {
+function testLine(rest: string): Promise<Result> {
 	let command = rest.trim();
 	// run including blank lines
 	debug.log(`testing: ${command}`);
 	if (command === 'reset all configuration') {
 		// this is implemented in the plugin, so we fake it here
 		configurationRoot = new Configuration();
-		return;
+		return new Success("").resolve();
 	}
-	let result = ConfigurationParser.parse(command, configurationRoot, new MockContext(rest));
-	handleResult(result);	
+	return ConfigurationParser.parse(command, configurationRoot, new MockContext(rest))
+		.then(handleResult);
 }
 
 function testParse3() {
-	for (let line of test3.split('\n')) {
-		testLine(line);		
-	}
+	testLines(test3);
 }
 
 function testParse2() {
-	for (let line of test2.split('\n')) {
-		testLine(line);		
-	}
+	testLines(test2);
 }
 
 function testParse1() {
-	for (let line of test.split('\n')) {
-		testLine(line);		
+	testLines(test);
+}
+
+function testLines(text: string) {
+	let running = new Success("").resolve();
+	for (let line of text.split('\n')) {
+		running = running
+			.then((result: Result) => testLine(line));
 	}
 }
 
-function tidy(text: string): string {
-	if (!exec) {
-		// if running under Roll20, we don't have child_process
-		return text;
-	}
-	var output;
-	var child = exec('tidy -iq', (error: ExecException, stdout: string, stderr: string) => { 
+function tidy(text: string): void {
+	let child = exec('tidy -iq', (error: ExecException, stdout: string, stderr: string) => { 
 		// we read output by pipe and ignore errors
 	});
 	child.stdout.pipe(process.stdout);
 	child.stdin.write(text);
 	child.stdin.end();	
-	return output;
 }
 
 testParse();
@@ -226,6 +237,9 @@ if (typeof(require) === 'function') {
 	const process = require('process'); 
 	if (process !== undefined) {
 		process.stdout.write(JSON.stringify(configurationRoot, undefined, 2));
-		process.stdout.write(tidy(testDialog('session show')));
+		testDialog('session show')
+			.then((text: string) => {
+				tidy(text);
+			});
 	}
 }

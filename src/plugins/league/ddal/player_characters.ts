@@ -56,10 +56,10 @@ export class PlayerCharacters extends ConfigurationValueBase<PlayerCharacter[]> 
         }
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         let tokens = Tokenizer.tokenize(text);
         if (tokens.length < 4) {
-            return new Failure(new Error(`must specify 'USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK'`));
+            return new Failure(new Error(`must specify 'USER_ID character CHARACTER_ID selected TRUE/FALSE/BLANK'`)).resolve();
         }
         if (tokens.length === 4) {
             // reset to default
@@ -70,17 +70,17 @@ export class PlayerCharacters extends ConfigurationValueBase<PlayerCharacter[]> 
                 continue;
             }
             if ('character' !== tokens[1]) {
-                return new Failure(new Error(`must specify 'USER_ID character ...'`));
+                return new Failure(new Error(`must specify 'USER_ID character ...'`)).resolve();
             }
             if (pc.character.id !== tokens[2]) {
                 continue;
             }
             if ('selected' !== tokens[3]) {
-                return new Failure(new Error(`must specify 'USER_ID character CHARACTER_ID selected ...'`));
+                return new Failure(new Error(`must specify 'USER_ID character CHARACTER_ID selected ...'`)).resolve();
             }
             return pc.selected.parse(tokens[4], context);
         }
-        return new Failure(new Error(`the specified player and character combination does not exist`));
+        return new Failure(new Error(`the specified player and character combination does not exist`)).resolve();
     }
 
     export(context: ExportContext): void {

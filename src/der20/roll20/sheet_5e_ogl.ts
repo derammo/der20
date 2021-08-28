@@ -27,7 +27,7 @@ export class Sheet5eOGL {
         should never be needed
         */
 
-        var spec: D20RollSpec = new D20RollSpec(0, false, false, []);
+        let spec: D20RollSpec = new D20RollSpec(0, false, false, []);
 
         // build raw bonus (only one factor so far)
         const initiative_bonus = this.character.attribute("initiative_bonus");

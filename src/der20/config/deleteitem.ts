@@ -8,10 +8,10 @@ export class ConfigurationDeleteItemCommand<T> extends ConfigurationCommand {
         super();
     }
 
-    parse(text: string): Result {
+    parse(text: string): Promise<Result> {
         if (this.collection.removeItem(text)) {
-            return new Change(`item '${text}' deleted`);
+            return new Change(`item '${text}' deleted`).resolve();
         }
-        return new Success(`item '${text}' does not exist`);
+        return new Success(`item '${text}' does not exist`).resolve();
     }
 }

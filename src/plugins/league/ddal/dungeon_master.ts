@@ -7,9 +7,9 @@ export class DungeonMaster implements ConfigurationTermination {
     @config name: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
     @config dci: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
 
-    handleEndOfCommand(context: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         if (!context.rest.startsWith('define ')) {
-            return new Success('no configuration changed');
+            return new Success('no configuration changed').resolve();
         }
         let dialog = new context.dialog();
         const link = { 
@@ -22,6 +22,6 @@ export class DungeonMaster implements ConfigurationTermination {
         dialog.addEditControl('Full Name', 'name', this.name, link);
         dialog.addEditControl('DCI Number', 'dci', this.dci, link);
         dialog.endControlGroup();
-        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+        return new DialogResult(DialogResult.Destination.caller, dialog.render()).resolve();
     }
 }

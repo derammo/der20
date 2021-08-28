@@ -4,8 +4,9 @@ import { Result } from "der20/interfaces/result";
 import { ConfigurationParser } from 'der20/config/parser';
 import { Failure, DialogResult } from "der20/config/result";
 import { Tokenizer } from "der20/config/tokenizer";
+import { ContextBase, ContextHost } from "der20/plugin/context_base";
 
-class ExportContextImpl implements ExportContext {
+class ExportContextImpl extends ContextBase implements ExportContext {
     commands: string[] = [];
     prefixStack: string[] = [];
 
@@ -31,13 +32,13 @@ class ExportContextImpl implements ExportContext {
 }
 
 export class ConfigurationExportCommand extends ConfigurationCommand {
-    constructor(private configurationRoot: any) {
+    constructor(private parent: ContextHost, private configurationRoot: any) {
         super();
     }
 
-    parse(text: string, context: ParserContext): Result {
+    parse(text: string, context: ParserContext): Promise<Result> {
         // context to track path from root and accumulate commands
-        const exportContext = new ExportContextImpl();
+        const exportContext = new ExportContextImpl(this.parent, this.configurationRoot.options);
         exportContext.push(`!${context.command}`);
 
         // walk any tokens specified after 'export' command
@@ -62,7 +63,7 @@ export class ConfigurationExportCommand extends ConfigurationCommand {
                 }
             }
             if (next === undefined) {
-                return new Failure(new Error(`'${token}' is not a valid step in the export path`));
+                return new Failure(new Error(`'${token}' is not a valid step in the export path`)).resolve();
             }
             walk = next;
             exportContext.push(token);
@@ -72,6 +73,6 @@ export class ConfigurationExportCommand extends ConfigurationCommand {
         ConfigurationParser.export(walk, exportContext);
 
         // emit list of all commands as minimal html that can be sent in one message and imports ok into handouts
-        return new DialogResult(DialogResult.Destination.Caller, `<div>${exportContext.commands.join('<br>')}</div>`);
+        return new DialogResult(DialogResult.Destination.caller, `<div>${exportContext.commands.join('<br>')}</div>`).resolve();
     }
 }

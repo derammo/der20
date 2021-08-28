@@ -1,7 +1,7 @@
 import { CommandInput } from "der20/interfaces/config";
 import { CommandSource, CommandSink } from "der20/interfaces/source";
-import { LoaderContext } from "der20/interfaces/loader";
 import { CommandInputImpl } from "der20/config/input";
+import { LoaderContext } from "der20/interfaces/loader";
 
 
 /**
@@ -23,35 +23,37 @@ export class ApiCommandInput extends CommandInputImpl.Base {
  * This is the most typical command source.  It reads commands from API Chat Events
  */
 export class ChatCommandSource implements CommandSource {
-    constructor(options: any, private plugin: CommandSink) {
+    constructor(options: any, private sink: CommandSink) {
         // generated code
     }
 
-    restore(context: LoaderContext): void {
+    restore(_context: LoaderContext): Promise<void> {
         on('chat:message', message => {
             if (message.type !== 'api') {
                 return;
             }
             try {
-                this.plugin.swapIn();
+                this.sink.swapIn();
                 let player = getObj('player', message.playerid);
                 let lines = message.content.split('\n');
                 const source = new ApiCommandInput(player, message);
                 for (let line of lines) {
                     // REVISIT consult access control tree
                     if (!playerIsGM(player.id)) {
-                        this.plugin.reportParseError(new Error(`player ${player.get('_displayname')} tried to use GM command ${line.substring(0, 78)}`));
+                        this.sink.reportParseError(new Error(`player ${player.get('_displayname')} tried to use GM command ${line.substring(0, 78)}`));
                         return;
                     }
-                    this.plugin.dispatchCommands(source, line);
+                    this.sink.dispatchCommands(source, line);
                 }
             } catch (error) {
-                this.plugin.handleErrorThrown(error);
+                this.sink.handleErrorThrown(error);
             }
         });
+        return Promise.resolve();
     }
 
-    query(context: LoaderContext, opaque: any): void {
+    query(_context: LoaderContext, _opaque: any): Promise<void> {
         // unused
+        return Promise.resolve();
     }
 }

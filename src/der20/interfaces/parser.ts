@@ -1,4 +1,4 @@
-import { CommandInput } from "der20/interfaces/config";
+import { CommandInput, ConfigurationContext, interfaceQuery } from "der20/interfaces/config";
 import { DialogFactory } from "der20/interfaces/ui";
 import { Result } from "der20/interfaces/result";
 
@@ -13,9 +13,7 @@ export interface ParserFrame {
 /**
  * Context passed to any parsing functions for a specific command execution.
  */
-export interface ParserContext {
-    asyncVariables: Record<string, any>;
-
+export interface ParserContext extends ConfigurationContext {
     input: CommandInput;
 
     command: string;
@@ -34,7 +32,7 @@ export interface ParserContext {
 /**
  * Context for enumeration of all currently active configuration commands
  */
-export interface ExportContext {
+export interface ExportContext extends ConfigurationContext {
     push(token: string): void;
     pop(): string;
     prefix(): string;
@@ -52,8 +50,15 @@ export interface ConfigurationParsing {
      * @param text the input to be parsed, including tokens for this configuration step and any subsequent steps, to the end of the input line
      * @param context 
      */
-    parse(text: string, context: ParserContext): Result;
+    parse(text: string, context: ParserContext): Promise<Result>;
     export(context: ExportContext): void;
+}
+
+// eslint-disable-next-line no-redeclare
+export namespace ConfigurationParsing {
+    export function query(target: any) {
+        return interfaceQuery<ConfigurationParsing>(target, ['parse', 'export']);
+    } 
 }
 
 /**
@@ -65,5 +70,12 @@ export interface ConfigurationParsing {
  * does not parse additional tokens after the command may implement this.
  */
 export interface ConfigurationTermination {
-    handleEndOfCommand(context: ParserContext): Result;
+    handleEndOfCommand(context: ParserContext): Promise<Result>;
+}
+
+// eslint-disable-next-line no-redeclare
+export namespace ConfigurationTermination {
+    export function query(target: any) {
+        return interfaceQuery<ConfigurationTermination>(target, ['handleEndOfCommand']);
+    } 
 }

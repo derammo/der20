@@ -1,56 +1,55 @@
 import { ConfigurationValueBase } from 'der20/config/base';
-import { Result } from 'der20/interfaces/result';
-import { LoaderContext } from 'der20/interfaces/loader';
-import { ParserContext, ExportContext } from 'der20/interfaces/parser';
 import { Change } from 'der20/config/result';
 import { ItemRemoval } from 'der20/interfaces/config';
+import { ExportContext, ParserContext } from 'der20/interfaces/parser';
+import { Result } from 'der20/interfaces/result';
 
 export class ConfigurationSet extends ConfigurationValueBase<Set<string>> implements ItemRemoval {
-    currentValue: Set<string> = new Set<string>();
-
     constructor() {
-        super(undefined);
+        super(undefined, 'ID');
+        this.currentValue = new Set();
     }
 
     toJSON(): any {
-        if (this.currentValue.size === 0) {
+        if (this.value().size === 0) {
             // don't persist empty set
             return undefined;
         }
-        return Array.from(this.currentValue.values());
+        return Array.from(this.value().values());
     }
 
-    fromJSON(json: any, context: LoaderContext) {
-        this.currentValue.clear();
+    fromJSON(json: any): Promise<void> {
+        this.value().clear();
         if (!Array.isArray(json)) {
             // ignore, might be schema change we can survive
-            context.addMessage('ignoring non-array JSON in saved state; configuration set reset');
-            return;
+            debug.log('ignoring non-array JSON in saved state; configuration set reset');
+            return Promise.resolve();
         }
         for (let child of json) {
-            this.currentValue.add(child);
+            this.value().add(child);
         }
+        return Promise.resolve();
     }
 
-    parse(text: string, context: ParserContext): Result {
-        this.currentValue.add(text);
-        return new Change('item added to collection, if not already present');
+    parse(text: string, context: ParserContext): Promise<Result> {
+        this.value().add(text);
+        return new Change('item added to collection, if not already present').resolve();
     }
 
     export(context: ExportContext): void {
-        for (let item of this.currentValue) {
+        for (let item of this.value()) {
             context.addRelativeCommand(item);
         }
     }
 
     removeItem(id: string): boolean {
-        return this.currentValue.delete(id);
+        return this.value().delete(id);
     }
 
     clone(): ConfigurationSet {
         let copied = new ConfigurationSet();
-        for (let id of this.currentValue) {
-            copied.currentValue.add(id);
+        for (let id of this.value()) {
+            copied.value().add(id);
         }
         return copied;
     }

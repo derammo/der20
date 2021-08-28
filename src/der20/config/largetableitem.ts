@@ -1,11 +1,11 @@
-import { DialogAware, Dialog } from "der20/interfaces/ui";
-import { ParserContext, ConfigurationTermination } from "der20/interfaces/parser";
-import { Result } from "der20/interfaces/result";
+import { DialogResult, Success } from "der20/config/result";
 import { CollectionItem, ConfigurationValue } from "der20/interfaces/config";
-import { Success, DialogResult } from "der20/config/result";
+import { ConfigurationTermination, ParserContext } from "der20/interfaces/parser";
+import { Result } from "der20/interfaces/result";
+import { Dialog, DialogAware } from "der20/interfaces/ui";
 import { ConfigurationArray } from "./array";
-import { ConfigurationString } from "./string";
 import { config } from "./decorators";
+import { ConfigurationString } from "./string";
 
 /**
  * Collection item with complex configuration, which supports its own configuration
@@ -22,9 +22,9 @@ export abstract class LargeTableItem implements DialogAware, CollectionItem, Con
 
     // REVISIT: factor this to base class of unlock and objective
     // separate dialog for editing just this item
-    handleEndOfCommand(context: ParserContext): Result {
+    handleEndOfCommand(context: ParserContext): Promise<Result> {
         if (!context.rest.startsWith('define ')) {
-            return new Success('no configuration changed');
+            return new Success('no configuration changed').resolve();
         }
         let dialog = new context.dialog();
         const link = { 
@@ -43,7 +43,7 @@ export abstract class LargeTableItem implements DialogAware, CollectionItem, Con
         this.buildControls(dialog, link);
         dialog.addEditCommand('Show Parent', 'Done', deleteLink.followUps[0], { command: context.command });
         dialog.endControlGroup();
-        return new DialogResult(DialogResult.Destination.Caller, dialog.render());
+        return new DialogResult(DialogResult.Destination.caller, dialog.render()).resolve();
     }
        
 }

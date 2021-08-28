@@ -1,8 +1,9 @@
-import { Change, Success, Failure } from './result';
 import { ConfigurationCommand } from 'der20/config/atoms';
-import { Result } from 'der20/interfaces/result';
 import { Collection } from 'der20/interfaces/config';
+import { ParserContext } from 'der20/interfaces/parser';
+import { Result } from 'der20/interfaces/result';
 import { ConfigurationParser } from './parser';
+import { Change, Failure, Success } from './result';
 import { ConfigurationString } from './string';
 
 export class ConfigurationPopulateCommand extends ConfigurationCommand {
@@ -48,13 +49,13 @@ export class ConfigurationPopulateCommand extends ConfigurationCommand {
                         debug.log(`populate ignoring property '${key}' not present on source, id = '${other.id}'`);
                         continue;
                     }       
-                    if (otherProperty.current === undefined) {
+                    if (otherProperty.currentValue === undefined) {
                         // not a configuration value or unset
                         debug.log(`populate ignoring property '${key}' without current value on source, id = '${other.id}'`);
                         continue;
                     }            
                     debug.log(`populate setting property '${key}' from existing item with id '${other.id}'`);
-                    property.current = otherProperty.current; 
+                    property.currentValue = otherProperty.currentValue; 
                 }
                 return true;
             }
@@ -62,11 +63,11 @@ export class ConfigurationPopulateCommand extends ConfigurationCommand {
         return false;
     }
 
-    parse(text: string): Result {
+    parse(text: string, _: ParserContext): Promise<Result> {
         let tokens = ConfigurationParser.tokenizeFirst(text);
         const item = this.collection.fetchItem(tokens[0]);
         if (item === undefined) {
-            return new Failure(new Error(`'${tokens[0]}' is not an item in the collection`));
+            return new Failure(new Error(`'${tokens[0]}' is not an item in the collection`)).resolve();
         }   
 
         // we expect enough parameters to walk to a child item in a child collection
@@ -74,20 +75,20 @@ export class ConfigurationPopulateCommand extends ConfigurationCommand {
         tokens = ConfigurationParser.tokenizeFirst(tokens[1]);
         const route = ConfigurationParser.route(tokens[0], item);
         if (route === undefined) {
-            return new Failure(new Error(`'${tokens[0]}' is not a valid keyword in the specified collection item`));
+            return new Failure(new Error(`'${tokens[0]}' is not a valid keyword in the specified collection item`)).resolve();
         }
         const childCollection = route.target;
         if (typeof childCollection.fetchItem !== 'function') {
-            return new Failure(new Error(`'${tokens[0]}' is not a child collection in the specified collection item`));
+            return new Failure(new Error(`'${tokens[0]}' is not a child collection in the specified collection item`)).resolve();
         }
         const childItem = childCollection.fetchItem(tokens[1]);
         if (childItem === undefined) {
-            return new Failure(new Error(`'${tokens[1]}' is not a child item under '${tokens[0]}' in the specified collection item`));
+            return new Failure(new Error(`'${tokens[1]}' is not a child item under '${tokens[0]}' in the specified collection item`)).resolve();
         }
         
         // now try to find an item with the same name, first in the same child collection, then in others
         if (this.tryPopulate(childItem, childCollection)) {
-            return new Change('populated values from local item with same name');
+            return new Change('populated values from local item with same name').resolve();
         }
         for (let other of this.collection) {
             if (Object.is(other, item)) {
@@ -102,9 +103,9 @@ export class ConfigurationPopulateCommand extends ConfigurationCommand {
                 continue;
             }
             if (this.tryPopulate(childItem, otherRoute.target)) {
-                return new Change('populated values from item with same name found in another collection');
+                return new Change('populated values from item with same name found in another collection').resolve();
             }
         }
-        return new Success('no other item with same name was found');
+        return new Success('no other item with same name was found').resolve();
     }
 }

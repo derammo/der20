@@ -1,41 +1,51 @@
 import { ConfigurationInteger, ConfigurationParser, Der20Token, ParserContext, Result, SelectedTokensCommand, Success } from 'der20/library';
 
 export class LightCommand extends SelectedTokensCommand {
-    handleTokenCommand(token: Der20Token, text: string, parserContext: ParserContext, tokenIndex: number): Result {
+    handleTokenCommand(_message: ApiChatEventData, token: Der20Token, text: string, parserContext: ParserContext, _tokenIndex: number): Promise<Result> {
         // reset to defaults
         this.bright.clear();
         this.dim.clear();
         debug.log(`light defaulted to ${this.bright.value()} ${this.dim.value()}`);
+
+        let brightAvailable: Promise<Result> = new Success("use default value").resolve();
+        let dimAvailable: Promise<Result> = new Success("use default value").resolve();
 
         // parse any specified light values
         if (text.length > 0) {
             debug.log(`parsing light spec '${text}'`);
             const tokens = ConfigurationParser.tokenize(text);
             if (tokens.length > 0) {
-                const parsingResult = this.bright.parse(tokens[0], parserContext);
-                if (!parsingResult.isSuccess) {
-                    return parsingResult;
-                }
+                brightAvailable = this.bright.parse(tokens[0], parserContext);
             }
             if (tokens.length > 2 && tokens[1] === "dim") {
-                const parsingResult = this.dim.parse(tokens[2], parserContext);                
-                if (!parsingResult.isSuccess) {
-                    return parsingResult;
-                }
+                dimAvailable = this.dim.parse(tokens[2], parserContext);                
             }
             debug.log(`light parameters parsed as ${this.bright.value()} ${this.dim.value()}`);
         }
 
-        const brightRange = this.bright.value();
-        const totalRange = this.bright.value() + ((brightRange > 0 || this.dim.hasConfiguredValue()) ? this.dim.value() : 0);
+        return brightAvailable
+            .then((brightParsed: Result) => {
+                if (!brightParsed.isSuccess) {
+                    return brightParsed;
+                }
+                return dimAvailable
+                    .then((dimParsed: Result) => {
+                        if (!dimParsed.isSuccess) {
+                            return dimParsed;
+                        }
         
-        if (totalRange > 0) {
-            LightCommand.setLight(token, brightRange, totalRange);
-        } else {
-            LightCommand.setDefaultsNoLight(token);
-        }
-
-        return new Success(`light ${token.name} ${brightRange} ft, dim to ${totalRange} ft`);
+                        const brightRange = this.bright.value();
+                        const totalRange = this.bright.value() + ((brightRange > 0 || this.dim.hasConfiguredValue()) ? this.dim.value() : 0);
+                        
+                        if (totalRange > 0) {
+                            LightCommand.setLight(token, brightRange, totalRange);
+                        } else {
+                            LightCommand.setDefaultsNoLight(token);
+                        }
+                
+                        return new Success(`light ${token.name} ${brightRange} ft, dim to ${totalRange} ft`).resolve();                
+                    });
+            })
     }
 
     private bright: ConfigurationInteger = new ConfigurationInteger(20);
