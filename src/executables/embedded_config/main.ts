@@ -22,6 +22,7 @@ new Plugin('embedded_config', Configuration)
 .addDefaults([
     '!embedded_config option verbose true',
     '!embedded_config option debug true',
-    '!embbeded_config tokens hp maximized'
+    '!wrong tokens hp maximized',
+    '!embedded_config tokens hp maximized'
 ])
 .start();
