@@ -6,6 +6,7 @@ declare global {
     function sendChat(speakingAs: string, message: string, callback?: (operations: ChatEventData[]) => void, options?: ChatMessageHandlingOptions): void;
     var der20ScriptMode: string;
     function on(event: string, handler: any): void;
+    function getObj(type: string, options: any): any | undefined;
 }
 
 // fake globals
@@ -15,6 +16,7 @@ global.sendChat = (speakingAs: string, message: string, callback?: (operations: 
 };
 global.der20ScriptMode = 'mock';
 global.on = (_event: string) => { return; };
+global.getObj = (_type:string, _options: any) => { return undefined; };
 
 debug.log = console.log;
 
@@ -23,6 +25,8 @@ new Plugin('embedded_config', Configuration)
     '!embedded_config option verbose true',
     '!embedded_config option debug true',
     '!wrong tokens hp maximized',
-    '!embedded_config tokens hp maximized'
+    '!embedded_config tokens hp maximized',
+    '!embedded_config tokens stat',
+    '!embedded_config character blablabla hp 12'
 ])
 .start();
