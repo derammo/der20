@@ -1,6 +1,4 @@
-import { CommandInput, ConfigurationEnumerated, ConfigurationInteger, data, Der20Token, DialogResult, Failure, ParserContext, Result, RollQuery, SelectedTokensCommand, Success, Tokenizer } from 'der20/library';
-import { DarkvisionCommand } from './darkvision';
-import { LightCommand } from './light';
+import { CommandInput, ConfigurationEnumerated, ConfigurationInteger, data, Der20Character, Der20Token, DialogResult, Failure, ParserContext, Result, RollQuery, SelectedTokensCommand, Success, Tokenizer } from 'der20/library';
 
 export class StatCommand extends SelectedTokensCommand {
     @data
@@ -25,51 +23,25 @@ export class StatCommand extends SelectedTokensCommand {
     /* eslint-disable @typescript-eslint/naming-convention */
     private statPc(token: Der20Token, parserContext: ParserContext): Result {
         const character = token.character;
-        let needsHp: boolean = false;
-        let needsPp: boolean = false;
-        let needsAc: boolean = false;
 
         // we could have a default char sheet and still get numbers here (all 10s) so we really need to check
         // if we previously ingested this character, so we can second guess any 10s 
         const knownCharacter: boolean = this.knownCharacters.get(character.id) ?? false;
 
-        const hp = character.attribute('hp');
-        if (hp.value(0) > 0) {
-            token.raw.set({ bar1_link: hp.id, bar1_value: hp.value(0), bar1_max: hp.max(0) });
-        } else {
-            token.raw.set({ bar1_link: "", bar1_value: 0, bar1_max: 0 });
-            needsHp = true;
-        }
-        
-        const passiveWisdom = character.attribute('passive_wisdom');
-        const passiveWisdomValue = passiveWisdom.value(0);
-        if (passiveWisdomValue > 0  && (passiveWisdomValue !== 10 || knownCharacter)) {
-            token.raw.set({ bar2_link: passiveWisdom.id, bar2_value: passiveWisdomValue, bar2_max: "30 (PP)" });
-        } else {
-            token.raw.set({ bar2_link: "", bar2_value: 0, bar2_max: 30 });
-            needsPp = true;
-        }
+        // accumulate all changes into one write
+        const tokenSettings: GraphicMutableSynchronousGetProperties = <GraphicMutableSynchronousGetProperties>{};
 
-        const armorClass = character.attribute('ac');
-        const armorClassValue = armorClass.value(0);
-        if (armorClassValue > 0 && (armorClassValue !== 10 || knownCharacter)) {
-            token.raw.set({ bar3_link: armorClass.id, bar3_value: armorClassValue, bar3_max: "30 (AC)" });
-        } else {
-            token.raw.set({ bar3_link: "", bar3_value: 0, bar3_max: 30 });
-            needsAc = true;
-        }
+        let needsHp = this.linkHitPoints(character, tokenSettings);
+        
+        let { passiveWisdomValue, needsPp } = this.linkPassiveWisdom(character, knownCharacter, tokenSettings);
+
+        let { armorClassValue, needsAc } = this.linkArmorClass(character, knownCharacter, tokenSettings);
 
         // default name from character, unless set on token already
-        let name = character.name;
-        if (token.name > '') {
-            name = token.name;
-        }
-
-        // first name only
-        name = Tokenizer.tokenize(name)[0];
+        let name = this.fixPcName(character, token);
 
         // set up token for player
-        token.raw.set({
+        Object.assign(tokenSettings, {
             name: name,
             showname: true,
             showplayers_name: true,
@@ -86,11 +58,9 @@ export class StatCommand extends SelectedTokensCommand {
         // note we have seen this character now
         this.knownCharacters.set(character.id, true);
 
-        // set sane defaults
-        LightCommand.setDefaultsNoLight(token);
-        DarkvisionCommand.setDefaultsNoDarkvision(token);
-
         if (parserContext.input.kind === CommandInput.Kind.api && (needsHp || needsPp || needsAc)) {
+            // XXX add option to write what we have here
+
             // interactive mode
             let dialog = new parserContext.dialog();
             const link = {
@@ -111,6 +81,7 @@ export class StatCommand extends SelectedTokensCommand {
             dialog.endControlGroup();
             return new DialogResult(DialogResult.Destination.caller, dialog.render());
         } else {
+            token.raw.set(tokenSettings);
             const result = new Success(`set up player character token for ${character.name}`);
             if (needsHp) {
                 result.messages.push(`player character ${character.name} has no 'hp' attribute`);
@@ -125,6 +96,58 @@ export class StatCommand extends SelectedTokensCommand {
         }
     }
 
+    private fixPcName(character: Der20Character, token: Der20Token) {
+        // default to character name, override from token
+        let name = character.name;
+        if (token.name > '') {
+            name = token.name;
+        }
+
+        // first name only
+        name = Tokenizer.tokenize(name)[0];
+
+        return name;
+    }
+
+    private linkArmorClass(character: Der20Character, useAnyValue: boolean, tokenSettings: GraphicMutableSynchronousGetProperties) {
+        const armorClass = character.attribute('ac');
+        const armorClassValue = armorClass.value(0);
+        let needsAc;
+        if (armorClassValue > 0 && (armorClassValue !== 10 || useAnyValue)) {
+            Object.assign(tokenSettings, { bar3_link: armorClass.id, bar3_value: armorClassValue, bar3_max: "30 (AC)" });
+            needsAc = false;
+        } else {
+            Object.assign(tokenSettings, { bar3_link: "", bar3_value: 0, bar3_max: 30 });
+            needsAc = true;
+        }
+        return { armorClassValue, needsAc };
+    }
+
+    private linkPassiveWisdom(character: Der20Character, useAnyValue: boolean, tokenSettings: GraphicMutableSynchronousGetProperties): { passiveWisdomValue: number, needsPp: boolean } {
+        const passiveWisdom = character.attribute('passive_wisdom');
+        const passiveWisdomValue = passiveWisdom.value(0);
+        let needsPp;
+        if (passiveWisdomValue > 0 && (passiveWisdomValue !== 10 || useAnyValue)) {
+            Object.assign(tokenSettings, { bar2_link: passiveWisdom.id, bar2_value: passiveWisdomValue, bar2_max: "30 (PP)" });
+            needsPp = false;
+        } else {
+            Object.assign(tokenSettings, { bar2_link: "", bar2_value: 0, bar2_max: 30 });
+            needsPp = true;
+        }
+        return { passiveWisdomValue, needsPp };
+    }
+
+    private linkHitPoints(character: Der20Character, tokenSettings: GraphicMutableSynchronousGetProperties): boolean {
+        const hp = character.attribute('hp');
+        if (hp.value(0) > 0) {
+            Object.assign(tokenSettings, { bar1_link: hp.id, bar1_value: hp.value(0), bar1_max: hp.max(0) });
+            return false;
+        } else {
+            Object.assign(tokenSettings, { bar1_link: "", bar1_value: 0, bar1_max: 0 });
+            return true;
+        }
+    }
+
     private statNpc(token: Der20Token, _parserContext: ParserContext, _tokenIndex: number): Promise<Result> {
         const character = token.character;
         let name = character.name;
@@ -134,9 +157,11 @@ export class StatCommand extends SelectedTokensCommand {
             name = token.name;
         }
 
+        // accumulate all changes into one write
+        const tokenSettings: GraphicMutableSynchronousGetProperties = <GraphicMutableSynchronousGetProperties>{};
+
         // note passive perception
-        const passiveWisdomAttribute = character.attribute('passive_wisdom');
-        token.raw.set({ bar2_link: passiveWisdomAttribute.id, bar2_value: passiveWisdomAttribute.value(0), bar2_max: "30 (PP)" });
+        let { passiveWisdomValue, needsPp } = this.linkPassiveWisdom(character, true, tokenSettings);
 
         // roll initial stealth
         let stealth = 0;
@@ -146,10 +171,10 @@ export class StatCommand extends SelectedTokensCommand {
             stealth = character.attribute('dexterity_mod').value(0);
         }
         const stealthCheck = Math.max(randomInteger(20) + stealth, 1);
-        token.raw.set({ bar3_link: '', bar3_value: stealthCheck, bar3_max: "30 (S)" });
+        Object.assign(tokenSettings, { bar3_link: '', bar3_value: stealthCheck, bar3_max: "30 (S)" });
 
         // set up name and vision
-        token.raw.set({
+        Object.assign(tokenSettings, {
             name: name,
             showname: true,
             showplayers_name: true,
@@ -174,13 +199,19 @@ export class StatCommand extends SelectedTokensCommand {
                 .asyncVerboseRoll()
                 .then((value: RollSummary) => {
                     hp = this.processRoll(value, token);
-                    return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = ${this.hpRollingOption.value()} ${hp}, stealth (${stealth}) = ${stealthCheck}`);
+                    Object.assign(tokenSettings, { bar1_link: '', bar1_value: hp, bar1_max: hp });
+
+                    // write all changes
+                    token.raw.set(tokenSettings);
+                    return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = ${this.hpRollingOption.value()} ${hp}, stealth (${stealth}) = ${stealthCheck}, passive perception = ${needsPp ? "MISSING" : passiveWisdomValue}`);
                 }, (reason: any) => {
                     return new Failure(new Error(reason));
                 });
         }
-                
-        return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = average ${hp}, stealth (${stealth}) = ${stealthCheck}`).resolve();
+
+        // write all changes
+        token.raw.set(tokenSettings);
+        return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = average ${hp}, stealth (${stealth}) = ${stealthCheck}, passive perception = ${needsPp ? "MISSING" : passiveWisdomValue}`).resolve();
     }
 
     private processRoll(summary: RollSummary, token: Der20Token) {
@@ -217,7 +248,6 @@ export class StatCommand extends SelectedTokensCommand {
                 hp = summary.total;
                 break;
         }
-        token.raw.set({ bar1_link: '', bar1_value: hp, bar1_max: hp });
         return hp;
     }
 

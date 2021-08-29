@@ -12,4 +12,6 @@ export class AutomaticFeaturesConfiguration extends ConfigurationIntermediateNod
     @config sort: ConfigurationBoolean = new ConfigurationBoolean(true);
     
     @config marker: AutomaticMarkerConfiguration = new AutomaticMarkerConfiguration();
+
+    @config ping: ConfigurationBoolean = new ConfigurationBoolean(true);
 }

@@ -1,0 +1,6 @@
+<div class='title'>
+<span class='plugin'>!init5e</span>
+<span class='command' id='init5e/automatic_ping'>automatic ping</span>
+<span class='format'>[TRUE/FALSE]</span>
+</div>
+<div class='description'></div>

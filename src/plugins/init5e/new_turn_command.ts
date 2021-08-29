@@ -1,7 +1,12 @@
 import { ConfigurationSimpleCommand, Der20Character, Der20Token, ParserContext, Result, Success, TurnOrder } from 'der20/library';
 import { AutomaticFeaturesConfiguration } from './automatic_features_configuration';
 
+// Roll20 API
+declare function sendPing(x: number, y: number, pageId: string, playerIdForColor?: string, moveAll?: boolean, visibleToPlayerIds?: string[] | string): void;
+
 export class NewTurnCommand extends ConfigurationSimpleCommand {
+    currentToken: Der20Token;
+
     constructor(private autoFeatures: AutomaticFeaturesConfiguration) {
         super();
     }
@@ -33,12 +38,17 @@ export class NewTurnCommand extends ConfigurationSimpleCommand {
             return new Success("action announcements are disabled").resolve();
         }
 
-        let token = Der20Token.fetch(turns[0].id);
-        if (!token) {
+        this.currentToken = Der20Token.fetch(turns[0].id);
+        if (!this.currentToken) {
             return new Success("no active token in initiative").resolve();
         }
 
-        let character = token.character;
+        if (this.autoFeatures.ping.value()) {
+            // REVISIT: option to only ping GMs
+            sendPing(this.currentToken.raw.get('left'), this.currentToken.raw.get('top'), this.currentToken.raw.get('_pageid'), undefined, false, undefined);
+        }
+
+        let character = this.currentToken.character;
         if (character === undefined) {
             return new Success("no character associated with active token in initiative").resolve();
         }
