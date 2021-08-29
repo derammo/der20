@@ -1,5 +1,5 @@
 PLUGINS := league anonymous setup init5e
-EXECUTABLES := parser_test 
+EXECUTABLES := parser_test embedded_config
 
 # XXX needs porting
 # help_test

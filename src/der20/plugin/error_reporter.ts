@@ -19,6 +19,12 @@ export class ErrorReporter {
         let bodyText = [];
         if (frames === undefined) {
             console.log(`caught error without any stack frames:\n${error}`);
+        } else if (typeof der20ScriptModules === 'undefined') {
+            // just don't change the frames
+            for (let line of frames.split('\n')) {
+                console.log(line);
+                bodyText.push(line);
+            }
         } else {
             // search for symbols
             let symbols: { line: number; name: string }[] = [];

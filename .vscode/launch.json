@@ -19,6 +19,18 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Embedded Config",
+            "program": "${workspaceFolder}/src/executables/embedded_config/main.ts",
+            "preLaunchTask": "tsc: build - src/executables/embedded_config/tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "sourceMaps": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Handout Test",
             "program": "${workspaceFolder}/src/executables/handout_test/main.ts",
             "preLaunchTask": "tsc: build - src/executables/handout_test/tsconfig.json",

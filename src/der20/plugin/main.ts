@@ -17,6 +17,7 @@ import { BuiltinConfiguration } from 'der20/plugin/configuration';
 import { ContextHost } from 'der20/plugin/context_base';
 import { Options } from 'der20/plugin/options';
 import { ApiCommandInput, ChatCommandSource } from './chat';
+import { DefaultConfigSource, der20DefaultConfiguration } from './default_config';
 import { ErrorReporter } from './error_reporter';
 import { ConfigurationExportCommand } from './export';
 import { PluginLoaderContext } from './loader_context';
@@ -24,10 +25,6 @@ import { PluginParserContext } from './parser_context';
 
 // from our wrapper
 declare var der20ScriptMode: string | undefined;
-
-// if we add more events, we need to repeat declaration overrides here:
-// declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
-// declare function on(event: "ready", callback: () => void): void;
 
 /**
  * operational status of this plugin, used to know if new commands can be scheduled
@@ -615,6 +612,24 @@ export class Plugin<T> {
             throw new Error('command sources must be added before the initial call to Plugin.start()');
         }
         this.commandSources.push({ factory: sourceFactory, subtrees: legalSubtrees });
+    }
+
+    /**
+     * add default configuration commands to be able to embed them in the script
+     */
+     addDefaults(commands: string[]): Plugin<T> {
+        if (this.started) {
+            throw new Error('default configuration must be added before the initial call to Plugin.start()');
+        }
+
+        // lazy create the source
+        if (!this.commandSources.some((record) => record.factory === DefaultConfigSource)) {
+            this.commandSources.push({ factory: DefaultConfigSource, subtrees: undefined });
+        }
+
+        // store the config, will actually be sent to all plugins sharing this file, just like when we use chat input
+        commands.forEach((line: string) => der20DefaultConfiguration.push(line));
+        return this;
     }
 }
 

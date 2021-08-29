@@ -1,0 +1,1 @@
+{ "extends": "../tsconfig_executables.json", "compilerOptions": { "outFile": "../../../build/embedded_config.js" }, "include": [ "**/*.ts", "../../sys/loader.js", "../../types/*.d.ts" ] }
