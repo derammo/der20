@@ -19,7 +19,9 @@ export class ConfigurationLoader {
 
         // barrier: restore all data, then call all change handlers
         return Promise.all(changes.promises)
-            .then((_results: void[]) => ConfigurationLoader.notifyChangesIfSupported(to, context, changes.keys));
+            .then((_results: void[]) => {
+                return ConfigurationLoader.notifyChangesIfSupported(to, context, changes.keys);
+            });
     }
 
     private static buildChanges(from: any, to: any, context: LoaderContext): { promises: Promise<void>[], keys: string[] } {
@@ -44,7 +46,7 @@ export class ConfigurationLoader {
         return { promises: changes, keys: changedKeys };
     }
 
-    static notifyChangesIfSupported(to: any, context: LoaderContext, changedKeys: string[]): any {
+    static notifyChangesIfSupported(to: any, context: LoaderContext, changedKeys: string[]): Promise<void> {
         // change handling support is optional
         const changeHandling = ConfigurationChangeHandling.query(to);
         if (!changeHandling.supported) {
@@ -64,6 +66,8 @@ export class ConfigurationLoader {
 
         // reap all notification operations into a single result
         return Promise.all(notifications)
-            .then(() => { return; });
+            .then(() => {
+                return; 
+            });
     }
 }

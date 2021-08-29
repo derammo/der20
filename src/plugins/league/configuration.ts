@@ -96,7 +96,7 @@ class SessionConfiguration extends ConfigurationIntermediateNode implements Conf
                 }
                 break;
             default:
-            // ignore
+                // ignore
         }
         return Promise.resolve();
     }

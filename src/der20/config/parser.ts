@@ -9,13 +9,14 @@ export class ConfigurationParser extends Tokenizer {
     static parse(text: string, configuration: any, context: ParserContext): Promise<Result> {
         // REVISIT this is far too expensive to serialize even when we are not debugging, we need to be able to check the global debug flag to guard this
         // debug.log(`parsing "${line}" with rest "${context.rest}" against ${configuration.constructor.name} ${JSON.stringify(configuration)}`); 
-        debug.log(`parsing "${text}" with rest "${context.rest}" against ${configuration.constructor.name}`); 
+        debug.log(`parsing '${text}' of '${context.rest}' against ${configuration.constructor.name}`); 
 
         if (text.length === 0) {
             // check if 'configuration' has handler to create UI or otherwise handle
             // the end of a configuration command that does not hit a ConfigurationStep
             const termination = ConfigurationTermination.query(configuration);
             if (termination.supported) {
+                debug.log(`dispatching '${text}' of '${context.rest}' as command termination to ${configuration.constructor.name}`); 
                 return termination.interface.handleEndOfCommand(context);
             }
         }
@@ -24,6 +25,7 @@ export class ConfigurationParser extends Tokenizer {
         if (parsing.supported) {
             // configuration object implements its own parsing
             // validation and events were done one frame higher
+            debug.log(`dispatching '${text}' of '${context.rest}' to parser in ${configuration.constructor.name}`); 
             return parsing.interface.parse(text, context);
         }
 
@@ -34,6 +36,7 @@ export class ConfigurationParser extends Tokenizer {
         const [keywordToken, rest] = ConfigurationParser.tokenizeFirst(text);
         const route = ConfigurationParser.route(keywordToken, configuration);
         if (route === undefined) {
+            debug.log(`token '${keywordToken}' of '${context.rest}' unroutable at ${configuration.constructor.name}`); 
             return ConfigurationParser.handleUnroutable(keywordToken, result);
         }
 
@@ -41,6 +44,7 @@ export class ConfigurationParser extends Tokenizer {
         result = ConfigurationParser.validate(configuration, route.propertyName, rest, result);
         if (result.kind !== Result.Kind.success) {
             // denied by validation
+            debug.log(`input '${rest}' failed validation for property '${route.propertyName}' at ${configuration.constructor.name}`); 
             ConfigurationParser.handleEvents(result, configuration, keywordToken);
             return Promise.resolve(result);
         }

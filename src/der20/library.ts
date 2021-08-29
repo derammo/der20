@@ -34,3 +34,4 @@ export { Sheet5eOGL } from 'der20/roll20/sheet_5e_ogl';
 export { Der20Token, SelectedTokensCommand } from 'der20/roll20/token';
 export { CommandsFromTokens } from 'der20/roll20/token_commands';
 export { TurnOrder, TurnOrderAnnouncer, TurnOrderRecord } from 'der20/roll20/turn_order';
+export { ApiCommandInput } from 'der20/plugin/chat';

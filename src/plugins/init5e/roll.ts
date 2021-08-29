@@ -1,4 +1,4 @@
-import { CommandInput, ConfigurationSimpleCommand, D20RollSpec, Der20Character, Der20Token, DialogResult, Failure, Multiplex, ParserContext, Result, RollQuery, Sheet5eOGL, Success, TurnOrder, TurnOrderRecord } from 'der20/library';
+import { ApiCommandInput, CommandInput, ConfigurationSimpleCommand, D20RollSpec, Der20Character, Der20Token, DialogResult, Failure, Multiplex, ParserContext, Result, RollQuery, Sheet5eOGL, Success, TurnOrder, TurnOrderRecord } from 'der20/library';
 import { AutomaticFeaturesConfiguration } from './automatic_features_configuration';
 
 enum Mode {
@@ -63,6 +63,10 @@ class RollingGroup {
 }
 
 class RollingGroupContext {
+    constructor(source: ApiCommandInput) {
+        this.message = source.message;
+    }
+
     message: ApiChatEventData;
     sharedRolls: { group: RollingGroup, tokens: Der20Token[], result: number }[] = [];
 }
@@ -74,7 +78,8 @@ class RollingGroupMultiplex extends Multiplex<RollingGroupContext, RollingGroup>
         let selectedTokens = Der20Token.selected(rollingContext.message).filter((item: Der20Token | undefined) => {
             return item !== undefined;
         });
-        let grouped: Map<string, any> = new Map<string, any>();
+        debug.log(`sorting ${selectedTokens.length} selected tokens for group rolling`);
+        let grouped: Map<string, RollingGroup> = new Map<string, RollingGroup>();
         selectedTokens.forEach((token) => {
             if (token.isdrawing) {
                 debug.log(`token ${token.name} is a drawing and does not get initiative`);
@@ -105,10 +110,14 @@ export class RollCommand extends ConfigurationSimpleCommand {
     }
     
     handleEndOfCommand(context: ParserContext): Promise<Result> {
+        if (context.input.kind !== CommandInput.Kind.api) {
+            return new Failure(new Error('dice rolling for selected tokens requires an API input source')).resolve();
+        }
+        const source = <ApiCommandInput>(context.input);
         const multiplex = new RollingGroupMultiplex(context);
         return multiplex.execute(
             '',
-            new RollingGroupContext(), 
+            new RollingGroupContext(source), 
             (writes: RollingGroupContext, group: RollingGroup, _text: string, parserContext: ParserContext, multiplexIndex: number) => {
                 return this.handleGroup(writes, group, parserContext, multiplexIndex);
             },
@@ -142,19 +151,20 @@ export class RollCommand extends ConfigurationSimpleCommand {
     handleGroup(rollingContext: RollingGroupContext, group: RollingGroup, _parserContext: ParserContext, _multiplexIndex: number): Promise<Result> {
         // check for unsupported platform
         if (group.spec === undefined) {
+            debug.log("no group spec found");
             return new Failure(new Error("this plugin cannot roll initiative for characters using sheets other than 5e OGL")).resolve();
         }
 
         // roll dice
         switch (group.mode) {
             case Mode.Advantage: {
-                return this.singleRoll(group.spec.generateAdvantageRoll(), group, rollingContext);
+                return this.singleRoll(rollingContext, group, group.advantage, group.spec.generateAdvantageRoll());
             }
             case Mode.Disadvantage: {
-                return this.singleRoll(group.spec.generateDisadvantageRoll(), group, rollingContext);
+                return this.singleRoll(rollingContext, group, group.disadvantage, group.spec.generateDisadvantageRoll());
             }
             case Mode.Straight: {
-                return this.singleRoll(group.spec.generateStraightRoll(), group, rollingContext);
+                return this.singleRoll(rollingContext, group, group.straight, group.spec.generateStraightRoll());
             }
             case Mode.Separate: {
                 // roll twice and service based on individual tokens' advantage/disadvantage
@@ -170,26 +180,30 @@ export class RollCommand extends ConfigurationSimpleCommand {
                         return new Success(`rolled initiative ${rolledNumbers[0]},${rolledNumbers[1]} (mixed advantage/disadvantage) for ${group.character.name} using ${narrative}`).resolve();
                     });
             }
-            default: throw new Error(`unsupported dice rolling mode ${group.mode}`);
+            default: {
+                debug.log(`unsupported dice rolling mode in group roll spec: ${group.mode}`);
+                throw new Error(`unsupported dice rolling mode ${group.mode}`);
+            }
         }
     }
 
-    private singleRoll(roll: string, group: RollingGroup, writes: RollingGroupContext): Promise<Result> {
+    private singleRoll(rollingGroupContext: RollingGroupContext, group: RollingGroup, tokens: Der20Token[], roll: string): Promise<Result> {
         const narrative = `${roll} (${group.spec.factors.join(", ")})`;
+        debug.log(narrative);
         return new RollQuery(roll).asyncRoll()
             .then((rolledNumber: number) => {
-                writes.sharedRolls.push({ group: group, tokens: group.advantage, result: rolledNumber });
-                return new Success(`rolled initiative ${rolledNumber} (with advantage) for ${group.character.name} using ${narrative}`);
+                rollingGroupContext.sharedRolls.push({ group: group, tokens: tokens, result: rolledNumber });
+                return new Success(`rolled initiative ${rolledNumber} for ${group.character.name} using ${narrative}`).resolve();
             });
     }
 
-    private setInitiative(writes: RollingGroupContext) {
+    private setInitiative(rollingContext: RollingGroupContext) {
         // load current turn order
         let turns = TurnOrder.load();
 
         // index to avoid n^2 comparisons
         const tokenIds: Set<String> = new Set<string>();
-        writes.sharedRolls.forEach(group => group.tokens.forEach(token => tokenIds.add(token.id)));
+        rollingContext.sharedRolls.forEach(group => group.tokens.forEach(token => tokenIds.add(token.id)));
 
         // remove from initiative, since we re-rolled
         turns = turns.filter(function (turn) {
@@ -201,12 +215,12 @@ export class RollCommand extends ConfigurationSimpleCommand {
         if (roundMarker > 0 || !this.autoFeatures.sort.value()) {
             // we are in the middle of a round or we aren't allowed to automatically sort, so add at the end
             const newTurns: TurnOrderRecord[] = [];
-            this.appendNewEntries(newTurns, writes);
+            this.appendNewEntries(newTurns, rollingContext);
             TurnOrder.sort(newTurns);
             turns = turns.concat(newTurns);
         } else {
             // we are at the top of a round, so we can sort the next items in now
-            this.appendNewEntries(turns, writes)
+            this.appendNewEntries(turns, rollingContext)
             TurnOrder.sort(turns);
         }
 
@@ -244,8 +258,8 @@ export class RollCommand extends ConfigurationSimpleCommand {
         return roundMarker;
     }
 
-    private appendNewEntries(targetArray: TurnOrderRecord[], writes: RollingGroupContext) {
-        writes.sharedRolls.forEach(identicalGroup => {
+    private appendNewEntries(targetArray: TurnOrderRecord[], rollingContext: RollingGroupContext) {
+        rollingContext.sharedRolls.forEach(identicalGroup => {
             identicalGroup.tokens.forEach(token => {
                 targetArray.push({ id: token.id, pr: identicalGroup.result, custom: "" });
             });

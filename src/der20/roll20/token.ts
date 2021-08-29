@@ -4,6 +4,8 @@ import { Result } from 'der20/interfaces/result';
 import { ExecuteHandlerType, Multiplex, SuccessHandlerType } from './multiplex';
 import { ApiCommandInput } from 'der20/plugin/chat';
 import { ParserContext } from 'der20/interfaces/parser';
+import { CommandInput } from 'der20/interfaces/config';
+import { Failure } from 'der20/config/result';
 
 class TokenImage {
     constructor(private token: Graphic) {
@@ -17,7 +19,7 @@ class TokenImage {
 
 export class Der20Token {
     static selected(message: ApiChatEventData): Der20Token[] {
-        if (!message.selected) {
+        if (message.selected === undefined) {
             return [];
         }
         return message.selected
@@ -111,6 +113,9 @@ class SelectedTokensMultiplex extends Multiplex<ApiChatEventData, Der20Token> {
 
 export abstract class SelectedTokensCommand extends ConfigurationCommand {
     parse(inputText: string, context: ParserContext): Promise<Result> {
+        if (context.input.kind !== CommandInput.Kind.api) {
+            return new Failure(new Error('selected tokens commands require an API input source')).resolve();
+        }
         return new SelectedTokensMultiplex(context).executeForSelectedTokens(
             inputText, 
             (message: ApiChatEventData, token: Der20Token, text: string, parserContext: ParserContext, tokenIndex: number) => {

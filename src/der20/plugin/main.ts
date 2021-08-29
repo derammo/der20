@@ -83,13 +83,17 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
         this.swapIn();
     }
 
-    // called when plugin crashed on startup, to make sure it doesn't do things
+    /**
+     *  called when plugin crashed on startup, to make sure it doesn't do things
+     */ 
     disable() {
         this.builtinCommands = new Set();
         this.options = new Options();
     }
 
-    // build the default state of the world, either on start up or to return to default configuration
+    /**
+     * build the default state of the world, either on start up or to return to default configuration
+     */
     defaultConfiguration() {
         // create the world
         this.configurationRoot = <T & BuiltinConfiguration>new this.factory();
@@ -179,33 +183,38 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
         }
     }
 
-    private loadConfiguration(): Promise<LoaderContext> {
+    private restoreConfiguration(): Promise<LoaderContext> {
         let json = this.persistence.load();
         let context = new PluginLoaderContext(this, this.freezeOptions());
         return ConfigurationLoader.restore(json, this.configurationRoot, context)
-            .then(() => context);
-    }
-
-    private restoreConfiguration(): Promise<void> {
-        debug.log(`restoring configuration for ${this.name}`);
-
-        // load config from persistence
-        return this.loadConfiguration()
-            // then start up all the command sources
-            .then(this.startCommandSources)
-            .then((_results: void[]) => {
-                return;
+            .then(() => {
+                this.swapIn();
+                debug.log('configuration restored from persistence'); 
+                return context; 
             });
     }
 
+    private initializeConfiguration(): Promise<void> {
+        debug.log(`loading configuration for ${this.name}`);
+
+        // load config from persistence
+        return this.restoreConfiguration()
+            // then start up all the command sources and process their commands
+            .then((context: LoaderContext) => {
+                this.swapIn();
+                return context; 
+            })
+            // REVISIT: why does .then(this.startCommandSources) not work correctly?
+            .then((context: LoaderContext) => this.startCommandSources(context))
+            .then((_result: void[]) => { return Promise.resolve(); });
+    }
+
     private startCommandSources(context: LoaderContext): Promise<void[]> {
-        return Promise.all(
-            this.commandSources.map((commandSource) => {
+        return Promise.all(this.commandSources.map((commandSource) => {
                 this.swapIn();
                 debug.log(`starting up command source ${commandSource.constructor.name}`);
                 return commandSource.restore(context);
-            })
-        );
+            }));
     }
 
     private handleParserResult(status: PluginStatus, context: PluginParserContext, result: Result): PluginStatus {
@@ -364,35 +373,37 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
         }
         return cloneExcept(Options, this.options, ['changeEventHandler']);
     }
-    /*
-    private freezeOptions(factory: DefaultConstructed<OPTIONS>): OPTIONS {
-        if (this.configurationRoot.options === undefined) {
-            // options are not configurable, so we don't have to copy them
-            return <OPTIONS>(this.options);
-        }
-        return clone(factory, <OPTIONS>this.options);
-    }
-    */
 
-    // actually start, must only be used after ready event
+    /**
+     * actually start, must only be used after ready event  
+     */ 
     start() {
         this.swapIn();
         this.persistence = startPersistence(this.name);
-        this.restoreConfiguration();
-        this.running = this.running
-            .then((status: PluginStatus) => {
-                // this will run when everything else is done and we are ready for commands
+        this.initializeConfiguration()
+            .then(() => {
                 this.swapIn();
-                for (let command of this.builtinCommands) {
-                    log(`plugin command !${command} ${PluginStatus[status]}`);
-                }
-                for (let command of this.options.commands.value()) {
-                    log(`plugin command !${command} (alias for !${this.name}) ${PluginStatus[status]}`);
-                }
-                return status;
-            });
+                this.running = this.running
+                    .then((status: PluginStatus) => {
+                        // this will run when everything else is done and we are ready for commands
+                        this.swapIn();
+                        for (let command of this.builtinCommands) {
+                            log(`plugin command !${command} ${PluginStatus[status]}`);
+                        }
+                        for (let command of this.options.commands.value()) {
+                            log(`plugin command !${command} (alias for !${this.name}) ${PluginStatus[status]}`);
+                        }
+                        return status;
+                    });
+        });
     }
 
+    /**
+     * schedule semicolon-separated list of commands
+     * @param input the source of the configuraton commands
+     * @param line the entire command line including commands, may not be for this plugin
+     * @returns 
+     */
     dispatchCommands(input: CommandInput, line: string): void {
         let tokens = ConfigurationParser.tokenizeFirst(line);
         let command = tokens[0].slice(1);
@@ -420,6 +431,13 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
         }
     }
 
+    /**
+     * dispatch a single command that is for this plugin
+     * @param input 
+     * @param command the !command
+     * @param rest the command line, not including the !command
+     * @returns 
+     */
     private dispatchCommand(input: CommandInput, command: string, rest: string): void {
         // this context object will survive until this command is completely executed
         let context = new PluginParserContext(
@@ -449,6 +467,11 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
         this.scheduleCommand(context);
     }
 
+    /**
+     * read the current configuration provided by the given command source
+     * @param source 
+     * @param opaque an opaque handle provided by the caller
+     */
     queryCommandSource(source: CommandSource, opaque: any): void {
         let context = new PluginLoaderContext(this, this.freezeOptions());
 
@@ -496,7 +519,7 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
                 this.swapIn();
 
                 // read the configuration back
-                return this.loadConfiguration()
+                return this.restoreConfiguration()
                     .then(this.queryCommandSources)
                     .then(this.reactivatePlugin);
             });

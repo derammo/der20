@@ -30,17 +30,17 @@ export class Sheet5eOGL {
         let spec: D20RollSpec = new D20RollSpec(0, false, false, []);
 
         // build raw bonus (only one factor so far)
-        const initiative_bonus = this.character.attribute("initiative_bonus");
-        if (initiative_bonus.exists) {
+        const initiativeBonus = this.character.attribute("initiative_bonus");
+        if (initiativeBonus.exists) {
             // reject tie breaker
             // XXX configurable
-            const value = Math.floor(initiative_bonus.value(0));
+            const value = Math.floor(initiativeBonus.value(0));
             spec.bonus += value;
             spec.factors.push(`init ${value >= 0 ? "+" : ""}${value}`)
         } else {
-            const dexterity_mod = this.character.attribute("dexterity_mod");
-            if (dexterity_mod.exists) {
-                const value = dexterity_mod.value(0);
+            const dexterityMod = this.character.attribute("dexterity_mod");
+            if (dexterityMod.exists) {
+                const value = dexterityMod.value(0);
                 spec.bonus += value;
                 spec.factors.push(`dex ${value >= 0 ? "+" : ""}${value}`)
             } else {
@@ -51,9 +51,9 @@ export class Sheet5eOGL {
         }
 
         // determine advantage/disadvantage, permissive since sheets could change
-        const initiative_style = this.character.attribute("initiative_style");
-        if (initiative_style.exists) {
-            const roll: string = initiative_style.value("").toLowerCase();
+        const initiativeStyle = this.character.attribute("initiative_style");
+        if (initiativeStyle.exists) {
+            const roll: string = initiativeStyle.value("").toLowerCase();
             if (!roll.includes("@{d20}")) {
                 // wrong sheet
                 debug.log(`attempt to roll initiative with ${roll} denied; this plugin only supports 5e OGL characters`);
