@@ -264,7 +264,7 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
                 let source = <ApiCommandInput>context.input;
                 sendChat(this.name, `/w "${source.player.get('_displayname')}" ${message}`, null, { noarchive: true });
             } else {
-                debug.log(`  ${message}`);
+                debug.log(`${message}`);
             }
         }
     }
@@ -328,7 +328,7 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
 
     private runCommand(status: PluginStatus, context: PluginParserContext): Promise<PluginStatus> {
         const name = `!${context.command} ${context.rest}`;
-        debug.log(`running ${name} in state ${status}`);
+        debug.log(`running ${name} in state '${PluginStatus[status]}'`);
 
         if (this.stopping) {
             // we need this flag because we could have been queued a while ago and were
