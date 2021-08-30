@@ -12,7 +12,7 @@ import { ConfigurationParser } from "der20/config/parser";
 import { DialogResult, Success } from "der20/config/result";
 import { CommandInput } from "der20/interfaces/config";
 import { LoaderContext } from "der20/interfaces/loader";
-import { ParserContext, ParserFrame } from "der20/interfaces/parser";
+import { ParserContext } from "der20/interfaces/parser";
 import { Result } from "der20/interfaces/result";
 import { DialogFactory } from "der20/interfaces/ui";
 import { Options } from "der20/plugin/options";
@@ -27,7 +27,6 @@ class MockContext implements LoaderContext, ParserContext {
 	input: CommandInput = new CommandInputImpl.Base(CommandInput.Kind.journal);
 	dialog: DialogFactory = Der20ChatDialog;
 	options: Options = new Options();
-	frames: ParserFrame[] = [];
 
 	constructor(public rest: string) {
 		this.command = 'mock';

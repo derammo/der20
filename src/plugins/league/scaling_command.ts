@@ -47,6 +47,7 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
             }
             scaling.present[tokens[1]] = true;
         }
+        
         switch (tokens[0]) {
             case '==':
             case '=':
@@ -80,6 +81,7 @@ export class TokenScalingCommand extends ConfigurationCommand implements Scaling
             default:
                 return new Failure(new Error(`'${tokens[0]}' is not a valid comparison operator for party scaling level`));
         }
+
         // we may draw this token multiple times if it has multiple lines of config, but we won't know the 'last line'
         this.updateGraphic(token, scaling);
         return new Success('updated token scaling for party level');

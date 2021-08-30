@@ -9,6 +9,7 @@ merged/src
 merged/build
 merged/compile
 merged/tsconfig_*.json
+test/dnd*.js
 
 # sym link
 src/types/api.d.ts

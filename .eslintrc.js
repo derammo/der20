@@ -17,6 +17,19 @@ module.exports = {
         "es6": true,
         "node": true
     },
+    "overrides": [
+        { 
+            files: ["**/*.{js}"],
+            parser: "@babel/eslint-parser",
+            parserOptions: {
+              ecmaVersion: 2020,
+              sourceType: "module",
+              ecmaFeatures: {
+                jsx: true,
+              },
+            },   
+        }
+    ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "project": "tsconfig.json",
@@ -24,7 +37,8 @@ module.exports = {
     },
     "plugins": [
         "eslint-plugin-jsdoc",
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "@babel/eslint-parser"
     ],
     "rules": {
         "@typescript-eslint/dot-notation": "error",

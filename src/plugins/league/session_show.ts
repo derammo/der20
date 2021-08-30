@@ -1,25 +1,5 @@
-import { ConfigurationChooser, ConfigurationFromTemplate, ConfigurationSimpleCommand, DialogResult, ParserContext, Result, ResultBuilder } from 'der20/library';
-import { PartyState } from './ddal/party_state';
-import { DungeonMaster } from './ddal/dungeon_master';
-import { LeagueModule, LeagueModuleDefinition } from './ddal/league_module';
-
-export abstract class RenderCommand extends ConfigurationSimpleCommand {
-    constructor(protected dm: ConfigurationChooser<DungeonMaster>, protected module: ConfigurationFromTemplate<LeagueModuleDefinition, LeagueModule>, protected party: PartyState) {
-        super();
-    }
-
-    protected tryLoad(context: ParserContext): Promise<Result> {
-        let changes: Promise<Result>[] = [];
-        if (!this.dm.hasConfiguredValue()) {
-            changes.push(this.dm.handleCurrent('', context, [context.rest]));
-        }
-        if (!this.module.hasConfiguredValue()) {
-            changes.push(this.module.handleCurrent('', context, [context.rest]));
-        }
-        return Promise.all(changes)
-            .then(ResultBuilder.combined);
-    }
-}
+import { Dialog, DialogResult, ParserContext, Result } from 'der20/library';
+import { RenderCommand } from './render';
 
 export class SessionShowCommand extends RenderCommand {
     toJSON(): any {
@@ -44,6 +24,23 @@ export class SessionShowCommand extends RenderCommand {
             prefix: 'session',
             followUps: [context.rest]
         };
+        this.addFirstSection(dialog, link);
+
+        this.addModuleInfo(dialog, link);
+
+        this.addObjectives(dialog, link);
+
+        this.addPlayers(dialog, link);
+
+        this.addLastSection(dialog, link);
+
+        dialog.beginControlGroup();
+        dialog.addCommand('Preview & Send to Players', 'rewards preview', { command: context.command });
+        dialog.endControlGroup();
+        return dialog;
+    }
+
+    private addFirstSection(dialog: Dialog, link: { command: string; prefix: string; followUps: string[]; }) {
         dialog.addTitle('Log Entry for Current Session');
         dialog.addSeparator();
         dialog.addSubTitle('DM');
@@ -54,7 +51,10 @@ export class SessionShowCommand extends RenderCommand {
         dialog.addSeparator();
         dialog.addSubTitle('Module');
         dialog.beginControlGroup();
-        let module = this.module.value();
+    }
+
+    private addModuleInfo(dialog: Dialog, link: { command: string; prefix: string; followUps: string[]; }) {
+        const module = this.module.value();
         dialog.addEditControl('Module Name', 'module current name', module.name, link);
         dialog.addEditControl('Season', 'module current season', module.season, link);
         dialog.addEditControl('Hardcover', 'module current hardcover', module.hardcover, link);
@@ -69,6 +69,10 @@ export class SessionShowCommand extends RenderCommand {
         dialog.addEditControl('End Time', 'module current stop', module.stop, link);
         dialog.endControlGroup();
         dialog.addSeparator();
+    }
+
+    private addObjectives(dialog: Dialog, link: { command: string; prefix: string; followUps: string[]; }) {
+        const module = this.module.value();
         dialog.addSubTitle('Objectives and Unlocks');
         dialog.beginControlGroup();
         for (let item of module.unlocks.value()) {
@@ -83,7 +87,9 @@ export class SessionShowCommand extends RenderCommand {
         }
         dialog.endControlGroup();
         dialog.addSeparator();
+    }
 
+    private addPlayers(dialog: Dialog, link: { command: string; prefix: string; followUps: string[]; }) {
         // select from all player controlled creatures for automatic APL and to include/exclude in rewards
         dialog.addSubTitle('Players');
         dialog.beginControlGroup();
@@ -100,6 +106,9 @@ export class SessionShowCommand extends RenderCommand {
                 link
             );
         }
+    }
+
+    private addLastSection(dialog: Dialog, link: { command: string; prefix: string; followUps: string[]; }) {
         dialog.addEditControl('Party Strength', 'party strength', this.party.strength, link);
         dialog.endControlGroup();
         dialog.addSeparator();
@@ -114,9 +123,5 @@ export class SessionShowCommand extends RenderCommand {
         }
         dialog.endControlGroup();
         dialog.addSeparator();
-        dialog.beginControlGroup();
-        dialog.addCommand('Preview & Send to Players', 'rewards preview', { command: context.command });
-        dialog.endControlGroup();
-        return dialog;
     }
 }

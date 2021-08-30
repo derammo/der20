@@ -31,29 +31,14 @@ export class StatCommand extends SelectedTokensCommand {
         // accumulate all changes into one write
         const tokenSettings: GraphicMutableSynchronousGetProperties = <GraphicMutableSynchronousGetProperties>{};
 
+        // set up token for player
+        this.addPcDefaults(tokenSettings, this.fixPcName(character, token));
+
         let needsHp = this.linkHitPoints(character, tokenSettings);
         
         let { passiveWisdomValue, needsPp } = this.linkPassiveWisdom(character, knownCharacter, tokenSettings);
 
         let { armorClassValue, needsAc } = this.linkArmorClass(character, knownCharacter, tokenSettings);
-
-        // default name from character, unless set on token already
-        let name = this.fixPcName(character, token);
-
-        // set up token for player
-        Object.assign(tokenSettings, {
-            name: name,
-            showname: true,
-            showplayers_name: true,
-            showplayers_bar1: false,
-            showplayers_bar2: false,
-            showplayers_bar3: false,
-            playersedit_bar1: false,
-            playersedit_bar2: false,
-            playersedit_bar3: false,
-            bar_location: "overlap_bottom",
-            compact_bar: null
-        });
 
         // note we have seen this character now
         this.knownCharacters.set(character.id, true);
@@ -62,37 +47,10 @@ export class StatCommand extends SelectedTokensCommand {
             // XXX add option to write what we have here
 
             // interactive mode
-            let dialog = new parserContext.dialog();
-            const link = {
-                command: parserContext.command,
-                prefix: `character ${character.id}`
-            };
-            dialog.addTitle(`Complete missing info for: ${character.name}`);
-            dialog.beginControlGroup();
-            if (needsHp) {
-                dialog.addEditControl("Hit Points", "hp", new ConfigurationInteger(0), link);
-            }
-            if (needsAc) {
-                dialog.addEditControl("Armor Class", "ac", new ConfigurationInteger(armorClassValue), link);
-            }
-            if (needsPp) {
-                dialog.addEditControl("Passive Perception", "pp", new ConfigurationInteger(passiveWisdomValue), link);
-            }
-            dialog.endControlGroup();
-            return new DialogResult(DialogResult.Destination.caller, dialog.render());
+            return this.constructDialog(parserContext, character, needsHp, needsAc, armorClassValue, needsPp, passiveWisdomValue);
         } else {
             token.raw.set(tokenSettings);
-            const result = new Success(`set up player character token for ${character.name}`);
-            if (needsHp) {
-                result.messages.push(`player character ${character.name} has no 'hp' attribute`);
-            }
-            if (needsAc) {
-                result.messages.push(`player character ${character.name} has no 'ac' attribute`);
-            }
-            if (needsPp) {
-                result.messages.push(`player character ${character.name} has no 'passive_wisdom' attribute`);
-            }
-            return result;
+            return this.constructSuccess(character, needsHp, needsAc, needsPp);
         }
     }
 
@@ -107,6 +65,57 @@ export class StatCommand extends SelectedTokensCommand {
         name = Tokenizer.tokenize(name)[0];
 
         return name;
+    }
+
+    private addPcDefaults(tokenSettings: GraphicMutableSynchronousGetProperties, name: string) {
+        Object.assign(tokenSettings, {
+            name: name,
+            showname: true,
+            showplayers_name: true,
+            showplayers_bar1: false,
+            showplayers_bar2: false,
+            showplayers_bar3: false,
+            playersedit_bar1: false,
+            playersedit_bar2: false,
+            playersedit_bar3: false,
+            bar_location: "overlap_bottom",
+            compact_bar: null
+        });
+    }
+
+    private constructDialog(parserContext: ParserContext, character: Der20Character, needsHp: boolean, needsAc: boolean, armorClassValue: number, needsPp: boolean, passiveWisdomValue: number) {
+        let dialog = new parserContext.dialog();
+        const link = {
+            command: parserContext.command,
+            prefix: `character ${character.id}`
+        };
+        dialog.addTitle(`Complete missing info for: ${character.name}`);
+        dialog.beginControlGroup();
+        if (needsHp) {
+            dialog.addEditControl("Hit Points", "hp", new ConfigurationInteger(0), link);
+        }
+        if (needsAc) {
+            dialog.addEditControl("Armor Class", "ac", new ConfigurationInteger(armorClassValue), link);
+        }
+        if (needsPp) {
+            dialog.addEditControl("Passive Perception", "pp", new ConfigurationInteger(passiveWisdomValue), link);
+        }
+        dialog.endControlGroup();
+        return new DialogResult(DialogResult.Destination.caller, dialog.render());
+    }
+
+    private constructSuccess(character: Der20Character, needsHp: boolean, needsAc: boolean, needsPp: boolean): Success {
+        const result = new Success(`set up player character token for ${character.name}`);
+        if (needsHp) {
+            result.messages.push(`player character ${character.name} has no 'hp' attribute`);
+        }
+        if (needsAc) {
+            result.messages.push(`player character ${character.name} has no 'ac' attribute`);
+        }
+        if (needsPp) {
+            result.messages.push(`player character ${character.name} has no 'passive_wisdom' attribute`);
+        }
+        return result;
     }
 
     private linkArmorClass(character: Der20Character, useAnyValue: boolean, tokenSettings: GraphicMutableSynchronousGetProperties) {
@@ -160,6 +169,9 @@ export class StatCommand extends SelectedTokensCommand {
         // accumulate all changes into one write
         const tokenSettings: GraphicMutableSynchronousGetProperties = <GraphicMutableSynchronousGetProperties>{};
 
+        // add defaults and name
+        this.addNpcDefaults(tokenSettings, name);
+
         // note passive perception
         let { passiveWisdomValue, needsPp } = this.linkPassiveWisdom(character, true, tokenSettings);
 
@@ -172,21 +184,6 @@ export class StatCommand extends SelectedTokensCommand {
         }
         const stealthCheck = Math.max(randomInteger(20) + stealth, 1);
         Object.assign(tokenSettings, { bar3_link: '', bar3_value: stealthCheck, bar3_max: "30 (S)" });
-
-        // set up name and vision
-        Object.assign(tokenSettings, {
-            name: name,
-            showname: true,
-            showplayers_name: true,
-            showplayers_bar1: false,
-            showplayers_bar2: false,
-            showplayers_bar3: false,
-            playersedit_bar1: false,
-            playersedit_bar2: false,
-            playersedit_bar3: false,
-            bar_location: "overlap_bottom",
-            compact_bar: null
-        });
 
         // default to pre-rolled HP
         const averageHp: number = character.attribute('hp').max(1);
@@ -212,6 +209,22 @@ export class StatCommand extends SelectedTokensCommand {
         // write all changes
         token.raw.set(tokenSettings);
         return new Success(`NPC ${name}, ${formula.value('1')} (${averageHp}) = average ${hp}, stealth (${stealth}) = ${stealthCheck}, passive perception = ${needsPp ? "MISSING" : passiveWisdomValue}`).resolve();
+    }
+
+    private addNpcDefaults(tokenSettings: GraphicMutableSynchronousGetProperties, name: string) {
+        Object.assign(tokenSettings, {
+            name: name,
+            showname: true,
+            showplayers_name: true,
+            showplayers_bar1: false,
+            showplayers_bar2: false,
+            showplayers_bar3: false,
+            playersedit_bar1: false,
+            playersedit_bar2: false,
+            playersedit_bar3: false,
+            bar_location: "overlap_bottom",
+            compact_bar: null
+        });
     }
 
     private processRoll(summary: RollSummary, token: Der20Token) {

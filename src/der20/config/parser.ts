@@ -36,33 +36,32 @@ export class ConfigurationParser extends Tokenizer {
         const [keywordToken, rest] = ConfigurationParser.tokenizeFirst(text);
         const route = ConfigurationParser.route(keywordToken, configuration);
         if (route === undefined) {
-            debug.log(`token '${keywordToken}' of '${context.rest}' unroutable at ${configuration.constructor.name}`); 
-            return ConfigurationParser.handleUnroutable(keywordToken, result);
+            return ConfigurationParser.handleUnroutable(context, configuration, keywordToken, result);
         }
 
         // validation
-        result = ConfigurationParser.validate(configuration, route.propertyName, rest, result);
+        result = ConfigurationParser.validate(context, configuration, route.propertyName, result);
         if (result.kind !== Result.Kind.success) {
             // denied by validation
-            debug.log(`input '${rest}' failed validation for property '${route.propertyName}' at ${configuration.constructor.name}`); 
-            ConfigurationParser.handleEvents(result, configuration, keywordToken);
-            return Promise.resolve(result);
+            return ConfigurationParser.handleValidationFailure(context, configuration, route.propertyName, result);
         }
 
         // recursively parse rest of command line
-        context.frames.push({
-            route: keywordToken,
-            target: route.target
-        });
         return ConfigurationParser.parse(rest, route.target, context)
             .then((recursionResult: Result) => {
                 context.swapIn();
-                ConfigurationParser.handleEvents(recursionResult, configuration, keywordToken);
-                return recursionResult;
+                return ConfigurationParser.handleEvents(context, configuration, keywordToken, recursionResult);
             });
     }
 
-    private static handleUnroutable(keywordToken: string, result: Result): Promise<Result> {
+    private static handleValidationFailure(context: ParserContext, configuration: any, keywordToken: string, result: Result): Promise<Result> {
+        debug.log(`input '${context.rest}' failed validation for property '${keywordToken}' at ${configuration.constructor.name}`); 
+        return ConfigurationParser.handleEvents(context, configuration, keywordToken, result);
+    }
+
+    private static handleUnroutable(context: ParserContext, configuration: any, keywordToken: string, result: Result): Promise<Result> {
+        debug.log(`token '${keywordToken}' of '${context.rest}' unroutable at ${configuration.constructor.name}`); 
+
         if (keywordToken.length > 0) {
             return new Failure(new Error(`token '${keywordToken}' did not match any configuration command`)).resolve();
         }
@@ -71,7 +70,7 @@ export class ConfigurationParser extends Tokenizer {
         return Promise.resolve(result);
     }
 
-    private static validate(configuration: any, propertyName: string, rest: string, result: Result) {
+    private static validate(configuration: any, propertyName: string, rest: string, result: Result): Result {
         let meta = Der20Meta.fetch(configuration.constructor.prototype);
         if (meta !== undefined) {
             let propertyMeta = meta.properties[propertyName];
@@ -85,15 +84,7 @@ export class ConfigurationParser extends Tokenizer {
         return result;
     }
 
-    /**
-     * handles events from child properties, called at every level of recursion, as opposed to
-     * Plugin.handleParserResult, which is only called at the top level
-     *
-     * @param result
-     * @param configuration
-     * @param keywordToken
-     */
-    private static handleEvents(result: Result, configuration: any, keywordToken: string) {
+    private static handleEvents(_context: ParserContext, configuration: any, keywordToken: string, result: Result): Promise<Result> {
         if (result.events.has(Result.Event.change)) {
             const changeHandling = ConfigurationChangeHandling.query(configuration);
             if (changeHandling.supported) {
@@ -101,6 +92,7 @@ export class ConfigurationParser extends Tokenizer {
                 changeHandling.interface.handleChange(keywordToken);
             }
         }
+        return result.resolve();
     }
 
     // route command to configuration object
@@ -135,7 +127,7 @@ export class ConfigurationParser extends Tokenizer {
         return ConfigurationParser.searchForKeyword(configuration, keywordToken);
     }
     
-    static searchForKeyword(configuration: any, keywordToken: string): { target: any; propertyName: string; } {
+    private static searchForKeyword(configuration: any, keywordToken: string): { target: any; propertyName: string; } {
         for (let key in configuration) {
             if (!configuration.hasOwnProperty(key)) {
                 continue;
@@ -173,17 +165,24 @@ export class ConfigurationParser extends Tokenizer {
         }
 
         // enumerate keywords
+        ConfigurationParser.exportKeys(configuration, context);
+    }
+
+    private static exportKeys(configuration: any, context: ExportContext): void {
         const meta = Der20Meta.fetch(configuration.constructor.prototype);
         for (let key of Object.getOwnPropertyNames(configuration)) {
             const child = configuration[key];
             let keywordToken = key;
+
             if (!ConfigurationParser.isExportableType(configuration, key, child)) {
-                return;
+                continue;
             }
+
             if (child.hasOwnProperty('keyword')) {
                 // keyword override from class
                 keywordToken = child.keyword;
             }
+
             if (meta !== undefined) {
                 const property = meta.properties[key];
                 if (property !== undefined) {
@@ -206,7 +205,8 @@ export class ConfigurationParser extends Tokenizer {
             context.pop();
         }
     }
-    static isExportableType(configuration: any, key: string, child: any) {
+
+    private static isExportableType(configuration: any, key: string, child: any) {
         if (typeof child !== 'object') {
             debug.log(`${configuration.constructor.name} not exporting non-object key ${key}`);
             return false;

@@ -24,8 +24,6 @@ export interface ParserContext extends ConfigurationContext {
     rest: string;
 
     dialog: DialogFactory;
-
-    frames: ParserFrame[];
 }
 
 
