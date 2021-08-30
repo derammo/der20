@@ -142,7 +142,7 @@ export class ConfigurationParser extends Tokenizer {
         return undefined;
     }
 
-    private static isConfiguration(configuration: any, keywordToken: string, meta: Der20Meta) {
+    private static isConfiguration(configuration: any, keywordToken: string, meta: Der20Meta): boolean {
         return configuration.hasOwnProperty(keywordToken) &&
             meta !== undefined &&
             meta.properties[keywordToken] !== undefined &&

@@ -1,4 +1,13 @@
 /dist
+/build
+/merged
+/releases
+/test
 /src/types/api.d.ts
 /types-roll20
 .eslintrc.js
+
+# JS needed
+/scripts
+/src/sys
+/src/executables/**/*.js

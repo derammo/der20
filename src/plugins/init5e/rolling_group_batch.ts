@@ -1,7 +1,7 @@
 import { ApiCommandInput, Der20Token } from 'der20/library';
-import { RollingGroup } from "./rolling_group";
+import { RollingGroup, RollingGroupHost } from "./rolling_group";
 
-export class RollingGroupBatch {
+export class RollingGroupBatch implements RollingGroupHost {
     constructor(source: ApiCommandInput) {
         this.message = source.message;
     }

@@ -63,7 +63,7 @@ export namespace Der20Meta {
          * for parsing and help generation
          */
          config: boolean;
-         /**
+        /**
          * if set, validator class to call before setting value
          */
         validation: Validator;

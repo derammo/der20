@@ -1,11 +1,15 @@
 import { D20RollSpec, Der20Character, Der20Token, Result, RollQuery, Sheet5eOGL, Success } from 'der20/library';
-import { RollingGroupBatch } from './rolling_group_batch';
 
+// eslint-disable-next-line no-shadow
 export enum RollingMode {
-    Advantage,
-    Straight,
-    Disadvantage,
-    Separate
+    advantage,
+    straight,
+    disadvantage,
+    separate
+}
+
+export interface RollingGroupHost {
+    sharedRolls: { group: RollingGroup; tokens: Der20Token[]; result: number; }[];
 }
 
 export class RollingGroup {
@@ -14,7 +18,7 @@ export class RollingGroup {
         this.spec = sheet.calculateInitiativeRoll();
     }
 
-    mode: RollingMode = RollingMode.Straight;
+    mode: RollingMode = RollingMode.straight;
     spec: D20RollSpec;
 
     // the tokens classified into sets
@@ -44,35 +48,35 @@ export class RollingGroup {
     analyze() {
         if (this.advantage.length > 0) {
             if (this.straight.length === 0 && this.disadvantage.length === 0) {
-                this.mode = RollingMode.Advantage;
+                this.mode = RollingMode.advantage;
             } else {
-                this.mode = RollingMode.Separate;
+                this.mode = RollingMode.separate;
             }
         }
         else if (this.straight.length > 0) {
             if (this.advantage.length === 0 && this.disadvantage.length === 0) {
-                this.mode = RollingMode.Straight;
+                this.mode = RollingMode.straight;
             } else {
-                this.mode = RollingMode.Separate;
+                this.mode = RollingMode.separate;
             }
         }
         else if (this.disadvantage.length > 0) {
-            this.mode = RollingMode.Disadvantage;
+            this.mode = RollingMode.disadvantage;
         }
     }
 
-    roll(rollingContext: RollingGroupBatch, group: RollingGroup): Promise<Result> {
+    roll(rollingContext: RollingGroupHost, group: RollingGroup): Promise<Result> {
         switch (this.mode) {
-            case RollingMode.Advantage: {
+            case RollingMode.advantage: {
                 return this.singleRoll(rollingContext, group, group.advantage, group.spec.generateAdvantageRoll());
             }
-            case RollingMode.Disadvantage: {
+            case RollingMode.disadvantage: {
                 return this.singleRoll(rollingContext, group, group.disadvantage, group.spec.generateDisadvantageRoll());
             }
-            case RollingMode.Straight: {
+            case RollingMode.straight: {
                 return this.singleRoll(rollingContext, group, group.straight, group.spec.generateStraightRoll());
             }
-            case RollingMode.Separate: {
+            case RollingMode.separate: {
                 return this.mixedRoll(group, rollingContext);
             }
             default: {
@@ -89,7 +93,7 @@ export class RollingGroup {
      * @param rollingContext 
      * @returns 
      */
-    private mixedRoll(group: RollingGroup, rollingContext: RollingGroupBatch): Promise<Result> {
+    private mixedRoll(group: RollingGroup, rollingContext: RollingGroupHost): Promise<Result> {
         const roll = group.spec.generateStraightRoll();
         const narrative = `${roll} (${group.spec.factors.join(", ")})`;
 
@@ -112,7 +116,7 @@ export class RollingGroup {
      * @param roll 
      * @returns 
      */
-    private singleRoll(rollingGroupContext: RollingGroupBatch, group: RollingGroup, tokens: Der20Token[], roll: string): Promise<Result> {
+    private singleRoll(rollingGroupContext: RollingGroupHost, group: RollingGroup, tokens: Der20Token[], roll: string): Promise<Result> {
         const narrative = `${roll} (${group.spec.factors.join(", ")})`;
         debug.log(narrative);
         return new RollQuery(roll).asyncRoll()

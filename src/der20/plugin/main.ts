@@ -81,7 +81,7 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
     }
 
     /**
-     *  called when plugin crashed on startup, to make sure it doesn't do things
+     * called when plugin crashed on startup, to make sure it doesn't do things
      */ 
     disable() {
         this.builtinCommands = new Set();
@@ -397,6 +397,7 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
 
     /**
      * schedule semicolon-separated list of commands
+     * 
      * @param input the source of the configuraton commands
      * @param line the entire command line including commands, may not be for this plugin
      * @returns 
@@ -430,6 +431,7 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
 
     /**
      * dispatch a single command that is for this plugin
+     * 
      * @param input 
      * @param command the !command
      * @param rest the command line, not including the !command
@@ -466,6 +468,7 @@ class PluginImplementation<T> implements CommandSink, ContextHost {
 
     /**
      * read the current configuration provided by the given command source
+     * 
      * @param source 
      * @param opaque an opaque handle provided by the caller
      */

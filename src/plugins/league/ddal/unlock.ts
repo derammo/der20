@@ -1,7 +1,7 @@
 import { ConfigurationBoolean, ConfigurationEnumerated, ConfigurationInteger, ConfigurationString, ConfigurationValue, Dialog, LargeTableItem, format, config } from 'der20/library';
 
 // can't use enum type in generic, so we use a list of possible values instead
-export const Rarity: string[] = [ "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique" ];
+export const rarity: string[] = [ "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique" ];
 
 export class UnlockDefinition extends LargeTableItem {
     // can't be undefined, because we need to detect that we can load it
@@ -20,7 +20,7 @@ export class UnlockDefinition extends LargeTableItem {
     @config location: ConfigurationString = new ConfigurationString(ConfigurationValue.UNSET);
 
     // rarity value, capitalized 
-    @config rarity: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationValue.UNSET, Rarity);
+    @config rarity: ConfigurationEnumerated = new ConfigurationEnumerated(ConfigurationValue.UNSET, rarity);
 
     // tier restriction for item
     @config tier: ConfigurationInteger = new ConfigurationInteger(ConfigurationValue.UNSET);

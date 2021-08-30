@@ -10,6 +10,7 @@ declare function der20ScriptModules(): any & { name: string; data: any };
 export class ErrorReporter {
     /**
      * report an error that occurred during command execution
+     * 
      * @param error 
      * @param context 
      * @returns a dialog object that can be rendererd and displayed if an interactive channel is available
