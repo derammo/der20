@@ -1,7 +1,5 @@
 import { ConfigurationPersistence } from 'der20/config/persistence'
 
-declare var state: any;
-
 // REVISIT: dirty flags and links back in the configuration tree to only write modified subtree
 export class ConfigurationState extends ConfigurationPersistence {
     static supported(): boolean {

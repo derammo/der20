@@ -574,7 +574,7 @@ export class Plugin<T> {
             this.plugin.defaultConfiguration();
 
             // run help generator mode if run that way
-            if (der20ScriptMode === 'help generator') {
+            if (typeof der20ScriptMode !== 'undefined' && der20ScriptMode === 'help generator') {
                 // help generator mode is called from build system to emit command list as JSON
                 let help = new HelpCommand(this.plugin.name, this.plugin.configurationRoot);
                 process.stdout.write(JSON.stringify(help.generated(), undefined, 2));

@@ -18,7 +18,7 @@ export class ErrorReporter {
     static reportError(error: Error, context?: PluginParserContext): Dialog {
         const bodyText: string[] = [];
 
-        if (frames === undefined) {
+        if (error.stack === undefined) {
             console.log(`caught error without any stack frames:\n${error}`);
         } else if (typeof der20ScriptModules === 'undefined') {
             ErrorReporter.writeFrames(bodyText, error.stack);
