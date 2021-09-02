@@ -7,7 +7,7 @@ EXECUTABLES := parser_test embedded_config
 SRC := $(shell find src -name "*.ts" -or -name "*.js")
 DEFAULT := $(word 1,$(EXECUTABLES))
 DIST_PLUGINS := $(patsubst %,dist/der20_%_plugin.js,$(PLUGINS))
-DIST := $(patsubst %,dist/der20_%_complete.js,$(PLUGINS)) dist/der20_library.js $(DIST_PLUGINS)
+DIST := $(patsubst %,dist/der20_%_complete.js,$(PLUGINS)) dist/der20_library.js dist/der20_library.d.ts $(DIST_PLUGINS)
 HELP_JSON := $(patsubst %,build/%_help.json,$(PLUGINS))
 LICENSE_LENGTH := $(word 1, $(shell wc -l LICENSE))
 LIB_SOURCES := $(shell find src/der20 -name "*.ts" | grep -v 'src/der20/library.ts' | sort)
@@ -86,6 +86,9 @@ checkout_master:
 releases/${RELEASE}/%.js: dist/%.js LICENSE
 	@mkdir -p releases/${RELEASE}
 	sed -e 's/DER20 DEVELOPMENT BUILD/v${RELEASE}/g' < $< > $@
+releases/${RELEASE}/%.ts: dist/%.ts LICENSE
+	@mkdir -p releases/${RELEASE}
+	sed -e 's/DER20 DEVELOPMENT BUILD/v${RELEASE}/g' < $< > $@
 publish: checkout_release create_draft checkout_master
 create_draft:
 	git push origin v${RELEASE}
@@ -106,7 +109,6 @@ help: $(HELP_JSON) scripts/update_helpfiles.js
 		node ../scripts/update_helpfiles.js < ../$${file} ; \
 	done
 	touch help
-
 dist/der20_library.js: merged/build/der20/library.js include/library_header.js.txt include/library_trailer.js.txt Makefile LICENSE
 	@mkdir -p dist
 	@rm -f $@
@@ -124,6 +126,11 @@ dist/der20_library.js: merged/build/der20/library.js include/library_header.js.t
 	@cat include/library_trailer.js.txt >> $@
 	@chmod 444 $@
 	@echo packaging $< as separate library $@ for Roll20
+dist/der20_library.d.ts: merged/compile/der20/library.d.ts
+	echo "//" > $@
+	echo "// type information for der20 library, requires types from https://github.com/laquasicinque/types-roll20" >> $@
+	echo "//" >> $@
+	cat $< >> $@
 dist/der20_%_plugin.js: merged/build/der20/%_plugin.js include/plugin_header.js.txt include/plugin_trailer.js.txt Makefile LICENSE
 	@mkdir -p dist
 	@rm -f $@
@@ -172,7 +179,7 @@ merged/build/der20/library.js: merged/compile/der20/library.js Makefile
 		-e 's/^});//' \
 		$< > $@
 	@cat src/sys/library_loader.js >> $@
-merged/compile/der20/library.js: merged/src/der20/library.ts src/sys/library_loader.js merged/tsconfig_library.json Makefile
+merged/compile/der20/library.js merged/compile/der20/library.d.ts: merged/src/der20/library.ts src/sys/library_loader.js merged/tsconfig_library.json Makefile
 	$(TSC) -p merged/tsconfig_library.json
 merged/src/der20/library.ts: $(LIB_SOURCES) build/tsmerge.js merged/src/types Makefile
 	@echo merging sources into $@

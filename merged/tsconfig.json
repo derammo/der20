@@ -19,6 +19,7 @@
         "noUnusedLocals": true,
         "noUnusedParameters": false,
         "experimentalDecorators": true,
+        "declaration": true,
         "noEmitHelpers": true
     },
     "compileOnSave": true,
