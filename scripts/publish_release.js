@@ -36,11 +36,11 @@ function execute(token) {
 
 For each plugin you want to use, download EITHER
 
-* der20_library.js (unless you already have it from another plugin) AND the specific plugin you want to use, such as der20_rewards_plugin.js
+* der20_library.js (unless you already have it from another plugin) AND the specific plugin you want to use, such as der20_setup_plugin.js
 
 OR
 
-* the complete self-contained script, such as der20_rewards_complete.js, which will be a much larger file than the corresponding plugin
+* the complete self-contained script, such as der20_setup_complete.js, which will be a much larger file than the corresponding plugin
 
 Install all *.js files as separate scripts in the Roll20 API Console.  Only install one copy of der20_library.js.  The order of scripts does not matter, but plugins will fail to start until the library is installed.
 
